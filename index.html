@@ -409,8 +409,10 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
   <div class="frame" style="padding:16px">
     <div class="center">
       <h2 style="color:var(--gold);font-size:18px" id="routeTitle"></h2>
-      <div class="muted" style="font-size:11px;margin:6px 0 12px">
+      <div class="muted" style="font-size:11px;margin:6px 0 4px">
         The whole floor, end to end. Pick your direction — you can only step to a room the path reaches.</div>
+      <div class="center" id="routeVote" style="font-size:11px;margin-bottom:8px;min-height:15px"></div>
+      <div class="center" id="routeForce" style="margin-bottom:8px"></div>
     </div>
     <div id="mapWrap" style="position:relative">
       <svg id="mapLines" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></svg>
@@ -2782,19 +2784,108 @@ let storyI=0;
 const NET={on:false,host:false,code:"",room:null,seat:-1,peers:[],names:{},
            started:false,lastSnap:0,pending:null,status:""};
 function netCode(){let c="";for(let i=0;i<4;i++)c+="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[(Math.random()*32)|0];return c;}
+async function netWhoAmI(){
+  if(NET.myName)return NET.myName;
+  try{
+    const u=await claude.use("user");
+    if(u){const me=await u.me(); if(me&&me.name)return (NET.myName=me.name);}
+  }catch(e){}
+  return NET.myName||"";
+}
+/* ---- the relay: how a copy on any website finds the others ----
+   On claude.ai the page has its own room. Anywhere else (GitHub Pages, a file on a phone) there is
+   no server, so messages go through a free public MQTT broker over a secure WebSocket. It speaks
+   the same emit/on shape as the room, so nothing above this line knows the difference. */
+const RELAY_LIBS=["https://unpkg.com/mqtt/dist/mqtt.min.js",
+                  "https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"];
+const RELAY_BROKERS=["wss://broker.hivemq.com:8884/mqtt",
+                     "wss://broker.emqx.io:8084/mqtt",
+                     "wss://test.mosquitto.org:8081/mqtt"];
+function loadScript(src,ms){
+  return new Promise(res=>{
+    const t=document.createElement('script');let done=false;
+    const fin=ok=>{if(done)return;done=true;res(ok);};
+    t.src=src;t.async=true;t.onload=()=>fin(true);t.onerror=()=>fin(false);
+    setTimeout(()=>fin(!!window.mqtt),ms||8000);
+    document.head.appendChild(t);
+  });
+}
+async function loadMqtt(){
+  if(window.mqtt)return true;
+  for(const src of RELAY_LIBS){ if(await loadScript(src,8000)&&window.mqtt)return true; }
+  return false;
+}
+function relayTry(url,prefix){
+  return new Promise(res=>{
+    let client,settled=false;
+    const fin=v=>{if(settled)return;settled=true;res(v);};
+    try{
+      client=window.mqtt.connect(url,{clientId:"lt_"+Math.random().toString(36).slice(2,12),
+        clean:true,keepalive:30,reconnectPeriod:2000,connectTimeout:7000});
+    }catch(e){fin(null);return;}
+    const timer=setTimeout(()=>{try{client.end(true);}catch(e){}fin(null);},9000);
+    client.on('connect',()=>{
+      client.subscribe(prefix+'+',{qos:0},err=>{
+        clearTimeout(timer);
+        if(err){try{client.end(true);}catch(e){}fin(null);}else fin(client);
+      });
+    });
+    client.on('error',()=>{});
+  });
+}
+async function relayRoom(name){
+  if(!(await loadMqtt()))return null;
+  const prefix="lasttorch/v1/"+name+"/";
+  let client=null;
+  for(const url of RELAY_BROKERS){ client=await relayTry(url,prefix); if(client){NET.via=url;break;} }
+  if(!client)return null;
+  const ID=Math.random().toString(36).slice(2);
+  const subs={};
+  client.on('message',(topic,payload)=>{
+    if(!topic.startsWith(prefix))return;
+    let m;try{const txt=(typeof payload==='string')?payload:new TextDecoder().decode(payload);
+      m=JSON.parse(txt);}catch(e){return;}
+    if(!m||m.f===ID)return;                         // the broker hands our own messages back
+    (subs[topic.slice(prefix.length)]||[]).forEach(fn=>{try{fn(m.d);}catch(e){}});
+  });
+  return {
+    emit:(topic,data)=>{try{client.publish(prefix+topic,JSON.stringify({f:ID,d:data}),{qos:0});}catch(e){}},
+    on:(topic,fn)=>{(subs[topic]=subs[topic]||[]).push(fn);},
+    presence:()=>{}, onPeers:()=>{},
+    leave:()=>{try{client.end(true);}catch(e){}},
+    relay:true
+  };
+}
 async function netConnect(code){
   let lobby=null;
-  try{ lobby=await claude.use("room"); }catch(e){ lobby=null; }
-  if(!lobby)return null;
-  try{ return lobby.join?lobby.join("lasttorch-"+code):lobby; }catch(e){ return null; }
+  try{ if(window.claude&&claude.use)lobby=await claude.use("room"); }catch(e){ lobby=null; }
+  if(lobby){
+    try{ const r=lobby.join?lobby.join("lasttorch-"+code):lobby; if(r){NET.via="claude.ai";return r;} }catch(e){}
+  }
+  return await relayRoom(code);                     // anywhere else: the public relay
 }
 function netSnapshot(){
+  if(B&&!B.over&&curScreen()==='scr-battle'){
+    return {lite:1,floor:R.floor,torches:R.torches,screen:'scr-battle',
+      arena:{t:+B.t.toFixed(1),
+        h:B.heroes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st})),
+        f:B.foes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st,
+           id:u.foeDef?u.foeDef.id:null}))}};
+  }
   const d={floor:R.floor,depth:R.depth,endless:R.endless,mode:R.mode,coins:R.coins,torches:R.torches,
     blessings:R.blessings,bless:R.bless,roll:R.roll,
     store:packGrid(R.store),stash:R.stash.map(packInst),
     party:R.party.map(m=>({cid:m.cid,name:m.name,tags:m.tags,maxHp:m.maxHp,hp:m.hp,dmg:m.dmg,
       armour:m.armour,spd:m.spd,dodge:m.dodge,lvl:m.lvl,xp:m.xp,grid:packGrid(m.grid)})),
     screen:(document.querySelector('.scr.on')||{}).id||'scr-title',
+    map:R.map?{cols:R.map.cols,rows:R.map.rows,pos:R.map.pos,
+      grid:R.map.grid.map(col=>col.map(n=>({type:n.type,c:n.c,r:n.r,done:n.done,boss:n.boss,
+        art:n.art,shrine:n.shrine})))}:null,
+    votes:NET.votes||{},
+    node:R.curNode?{type:R.curNode.type,art:R.curNode.art,shrine:R.curNode.shrine,
+      chestOpen:!!R.curNode.chestOpen}:null,
+    nodeTitle:(document.getElementById('nodeTitle')||{}).textContent||'',
+    nodeDesc:(document.getElementById('nodeDesc')||{}).innerHTML||'',
     shop:shopStock?shopStock.map(packGrid):null,
     bl:UI._blessOffer||null,
     arena:(B&&!B.over)?{t:+B.t.toFixed(1),
@@ -2806,18 +2897,25 @@ function netSnapshot(){
 function netPush(force){
   if(!NET.on||!NET.host||!NET.room||!R)return;
   const now=Date.now();
-  if(!force&&now-NET.lastSnap<180)return;
+  if(!force&&now-NET.lastSnap<(NET.room&&NET.room.relay?320:180))return;
   NET.lastSnap=now;
   try{NET.room.emit("snap",{seats:NET.names,snap:netSnapshot()});}catch(e){}
 }
 function netApplySnap(m){
   if(NET.host)return;
-  const d=m.snap; if(!d||!d.party)return;
+  const d=m.snap; if(!d)return;
+  if(d.lite){                                       // mid-fight: only the fight changes
+    NET.names=m.seats||NET.names;
+    if(R&&d.arena){netRenderArena(d.arena); if(curScreen()!=='scr-battle')show('scr-battle');}
+    return;
+  }
+  if(!d.party)return;
   NET.names=m.seats||NET.names;
-  const keepMap=R&&R.map;
+  NET.votes=d.votes||{};
   R={floor:d.floor,depth:d.depth,endless:d.endless,mode:d.mode,coins:d.coins,torches:d.torches,
      blessings:d.blessings||[],bless:d.bless,roll:d.roll||1,soldHere:0,
-     stash:(d.stash||[]).map(unpackInst),store:unpackGrid(d.store,STORER),map:keepMap,
+     stash:(d.stash||[]).map(unpackInst),store:unpackGrid(d.store,STORER),
+     map:d.map||null,mapFloor:d.floor,
      party:d.party.map(p=>{const def=CHARS.find(c=>c.id===p.cid)||CHARS[0];
        return {cid:p.cid,name:p.name,tags:p.tags,maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
          spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR)};})};
@@ -2831,7 +2929,11 @@ function netApplySnap(m){
     if(curScreen()!=='scr-shop'){shopTalk=shopTalk||pick(ROOMTALK.shop);UI.shopMode=UI.shopMode||'buy';}
     renderShop();show('scr-shop');}
   else if(want==='scr-bless'){netBlessView(d.bl);show('scr-bless');}
-  else if(want==='scr-route'){netRouteView();show('scr-route');}
+  else if(want==='scr-route'){
+    if(R.map){document.getElementById('routeTitle').textContent=floorLabel(R.floor);renderMap();}
+    else netRouteView();
+    show('scr-route');}
+  else if(want==='scr-node'){netNodeView(d);show('scr-node');}
   else if(want==='scr-battle'||want==='scr-result'){netWaitView(want);}
   else show(want);
   if(document.getElementById('packModal').classList.contains('on'))renderPack();
@@ -2856,6 +2958,25 @@ function netRouteView(){
   const w=document.getElementById('mapWrap');
   if(w)w.innerHTML='<div class="center muted" style="padding:30px;font-size:12px">'+
     NET.names[0]+' is choosing the way on.<br><span class="flavor">Use the time: sort your pack.</span></div>';
+}
+function netNodeView(d){
+  R.curNode=d.node||null;
+  const t=document.getElementById('nodeTitle'), de=document.getElementById('nodeDesc'),
+        body=document.getElementById('nodeBody');
+  if(t)t.textContent=d.nodeTitle||'';
+  if(de)de.innerHTML=d.nodeDesc||'';
+  if(!body)return;
+  body.innerHTML='';
+  if(d.node&&d.node.art!==undefined)body.appendChild(roomBanner(d.node.art));
+  const who=NET.names[0]||'The host';
+  const line={chest:who+' is at the chest.',event:who+' is deciding what to do.',
+    shrine:who+' is at the shrine.',shop:who+' is at the stall.'}[d.node?d.node.type:'']||
+    who+' is handling this one.';
+  body.insertAdjacentHTML('beforeend',
+    '<div class="center muted" style="font-size:12px;margin-top:12px">'+line+
+    '<br><span class="flavor">Whatever comes of it lands in the party\u2019s packs.</span></div>');
+  const btn=document.getElementById('nodeBtn');
+  if(btn)btn.style.display='none';
 }
 function netWaitView(scr){
   show(scr);
@@ -2891,6 +3012,53 @@ function netRenderArena(a){
     pp.innerHTML='<div class="center muted" style="grid-column:1/-1;font-size:11px">'+
       NET.names[0]+' is running the fight. Yours is in it.</div>';}
 }
+/* ---- voting on the way on ---- */
+function voteCount(){return Object.keys(NET.votes||{}).length;}
+function seatCount(){return Math.max(1,Object.keys(NET.names||{}).length);}
+function castVote(c,r){
+  SFX.click();
+  if(NET.host){ netHostVote(NET.seat,c,r); }
+  else { NET.votes=NET.votes||{}; NET.votes[NET.seat]={c,r}; renderMap(); netSend({k:'vote',c,r}); }
+  showVoteLine();
+}
+function showVoteLine(){
+  const el=document.getElementById('routeVote'); if(!el)return;
+  if(!NET.on||seatCount()<2){el.textContent='';return;}
+  const n=voteCount(), t=seatCount();
+  el.innerHTML=n>=t
+    ? '<span class="granted">Everyone has chosen. Moving\u2026</span>'
+    : '<b class="gold">'+n+'/'+t+'</b> have chosen a way. '+
+      (NET.host?'You can wait, or <b>press on</b> with the votes in.':'Tap a room to put your mark on it.');
+}
+function netHostVote(seat,c,r){
+  if(!NET.host)return;
+  NET.votes=NET.votes||{};
+  if(!reachable(R.map,c,r))return;
+  const node=R.map.grid[c].find(n=>n.r===r); if(!node||node.done)return;
+  NET.votes[seat]={c,r};
+  renderMap(); showVoteLine(); netPush(true);
+  if(voteCount()>=seatCount())setTimeout(resolveVote,700);
+}
+function resolveVote(){
+  if(!NET.host||!NET.votes)return;
+  const tally={};
+  Object.keys(NET.votes).forEach(k=>{const v=NET.votes[k];const key=v.c+','+v.r;
+    tally[key]=(tally[key]||0)+1;});
+  let best=null,bn=-1;
+  Object.keys(tally).forEach(k=>{if(tally[k]>bn){bn=tally[k];best=k;}});
+  const tied=Object.keys(tally).filter(k=>tally[k]===bn);
+  // a tie goes to whatever the host marked, and failing that to chance
+  let pickKey=best;
+  if(tied.length>1){
+    const mine=NET.votes[0]?NET.votes[0].c+','+NET.votes[0].r:null;
+    pickKey=(mine&&tied.includes(mine))?mine:tied[(Math.random()*tied.length)|0];
+  }
+  if(!pickKey)return;
+  const [c,r]=pickKey.split(',').map(Number);
+  NET.votes={};
+  if(tied.length>1)toast("Split decision","The party goes "+(r<R.map.pos.r?"up":r>R.map.pos.r?"down":"straight on")+".");
+  enterNode(c,r);
+}
 /* ---- what a guest sends back ---- */
 function netSendMine(){
   if(!NET.on||NET.host||!NET.room||NET.seat<0||!R)return;
@@ -2919,6 +3087,8 @@ function netHostAct(m){
     if(hit&&sellsLeft()>0){R.coins+=sellPrice(hit.inst);removeCarried(hit.inst);
       R.sold=(R.sold||0)+1;R.soldHere=(R.soldHere||0)+1;}
     netPush(true);
+  } else if(m.k==='vote'){
+    netHostVote(seat,m.c,m.r);
   } else if(m.k==='ready'){
     NET.ready=NET.ready||{};NET.ready[seat]=1;
     toast(NET.names[seat]+" is ready","");
@@ -2931,14 +3101,22 @@ async function netStartHost(){
   const r=await netConnect(NET.code);
   if(!r){NET.status="no-room";renderLobby();return;}
   NET.on=true;NET.host=true;NET.room=r;NET.seat=0;
-  NET.names={0:"You (host)"};
+  const hn=await netWhoAmI();
+  NET.names={0:(hn?hn+" (host)":"You (host)")};
   r.on("hello",m=>{
     const used=Object.keys(NET.names).map(Number);
-    let seat=m.seat;
-    if(seat==null||used.includes(seat)){seat=1;while(used.includes(seat))seat++;}
-    if(seat>3)return;
-    NET.names[seat]=m.name||("Mercenary "+(seat+1));
+    // someone whose phone slept comes back to the same seat, by name
+    const back=used.find(k=>k>0&&m.name&&NET.names[k]===String(m.name).slice(0,14));
+    let seat;
+    if(back!==undefined)seat=back;
+    else {
+      if(NET.hostStarted){try{r.emit("seat",{to:m.id,seat:-1,full:1});}catch(e){}return;}
+      seat=1;while(used.includes(seat))seat++;
+    }
+    if(seat>3){try{r.emit("seat",{to:m.id,seat:-1,full:1});}catch(e){}return;}
+    NET.names[seat]=(m.name&&String(m.name).slice(0,14))||("Mercenary "+(seat+1));
     try{r.emit("seat",{to:m.id,seat,seats:NET.names,code:NET.code});}catch(e){}
+    if(back!==undefined){toast(NET.names[seat]+" is back","");setTimeout(()=>netPush(true),200);}
     renderLobby();
   });
   r.on("act",netHostAct);
@@ -2952,11 +3130,13 @@ async function netStartJoin(code){
   NET.on=true;NET.host=false;NET.room=r;NET.code=code;NET.myId="g"+Math.random().toString(36).slice(2,8);
   r.on("seat",m=>{
     if(m.to&&m.to!==NET.myId)return;
+    if(m.full){NET.status="full";renderLobby();return;}
     NET.seat=m.seat;NET.names=m.seats||{};NET.status="seated";renderLobby();
   });
   r.on("snap",m=>{NET.started=true;netApplySnap(m);});
   r.on("bye",()=>{NET.status="host-left";toast("The host closed the room","");});
-  try{r.emit("hello",{id:NET.myId,name:"Mercenary"});}catch(e){}
+  const mine=await netWhoAmI();
+  try{r.emit("hello",{id:NET.myId,name:mine||NET.typedName||"Mercenary"});}catch(e){}
   NET.status="waiting";renderLobby();
   setTimeout(()=>{if(NET.seat<0&&NET.status!=="no-room"){NET.status="nobody";renderLobby();}},6000);
 }
@@ -2974,26 +3154,37 @@ function netAskJoin(){
     '<input id="joinCode" maxlength="4" autocomplete="off" '+
       'style="font-family:inherit;text-transform:uppercase;letter-spacing:.4em;font-size:26px;width:180px;'+
       'text-align:center;background:#0d090d;border:2px solid var(--line);border-radius:5px;color:#ff9a4a;padding:8px">'+
+    '<div style="margin-top:10px"><input id="joinName" maxlength="14" placeholder="your name" '+
+      'style="font-family:inherit;font-size:13px;width:180px;text-align:center;background:#0d090d;'+
+      'border:2px solid var(--line);border-radius:5px;color:var(--ink);padding:7px"></div>'+
     '<div style="margin-top:12px"><button class="btn-main" id="joinGo">Knock</button></div></div>';
   const inp=document.getElementById('joinCode');
   inp.focus();
   document.getElementById('joinGo').onclick=()=>{
     const c=(inp.value||"").toUpperCase().replace(/[^A-Z0-9]/g,'');
     if(c.length<4){toast("That is not a code","Four letters, as the host read them out.");return;}
+    const nm=document.getElementById('joinName');
+    NET.typedName=(nm&&nm.value.trim())||"";
     SFX.click();netStartJoin(c);
   };
   inp.onkeydown=e=>{if(e.key==='Enter')document.getElementById('joinGo').click();};
 }
 function renderLobby(){
   const el=document.getElementById('lobbyBody'); if(!el)return;
+  if(NET.status==="full"){
+    el.innerHTML='<div class="center" style="padding:14px"><div class="cursed" style="font-size:13px">'+
+      'That party has already gone down.</div><div class="muted" style="font-size:11px;margin-top:6px">'+
+      'If you were one of them, join again with exactly the name you used and you get your seat back.</div></div>';
+    return;
+  }
   if(NET.status==="no-room"){
     el.innerHTML='<div class="center" style="padding:14px">'+
-      '<div class="cursed" style="font-size:13px;margin-bottom:6px">No room to join from here.</div>'+
+      '<div class="cursed" style="font-size:13px;margin-bottom:6px">Could not reach the others.</div>'+
       '<div class="muted" style="font-size:11px;line-height:1.7;max-width:430px;margin:0 auto">'+
-      'Online play needs the published page \\u2014 open Last Torch from its claude.ai link and the room '+
-      'will be there. A copy of the file opened on its own has nothing to connect to.<br><br>'+
-      '<b class="gold">Co-op on one device works anywhere</b>, including right here.</div>'+
-      '<button style="margin-top:12px" onclick="SFX.click();UI.netMode=0;goSelect()">Back</button></div>';
+      'Online play passes messages through a free public relay, and none of them answered. '+
+      'Check this device is online and try again in a moment. A school or work network sometimes '+
+      'blocks it — a phone on mobile data usually gets through.<br><br>'+
+      '<b class="gold">Co-op on one device works anywhere</b> — including right here, on this page.</div></div>';
     return;
   }
   const seats=Object.keys(NET.names).map(Number).sort();
@@ -3001,9 +3192,15 @@ function renderLobby(){
   if(NET.host){
     h+='<div class="center"><div class="muted pix" style="font-size:10px;letter-spacing:.3em">YOUR CODE</div>'+
        '<div class="creepy" style="font-size:40px;color:#ff9a4a;letter-spacing:.3em">'+NET.code+'</div>'+
-       '<div class="flavor" style="font-size:11px">Give that to the others. They pick "Join" and type it in.</div></div>';
+       '<div class="flavor" style="font-size:11px">Read that out to the others.</div>'+
+       '<div class="muted" style="font-size:11px;margin-top:8px;max-width:430px;margin-left:auto;'+
+       'margin-right:auto;line-height:1.7">Send them this page\u2019s address. They open it, choose '+
+       '<b>Begin the Descent &rarr; Co-op &rarr; Join with a code</b>, and type <b class="gold">'+
+       NET.code+'</b>.</div>'+
+       '<div class="muted" style="font-size:9px;margin-top:6px;opacity:.6">connected via '+
+       (NET.via==='claude.ai'?'claude.ai':'public relay')+'</div></div>';
   } else {
-    h+='<div class="center"><div class="muted" style="font-size:11px">Room <b class="gold">'+NET.code+'</b> \\u2014 '+
+    h+='<div class="center"><div class="muted" style="font-size:11px">Room <b class="gold">'+NET.code+'</b> — '+
        (NET.seat>=0?'you are mercenary '+(NET.seat+1):'waiting for the host to seat you')+'.</div></div>';
   }
   h+='<div class="row" style="justify-content:center;gap:8px;margin:14px 0;flex-wrap:wrap">';
@@ -3018,12 +3215,13 @@ function renderLobby(){
     h+='<div class="center"><button class="btn-main" onclick="SFX.click();netBegin()">Begin with '+
        seats.length+(seats.length===1?' mercenary':' mercenaries')+'</button></div>';
   } else {
-    h+='<div class="center muted" style="font-size:11px">Waiting for the host to begin\\u2026</div>';
+    h+='<div class="center muted" style="font-size:11px">Waiting for the host to begin…</div>';
   }
   el.innerHTML=h;
 }
 function netBegin(){
   if(!NET.host)return;
+  NET.hostStarted=true;
   const n=Math.max(1,Object.keys(NET.names).length);
   UI.players=n;UI.mode='coop';
   UI.picked=[];
@@ -3212,8 +3410,8 @@ function renderMode(){
     mk('&#128279; Join with a code',()=>netAskJoin());
     net.appendChild(row);
     net.insertAdjacentHTML('beforeend','<div class="muted" style="font-size:10px;margin-top:7px">'+
-      'Online needs the published page. Everyone keeps their own pack, wares and shrine; the host '+
-      'carries the map.</div>');
+      'Online works from any copy — your own site included. Everyone keeps their own pack, '+
+      'wares and shrine, and you all vote on the way on.</div>');
     cards.parentNode.insertBefore(net,cards.nextSibling);
   }
   const eb=document.getElementById('endlessBtns');eb.innerHTML='';
@@ -3718,6 +3916,7 @@ function reachable(M,c,r){
 }
 function toRoute(){
   saveRun();
+  if(NET.host)NET.votes={};
   netPush(true);
   if(!R.map||R.mapFloor!==R.floor){R.map=genMap(R.floor);R.mapFloor=R.floor;}
   document.getElementById('routeTitle').textContent=floorLabel(R.floor);
@@ -3743,8 +3942,31 @@ function renderMap(){
     d.insertAdjacentHTML('beforeend',
       `<div style="font-size:11px;color:${can?'var(--gold)':'#78839c'};margin-top:3px">${node.boss?'BOSS':RM.n}</div>
        ${M.pos.c===c&&M.pos.r===r?'<div style="font-size:9px;color:#aef07c">YOU ARE HERE</div>':''}`);
-    if(can)d.onclick=()=>enterNode(c,r);
+    if(NET.on){                                  // who wants to go this way
+      const who=Object.keys(NET.votes||{}).filter(k=>{
+        const v=NET.votes[k];return v&&v.c===c&&v.r===r;});
+      if(who.length)d.insertAdjacentHTML('beforeend',
+        '<div style="margin-top:3px;font-size:9px;color:#8ee86b;line-height:1.3">'+
+        who.map(k=>'\u25CF '+((NET.names[k]||('Merc '+(+k+1))).split(' ')[0])).join(' ')+'</div>');
+      const mine=NET.votes&&NET.votes[NET.seat];
+      if(mine&&mine.c===c&&mine.r===r)d.style.borderColor='#8ee86b';
+    }
+    if(can)d.onclick=()=>{
+      if(NET.on&&Object.keys(NET.names).length>1){castVote(c,r);return;}
+      enterNode(c,r);
+    };
     cell.appendChild(d);g.appendChild(cell);
+  }
+  showVoteLine();
+  const f=document.getElementById('routeForce');
+  if(f){
+    f.innerHTML='';
+    if(NET.on&&NET.host&&seatCount()>1&&voteCount()>0&&voteCount()<seatCount()){
+      const bt=document.createElement('button');
+      bt.textContent="Press on with "+voteCount()+" vote"+(voteCount()===1?"":"s");
+      bt.onclick=()=>{SFX.click();resolveVote();};
+      f.appendChild(bt);
+    }
   }
   requestAnimationFrame(drawMapLines);
 }
