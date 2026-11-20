@@ -66,6 +66,11 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 .slot.hl{border-color:#45a83c;box-shadow:0 0 8px rgba(69,168,60,.5)}
 .slot.ok,.ok{border-color:#8ee86b !important;background:rgba(142,232,107,.18)}
 .slot.bad,.bad{border-color:#ff6b6b !important;background:rgba(255,107,107,.16)}
+.rotbtn{position:absolute;top:-7px;right:-7px;width:19px;height:19px;min-height:0;padding:0;
+  font-size:12px;line-height:1;border-radius:50%;z-index:4;opacity:.55;
+  background:linear-gradient(#2a2028,#151014);border:1px solid var(--gold);color:var(--gold)}
+.rotbtn:hover{opacity:1}
+@media (hover:none){.rotbtn{opacity:.9;width:22px;height:22px}}
 .holding{transform:scale(1.09);box-shadow:0 0 16px rgba(232,194,122,.85);z-index:3;transition:transform .2s}
 .lvl{position:absolute;bottom:-3px;right:1px;font-size:9px;color:var(--gold);text-shadow:0 0 3px #000}
 .tagdot{position:absolute;top:1px;left:1px;display:flex;gap:1px}
@@ -219,6 +224,7 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
     </div>
     <div style="padding:0 18px 18px">
       <div style="max-width:420px;margin:0 auto">
+        <div id="continueWrap"></div>
         <button class="btn-main" style="width:100%;font-size:15px;letter-spacing:.16em"
                 onclick="SFX.click();goSelect()">&#9876;&nbsp; Begin the Descent</button>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px">
@@ -227,8 +233,11 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
           <button onclick="SFX.click();openBoard()">&#9636; Leaderboard</button>
           <button onclick="SFX.click();openSettings()">&#9881; Settings</button>
         </div>
-        <button style="width:100%;margin-top:8px;border-style:dashed"
-                onclick="SFX.click();showHelp()">How to Play</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <button style="border-color:#7fc9d9;color:#bfe6ef"
+                  onclick="SFX.click();openTutorial()">&#9873; Tutorial</button>
+          <button style="border-style:dashed" onclick="SFX.click();showHelp()">How to Play</button>
+        </div>
       </div>
       <div class="muted center" style="margin-top:14px;font-size:11px" id="metaLine"></div>
       <div id="titleArt" style="margin-top:10px;overflow:hidden"></div>
@@ -268,6 +277,40 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 </div>
 
 <!-- OPENING STORY -->
+<!-- ONLINE LOBBY -->
+<div class="scr" id="scr-lobby">
+  <div class="frame" style="padding:18px;max-width:620px;margin:0 auto">
+    <div class="center" style="margin-bottom:10px">
+      <h2 class="creepy" style="font-size:22px;color:#ff9a4a">A party, at a distance</h2>
+      <div class="flavor" style="font-size:12px">Four can go down together. Only one of you carries the map.</div>
+    </div>
+    <div id="lobbyBody"></div>
+    <div class="center" style="margin-top:14px">
+      <button onclick="SFX.click();netLeave()">&#8592; Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div class="scr" id="scr-tut">
+  <div class="frame" style="padding:18px;max-width:760px;margin:0 auto">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span class="pix muted" style="font-size:10px;letter-spacing:.3em" id="tutStep"></span>
+      <button style="font-size:10px;padding:5px 9px" onclick="SFX.click();tutQuit()">Skip</button>
+    </div>
+    <h2 class="creepy" id="tutTitle" style="font-size:22px;color:#ff9a4a;margin-bottom:6px"></h2>
+    <div class="flavor" id="tutLine" style="margin-bottom:10px;line-height:1.7"></div>
+    <div id="tutStage" style="min-height:150px;display:flex;flex-direction:column;align-items:center;
+         justify-content:center;gap:10px;padding:12px;border:2px solid #2b2228;border-radius:6px;
+         background:linear-gradient(#120d12,#0a070b)"></div>
+    <div class="muted center" id="tutHint" style="font-size:11px;margin-top:8px;min-height:16px"></div>
+    <div class="row" style="justify-content:center;gap:8px;margin-top:12px">
+      <button onclick="SFX.click();tutGo(-1)" id="tutBack">&#8592; Back</button>
+      <button class="btn-main" onclick="SFX.click();tutGo(1)" id="tutNext">Next &#8594;</button>
+    </div>
+  </div>
+</div>
+
 <div class="scr" id="scr-story">
   <div class="frame" style="padding:0;overflow:hidden;cursor:pointer" onclick="storyNext()">
     <div id="storyArt"></div>
@@ -446,6 +489,7 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
       <button onclick="openStats();closeMenu()">Party stats</button>
       <button onclick="openPack();closeMenu()">Backpacks</button>
       <button onclick="openCompendium();closeMenu()">Compendium</button>
+      <button id="saveQuitBtn" style="border-color:#8ee86b;color:#cfeeb8">Save and step out</button>
       <button id="endRunBtn" onclick="confirmEndRun()" style="border-color:#d3303a;color:#ff8577">End this run</button>
     </div>
   </div>
@@ -1801,7 +1845,10 @@ const SIZES={
   trident:[1,5],  chakram:[2,2], grimoire:[2,2], lantern:[1,2], horn:[2,2],
   mask:[2,2],     cloak:[3,3],  belt:[3,1],  bracer:[2,2], idol:[2,3],
   chalice:[1,2],  mirror:[2,3], censer:[1,3], caltrops:[2,1], banner:[1,5]};
-const sizeOf=inst=>SIZES[ITEMS[inst.bid].shape]||[1,1];
+const baseSize=inst=>SIZES[ITEMS[inst.bid].shape]||[1,1];
+// turned on its side, a spear is 5 across and 1 down instead of the other way about
+const sizeOf=inst=>{const z=baseSize(inst);return inst&&inst.rot?[z[1],z[0]]:[z[0],z[1]];};
+const canRotate=inst=>{const z=baseSize(inst);return z[0]!==z[1];};
 const sizeStr=inst=>{const z=sizeOf(inst);return z[0]+"×"+z[1];};
 function cellsFor(inst,anchor,rows){
   const [w,h]=sizeOf(inst), c0=anchor%PACKW, r0=(anchor/PACKW)|0, out=[];
@@ -2277,6 +2324,8 @@ function stopMusic(){
 }
 function setMusic(on){AUDIO.music=on;saveAudio();if(on)startMusic();else stopMusic();}
 window.addEventListener('pointerdown',()=>{if(AUDIO.music)startMusic();},{once:true});
+window.addEventListener('beforeunload',()=>{try{if(R&&R.party&&R.torches>0)saveRun();}catch(e){}});
+window.addEventListener('visibilitychange',()=>{if(document.hidden&&R&&R.party&&R.torches>0)saveRun();});
 window.addEventListener('touchstart',()=>{if(AUDIO.music)startMusic();},{once:true});
 
 /* ===================================================================
@@ -2448,7 +2497,9 @@ function floorLabel(f){
 }
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');window.scrollTo(0,0);
-  if(id==='scr-title'&&!menuRAF)menuRAF=requestAnimationFrame(menuTorchLoop);}
+  if(id==='scr-title'&&!menuRAF)menuRAF=requestAnimationFrame(menuTorchLoop);
+  // whatever room the host walks into, the others walk into too
+  if(typeof NET!=='undefined'&&NET.on&&NET.host)setTimeout(()=>netPush(true),0);}
 /* rarity odds improve with depth */
 // floor 1 is almost all commons; legendaries only start appearing in the deep floors
 function rarityWeights(f){
@@ -2577,6 +2628,27 @@ function initTitle(){
     w.appendChild(heroSprite(c,1));row.appendChild(w);});
   const t=document.getElementById('titleArt');t.innerHTML='';t.appendChild(row);
   if(!menuRAF)menuRAF=requestAnimationFrame(menuTorchLoop);
+  const cw=document.getElementById('continueWrap'); const sv=readSave();
+  if(cw){
+    cw.innerHTML='';
+    if(sv&&sv.party){
+      const when=new Date(sv.when||Date.now());
+      const cb=document.createElement('button');cb.className='btn-main';
+      cb.style.cssText='width:100%;margin-bottom:6px;border-color:#8ee86b;color:#cfeeb8;'+
+        'background:linear-gradient(#1e3a1c,#101c0e)';
+      cb.innerHTML='&#9654;&nbsp; Continue &mdash; '+
+        (sv.endless===false?'Act '+ROMAN[Math.min(4,((sv.floor-1)/15)|0)]+', floor '+sv.floor:'Floor '+sv.floor)+
+        ', '+sv.party.length+(sv.party.length===1?' mercenary':' mercenaries')+
+        ' <span style="font-size:10px;opacity:.7">'+when.toLocaleDateString()+'</span>';
+      cb.onclick=()=>{SFX.click();if(!loadRun())toast("That save would not open","Start a fresh run instead.");};
+      cw.appendChild(cb);
+      const ab=document.createElement('button');
+      ab.style.cssText='width:100%;font-size:10px;padding:5px;margin-bottom:10px;opacity:.65';
+      ab.textContent='Abandon that run';
+      ab.onclick=()=>{SFX.click();clearSave();initTitle();toast("Abandoned","The dark keeps them.");};
+      cw.appendChild(ab);
+    }
+  }
   const got=ACH.filter(a=>hasAch(a.id)).length, un=CHARS.filter(c=>!classLocked(c)).length;
   document.getElementById('metaLine').textContent=
     "Deepest floor: "+(META.best||0)+"   |   Mercenaries unlocked: "+un+"/"+CHARS.length+
@@ -2699,6 +2771,407 @@ const STORY=[
  {art:9, t:"You signed this morning. There is one torch left in the bracket by the first step, and the innkeeper has not looked at your face since.", last:1},
 ];
 let storyI=0;
+
+/* ================= ONLINE CO-OP =================
+   One player hosts and owns the truth: the floor, the map, the gold, the fights. Everyone else
+   holds a seat and plays their own mercenary — their pack, their wares, their shrine. Guests send
+   what they did, the host applies it and sends the whole run back. The run snapshot is the same
+   shape the save file uses, so there is only one serializer to keep honest.
+   Published online this rides the artifact's `room` capability. Opened as a plain file there is
+   no room to join, so the button says so and local co-op still works. */
+const NET={on:false,host:false,code:"",room:null,seat:-1,peers:[],names:{},
+           started:false,lastSnap:0,pending:null,status:""};
+function netCode(){let c="";for(let i=0;i<4;i++)c+="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[(Math.random()*32)|0];return c;}
+async function netConnect(code){
+  let lobby=null;
+  try{ lobby=await claude.use("room"); }catch(e){ lobby=null; }
+  if(!lobby)return null;
+  try{ return lobby.join?lobby.join("lasttorch-"+code):lobby; }catch(e){ return null; }
+}
+function netSnapshot(){
+  const d={floor:R.floor,depth:R.depth,endless:R.endless,mode:R.mode,coins:R.coins,torches:R.torches,
+    blessings:R.blessings,bless:R.bless,roll:R.roll,
+    store:packGrid(R.store),stash:R.stash.map(packInst),
+    party:R.party.map(m=>({cid:m.cid,name:m.name,tags:m.tags,maxHp:m.maxHp,hp:m.hp,dmg:m.dmg,
+      armour:m.armour,spd:m.spd,dodge:m.dodge,lvl:m.lvl,xp:m.xp,grid:packGrid(m.grid)})),
+    screen:(document.querySelector('.scr.on')||{}).id||'scr-title',
+    shop:shopStock?shopStock.map(packGrid):null,
+    bl:UI._blessOffer||null,
+    arena:(B&&!B.over)?{t:+B.t.toFixed(1),
+      h:B.heroes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st})),
+      f:B.foes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st,
+         id:u.foeDef?u.foeDef.id:null}))}:null};
+  return d;
+}
+function netPush(force){
+  if(!NET.on||!NET.host||!NET.room||!R)return;
+  const now=Date.now();
+  if(!force&&now-NET.lastSnap<180)return;
+  NET.lastSnap=now;
+  try{NET.room.emit("snap",{seats:NET.names,snap:netSnapshot()});}catch(e){}
+}
+function netApplySnap(m){
+  if(NET.host)return;
+  const d=m.snap; if(!d||!d.party)return;
+  NET.names=m.seats||NET.names;
+  const keepMap=R&&R.map;
+  R={floor:d.floor,depth:d.depth,endless:d.endless,mode:d.mode,coins:d.coins,torches:d.torches,
+     blessings:d.blessings||[],bless:d.bless,roll:d.roll||1,soldHere:0,
+     stash:(d.stash||[]).map(unpackInst),store:unpackGrid(d.store,STORER),map:keepMap,
+     party:d.party.map(p=>{const def=CHARS.find(c=>c.id===p.cid)||CHARS[0];
+       return {cid:p.cid,name:p.name,tags:p.tags,maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
+         spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR)};})};
+  shopStock=d.shop?d.shop.map(g=>unpackGrid(g,6)):null;
+  document.getElementById('statsTab').style.display='block';
+  renderTorches();
+  if(d.arena){netRenderArena(d.arena); if(curScreen()!=='scr-battle')show('scr-battle'); return;}
+  const want=d.screen;
+  if(want==='scr-shop'){
+    UI.shopP=NET.seat>=0?Math.min(NET.seat,R.party.length-1):0;
+    if(curScreen()!=='scr-shop'){shopTalk=shopTalk||pick(ROOMTALK.shop);UI.shopMode=UI.shopMode||'buy';}
+    renderShop();show('scr-shop');}
+  else if(want==='scr-bless'){netBlessView(d.bl);show('scr-bless');}
+  else if(want==='scr-route'){netRouteView();show('scr-route');}
+  else if(want==='scr-battle'||want==='scr-result'){netWaitView(want);}
+  else show(want);
+  if(document.getElementById('packModal').classList.contains('on'))renderPack();
+}
+function curScreen(){const e=document.querySelector('.scr.on');return e?e.id:'';}
+function netBlessView(bl){
+  const row=document.getElementById('blessRow');
+  document.getElementById('blessFloorTitle').textContent=floorLabel(R.floor);
+  row.innerHTML='';
+  (bl||[]).forEach(b=>{
+    const d=document.createElement('div');d.className='relic';d.style.cssText+=';opacity:.75;cursor:default';
+    d.innerHTML='<div class="gold" style="font-size:13px;margin:6px 0">'+b.n+'</div>'+
+      '<div class="muted" style="font-size:11px">'+b.d+'</div>';
+    row.appendChild(d);});
+  row.insertAdjacentHTML('beforeend',
+    '<div class="center muted" style="width:100%;font-size:11px;margin-top:8px">'+
+    NET.names[0]+' is choosing the blessing for all of you.</div>');
+}
+function netRouteView(){
+  const t=document.getElementById('routeTitle');
+  if(t)t.textContent=floorLabel(R.floor);
+  const w=document.getElementById('mapWrap');
+  if(w)w.innerHTML='<div class="center muted" style="padding:30px;font-size:12px">'+
+    NET.names[0]+' is choosing the way on.<br><span class="flavor">Use the time: sort your pack.</span></div>';
+}
+function netWaitView(scr){
+  show(scr);
+  const el=document.getElementById(scr==='scr-battle'?'arena':'resBody');
+  if(el&&!el.dataset.net){el.dataset.net='1';}
+}
+function netRenderArena(a){
+  const hs=document.getElementById('heroSide'), fs=document.getElementById('foeSide');
+  if(!hs||!fs)return;
+  const line=(u,foe)=>{
+    const d=document.createElement('div');d.className='unit';
+    if(u.hp<=0)d.classList.add('dead');
+    const art=document.createElement('div');
+    if(foe){const def=FOES.find(f=>f.id===u.id);if(def)art.appendChild(foeSprite(def,2));}
+    else {const m=R.party.find(p=>p.name===u.n);if(m)art.appendChild(heroSprite(m.def,2));}
+    d.appendChild(art);
+    d.insertAdjacentHTML('beforeend',
+      '<div style="font-size:11px;color:#fff">'+u.n+'</div>'+
+      '<div class="hpbar"><i style="width:'+Math.max(0,Math.round(100*u.hp/u.mx))+'%"></i></div>'+
+      '<div class="muted" style="font-size:10px">'+u.hp+'/'+u.mx+(u.ar>0?' &#128737;'+u.ar:'')+'</div>'+
+      '<div>'+Object.keys(u.st||{}).filter(k=>u.st[k]>0).map(k=>
+        '<span class="chip">'+k+' '+Math.round(u.st[k])+'</span>').join('')+'</div>');
+    return d;};
+  hs.innerHTML='';fs.innerHTML='';
+  a.h.forEach(u=>hs.appendChild(line(u,false)));
+  a.f.forEach(u=>fs.appendChild(line(u,true)));
+  const t=document.getElementById('battleTitle');
+  if(t)t.textContent=floorLabel(R.floor)+"  ·  "+a.t.toFixed(1)+"s";
+  const rb=document.getElementById('readyBar');if(rb)rb.style.display='none';
+  const bc=document.getElementById('battleCtl');if(bc)bc.style.display='none';
+  const pp=document.getElementById('packPeek');
+  if(pp&&!pp.dataset.net){pp.dataset.net='1';
+    pp.innerHTML='<div class="center muted" style="grid-column:1/-1;font-size:11px">'+
+      NET.names[0]+' is running the fight. Yours is in it.</div>';}
+}
+/* ---- what a guest sends back ---- */
+function netSendMine(){
+  if(!NET.on||NET.host||!NET.room||NET.seat<0||!R)return;
+  try{NET.room.emit("act",{k:'pack',seat:NET.seat,
+    grid:packGrid(R.party[NET.seat].grid),store:packGrid(R.store)});}catch(e){}
+}
+function netSend(obj){
+  if(!NET.on||NET.host||!NET.room)return false;
+  try{NET.room.emit("act",Object.assign({seat:NET.seat},obj));return true;}catch(e){return false;}
+}
+function netHostAct(m){
+  if(!NET.host||!R||!m||m.seat==null)return;
+  const seat=m.seat;
+  if(seat<0||seat>=R.party.length)return;
+  if(m.k==='pack'){
+    R.party[seat].grid=unpackGrid(m.grid,PACKMAXR);
+    if(m.store)R.store=unpackGrid(m.store,STORER);
+    netPush(true);
+  } else if(m.k==='buy'&&shopStock&&shopStock[seat]){
+    const a=anchors(shopStock[seat]).find(x=>x.inst.uid===m.uid||x.i===m.i);
+    if(a)buyFromPack(seat,a.i,a.inst);
+    netPush(true);
+  } else if(m.k==='sell'){
+    const all=allCarried().concat(R.stash.map(inst=>({inst})));
+    const hit=all.find(c=>c.inst.uid===m.uid);
+    if(hit&&sellsLeft()>0){R.coins+=sellPrice(hit.inst);removeCarried(hit.inst);
+      R.sold=(R.sold||0)+1;R.soldHere=(R.soldHere||0)+1;}
+    netPush(true);
+  } else if(m.k==='ready'){
+    NET.ready=NET.ready||{};NET.ready[seat]=1;
+    toast(NET.names[seat]+" is ready","");
+  }
+}
+/* ---- lobby ---- */
+async function netStartHost(){
+  NET.status="Opening a room…"; renderLobby();
+  NET.code=netCode();
+  const r=await netConnect(NET.code);
+  if(!r){NET.status="no-room";renderLobby();return;}
+  NET.on=true;NET.host=true;NET.room=r;NET.seat=0;
+  NET.names={0:"You (host)"};
+  r.on("hello",m=>{
+    const used=Object.keys(NET.names).map(Number);
+    let seat=m.seat;
+    if(seat==null||used.includes(seat)){seat=1;while(used.includes(seat))seat++;}
+    if(seat>3)return;
+    NET.names[seat]=m.name||("Mercenary "+(seat+1));
+    try{r.emit("seat",{to:m.id,seat,seats:NET.names,code:NET.code});}catch(e){}
+    renderLobby();
+  });
+  r.on("act",netHostAct);
+  try{r.presence({role:"host"});}catch(e){}
+  NET.status="open";renderLobby();
+}
+async function netStartJoin(code){
+  NET.status="Knocking…"; renderLobby();
+  const r=await netConnect(code);
+  if(!r){NET.status="no-room";renderLobby();return;}
+  NET.on=true;NET.host=false;NET.room=r;NET.code=code;NET.myId="g"+Math.random().toString(36).slice(2,8);
+  r.on("seat",m=>{
+    if(m.to&&m.to!==NET.myId)return;
+    NET.seat=m.seat;NET.names=m.seats||{};NET.status="seated";renderLobby();
+  });
+  r.on("snap",m=>{NET.started=true;netApplySnap(m);});
+  r.on("bye",()=>{NET.status="host-left";toast("The host closed the room","");});
+  try{r.emit("hello",{id:NET.myId,name:"Mercenary"});}catch(e){}
+  NET.status="waiting";renderLobby();
+  setTimeout(()=>{if(NET.seat<0&&NET.status!=="no-room"){NET.status="nobody";renderLobby();}},6000);
+}
+function netLeave(){
+  try{ if(NET.room){ if(NET.host)NET.room.emit("bye",{}); NET.room.leave&&NET.room.leave(); } }catch(e){}
+  NET.on=false;NET.host=false;NET.room=null;NET.seat=-1;NET.peers=[];NET.names={};NET.started=false;
+  NET.status="";UI.netMode=0;goSelect();
+}
+function netAskJoin(){
+  UI.netMode=2;
+  const el=document.getElementById('lobbyBody');
+  show('scr-lobby');
+  el.innerHTML='<div class="center" style="padding:10px">'+
+    '<div class="muted" style="font-size:11px;margin-bottom:8px">Type the four letters the host gave you.</div>'+
+    '<input id="joinCode" maxlength="4" autocomplete="off" '+
+      'style="font-family:inherit;text-transform:uppercase;letter-spacing:.4em;font-size:26px;width:180px;'+
+      'text-align:center;background:#0d090d;border:2px solid var(--line);border-radius:5px;color:#ff9a4a;padding:8px">'+
+    '<div style="margin-top:12px"><button class="btn-main" id="joinGo">Knock</button></div></div>';
+  const inp=document.getElementById('joinCode');
+  inp.focus();
+  document.getElementById('joinGo').onclick=()=>{
+    const c=(inp.value||"").toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(c.length<4){toast("That is not a code","Four letters, as the host read them out.");return;}
+    SFX.click();netStartJoin(c);
+  };
+  inp.onkeydown=e=>{if(e.key==='Enter')document.getElementById('joinGo').click();};
+}
+function renderLobby(){
+  const el=document.getElementById('lobbyBody'); if(!el)return;
+  if(NET.status==="no-room"){
+    el.innerHTML='<div class="center" style="padding:14px">'+
+      '<div class="cursed" style="font-size:13px;margin-bottom:6px">No room to join from here.</div>'+
+      '<div class="muted" style="font-size:11px;line-height:1.7;max-width:430px;margin:0 auto">'+
+      'Online play needs the published page \\u2014 open Last Torch from its claude.ai link and the room '+
+      'will be there. A copy of the file opened on its own has nothing to connect to.<br><br>'+
+      '<b class="gold">Co-op on one device works anywhere</b>, including right here.</div>'+
+      '<button style="margin-top:12px" onclick="SFX.click();UI.netMode=0;goSelect()">Back</button></div>';
+    return;
+  }
+  const seats=Object.keys(NET.names).map(Number).sort();
+  let h='';
+  if(NET.host){
+    h+='<div class="center"><div class="muted pix" style="font-size:10px;letter-spacing:.3em">YOUR CODE</div>'+
+       '<div class="creepy" style="font-size:40px;color:#ff9a4a;letter-spacing:.3em">'+NET.code+'</div>'+
+       '<div class="flavor" style="font-size:11px">Give that to the others. They pick "Join" and type it in.</div></div>';
+  } else {
+    h+='<div class="center"><div class="muted" style="font-size:11px">Room <b class="gold">'+NET.code+'</b> \\u2014 '+
+       (NET.seat>=0?'you are mercenary '+(NET.seat+1):'waiting for the host to seat you')+'.</div></div>';
+  }
+  h+='<div class="row" style="justify-content:center;gap:8px;margin:14px 0;flex-wrap:wrap">';
+  for(let i=0;i<4;i++){
+    const taken=NET.names[i]!==undefined;
+    h+='<div class="card center" style="width:120px;'+(taken?'':'opacity:.35')+'">'+
+       '<div class="pix" style="font-size:10px;color:'+(taken?'#8ee86b':'#938478')+'">SEAT '+(i+1)+'</div>'+
+       '<div style="font-size:11px;margin-top:4px">'+(taken?NET.names[i]:'empty')+'</div></div>';
+  }
+  h+='</div>';
+  if(NET.host){
+    h+='<div class="center"><button class="btn-main" onclick="SFX.click();netBegin()">Begin with '+
+       seats.length+(seats.length===1?' mercenary':' mercenaries')+'</button></div>';
+  } else {
+    h+='<div class="center muted" style="font-size:11px">Waiting for the host to begin\\u2026</div>';
+  }
+  el.innerHTML=h;
+}
+function netBegin(){
+  if(!NET.host)return;
+  const n=Math.max(1,Object.keys(NET.names).length);
+  UI.players=n;UI.mode='coop';
+  UI.picked=[];
+  for(let i=0;i<n;i++)UI.picked.push(i%CHARS.filter(c=>!classLocked(c)).length);
+  UI.ci=0;renderSelect();show('scr-select');
+  try{NET.room.emit("begin",{seats:NET.names});}catch(e){}
+}
+
+/* ================= TUTORIAL =================
+   Short. Five rooms' worth of knowledge, one of them hands-on, then out. */
+const TUT={i:0,grid:null,rows:3,done:false};
+function tutStop(){clearInterval(TUT._ring);clearInterval(TUT._check);TUT._ring=TUT._check=null;}
+function tutQuit(){tutStop();TUT.grid=null;initTitle();show('scr-title');}
+function openTutorial(){TUT.i=0;TUT.done=false;renderTut();show('scr-tut');}
+function tutGo(d){
+  if(d>0&&TUT_STEPS[TUT.i].hold&&!TUT.done){
+    document.getElementById('tutHint').innerHTML='<span style="color:#ff8577">'+TUT_STEPS[TUT.i].hold+'</span>';
+    return;
+  }
+  TUT.i+=d;
+  if(TUT.i<0){TUT.i=0;return;}
+  if(TUT.i>=TUT_STEPS.length){
+    META.tutorial=1;saveMeta();
+    toast("That is the whole of it","The rest you learn by going down.");
+    tutQuit();return;
+  }
+  TUT.done=false;renderTut();
+}
+function renderTut(){
+  tutStop();
+  const st=TUT_STEPS[TUT.i];
+  document.getElementById('tutStep').textContent="LESSON "+(TUT.i+1)+" OF "+TUT_STEPS.length;
+  document.getElementById('tutTitle').textContent=st.t;
+  document.getElementById('tutLine').innerHTML=st.d;
+  document.getElementById('tutHint').textContent=st.hint||"";
+  document.getElementById('tutBack').disabled=TUT.i===0;
+  document.getElementById('tutNext').textContent=(TUT.i===TUT_STEPS.length-1)?"Done":"Next \u2192";
+  const stage=document.getElementById('tutStage');stage.innerHTML='';
+  st.build(stage);
+}
+function tutItem(shape,r,tags,lvl){
+  return mkItem(ITEMS.findIndex(x=>x.shape===shape&&x.r===r),tags,lvl||1);
+}
+const TUT_STEPS=[
+ {t:"Your pack is your character sheet",
+  d:"You do not pick attacks. You pack a bag, and the bag fights for you. Every relic takes up "+
+    "room by its own shape \u2014 a spear is long, a shield is wide \u2014 and only what is "+
+    "<b>in the pack</b> does anything at all.",
+  hint:"Drag these around if you like. Nothing here can go wrong.",
+  build(stage){
+    TUT.rows=3; TUT.grid=Array(PACKW*PACKMAXR).fill(null);
+    autoPlace(TUT.grid,tutItem('sword',1,['metal','holy']),TUT.rows);
+    autoPlace(TUT.grid,tutItem('shield',0,['armour','metal']),TUT.rows);
+    autoPlace(TUT.grid,tutItem('ring',1,['health','neutral']),TUT.rows);
+    stage.appendChild(gridView(TUT.grid,TUT.rows,34,{gid:'tut',drag:true}));
+  }},
+ {t:"The light goes round, and your relics go off",
+  d:"There is no attack button. A ring of light travels the border of your pack, and each relic "+
+    "fires <b>as the light reaches it</b>. <b class='gold'>Speed</b> is how fast the ring travels "+
+    "\u2014 more speed, more laps, more hits. That is the whole of combat.",
+  hint:"Watch one lap.",
+  build(stage){
+    const wrap=document.createElement('div');wrap.className='lapwrap';
+    wrap.style.cssText+=';width:270px';
+    const inner=document.createElement('div');
+    inner.style.cssText='background:#0a070b;border-radius:4px;padding:6px';
+    const g=Array(PACKW*PACKMAXR).fill(null);
+    autoPlace(g,tutItem('dagger',1,['bleed','metal']),2);
+    autoPlace(g,tutItem('wand',1,['fire','ice']),2);
+    inner.appendChild(gridView(g,2,24,{}));
+    wrap.appendChild(inner);stage.appendChild(wrap);
+    let t=0;clearInterval(TUT._ring);
+    TUT._ring=setInterval(()=>{
+      if(!document.body.contains(wrap)){clearInterval(TUT._ring);return;}
+      t=(t+0.012)%1;
+      wrap.style.background='conic-gradient(from -90deg,#ffd166 '+(t*360-14)+'deg '+(t*360)+
+        'deg,rgba(255,209,102,.10) '+(t*360)+'deg 360deg)';
+    },30);
+    stage.insertAdjacentHTML('beforeend',
+      '<div class="muted" style="font-size:11px">Lap time = 40 \u00f7 Speed, so a fast mercenary '+
+      'empties the same pack two or three times as often.</div>');
+  }},
+ {t:"Two of a kind make one better one",
+  d:"Find a second copy of something and <b style='color:#8ee86b'>merge</b> them: same item, "+
+    "same tags, same level. A <b style='color:#8ee86b'>green line</b> always joins up anything "+
+    "that will merge, so you never have to hunt for the pair.",
+  hint:"Drag one dagger onto the other.",
+  hold:"Merge the two daggers first \u2014 drag one onto the other.",
+  build(stage){
+    TUT.rows=3; TUT.grid=Array(PACKW*PACKMAXR).fill(null);
+    const a=tutItem('dagger',1,['bleed','metal']), b=tutItem('dagger',1,['bleed','metal']);
+    placeItem(TUT.grid,a,0,TUT.rows); placeItem(TUT.grid,b,5,TUT.rows);
+    const holder=document.createElement('div');
+    holder.style.cssText='position:relative';
+    holder.appendChild(gridView(TUT.grid,TUT.rows,34,{gid:'tut',drag:true}));
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('style','position:absolute;inset:0;width:100%;height:100%;pointer-events:none');
+    svg.innerHTML='<line x1="22" y1="20" x2="196" y2="20" stroke="#8ee86b" stroke-width="2" '+
+      'stroke-dasharray="5 4" opacity=".9"/>';
+    holder.appendChild(svg);
+    stage.appendChild(holder);
+    TUT._check=setInterval(()=>{
+      if(!TUT.grid||!document.body.contains(holder)){clearInterval(TUT._check);return;}
+      const n=anchors(TUT.grid);
+      if(n.length===1&&n[0].inst.lvl>1){
+        clearInterval(TUT._check);TUT.done=true;
+        document.getElementById('tutHint').innerHTML=
+          '<span style="color:#8ee86b">That is a level 2 dagger. Three is as high as they go.</span>';
+      }
+    },200);
+  }},
+ {t:"Tags, and the two your mercenary knows",
+  d:"Every relic carries one or two <b>tags</b> \u2014 bleed, metal, fire, holy, and twenty-one "+
+    "more. Each mercenary is proficient in two of them, and anything carrying one of those is "+
+    "<b class='gold'>15% better</b> in their hands. Build toward your tags and the pack adds up.",
+  hint:"The Blood Elf knows bleed and metal. Look what that dagger is worth to her.",
+  build(stage){
+    const row=document.createElement('div');row.className='row';
+    row.style.cssText='gap:14px;align-items:center;flex-wrap:wrap;justify-content:center';
+    const be=CHARS.find(c=>c.id==='bloodelf')||CHARS[0];
+    const col=document.createElement('div');col.className='center';
+    col.appendChild(heroSprite(be,2));
+    col.insertAdjacentHTML('beforeend','<div style="font-size:12px;color:#fff;margin-top:4px">'+be.name+'</div>'+
+      '<div>'+be.tags.map(t=>'<span class="chip" style="color:'+tagCol(t)+';border-color:'+tagCol(t)+'">'+
+      TAGS[t].n+'</span>').join('')+'</div>');
+    row.appendChild(col);
+    const inst=tutItem('dagger',2,['bleed','metal']);
+    row.appendChild(itemCard(inst,null));
+    stage.appendChild(row);
+  }},
+ {t:"A floor, and the seven torches",
+  d:"Each floor: a <b>blessing</b>, then the <b>merchant</b>, then you pick a route across the "+
+    "floor \u2014 fights mostly, sometimes a chest, a shrine, or something worse. The stair at "+
+    "the end is guarded. You meet <b>one enemy for each mercenary</b> you brought.",
+  hint:"Lose a fight and a torch goes out. When the last one does, the run is over.",
+  build(stage){
+    const row=document.createElement('div');row.className='row';
+    row.style.cssText='gap:6px;justify-content:center;line-height:0;flex-wrap:wrap';
+    for(let i=0;i<TORCH_MAX;i++)row.appendChild(torchCanvas(i<5,3));
+    stage.appendChild(row);
+    stage.insertAdjacentHTML('beforeend',
+      '<div class="muted center" style="font-size:11px;max-width:460px;line-height:1.7">'+
+      'Losing sends you back to the start of the floor with a fresh map \u2014 it is not the end, '+
+      'it is a tax. Keep what you learn: your relics, your levels and your blessings all stay.'+
+      '<br><br><b class="gold">Campaign</b> is five acts of fifteen floors with a bottom to reach. '+
+      '<b class="gold">Endless</b> just keeps going until the dark wins.</div>');
+  }},
+];
 /* ---------- MODE: who is going down, and how far ---------- */
 function goSelect(){renderMode();show('scr-mode');}
 function renderMode(){
@@ -2725,6 +3198,24 @@ function renderMode(){
     c.onclick=()=>{UI.mode=k;UI.players=(k==='solo')?1:Math.max(2,UI.players||2);UI.picked=[];renderMode();};
     cards.appendChild(c);
   });
+  if(UI.mode==='coop'){
+    const net=document.createElement('div');
+    net.style.cssText='margin-top:14px;text-align:center';
+    net.innerHTML='<div class="pix muted" style="font-size:10px;letter-spacing:.25em;margin-bottom:7px">'+
+      'WHERE ARE THE OTHERS?</div>';
+    const row=document.createElement('div');row.className='row';
+    row.style.cssText='justify-content:center;gap:8px;flex-wrap:wrap';
+    const mk=(lab,fn,hint)=>{const b2=document.createElement('button');b2.innerHTML=lab;b2.title=hint||'';
+      b2.onclick=()=>{SFX.click();fn();};row.appendChild(b2);};
+    mk('&#128100; Here, on this device',()=>{UI.netMode=0;modeContinue();});
+    mk('&#127758; Host a game online',()=>{UI.netMode=1;show('scr-lobby');netStartHost();});
+    mk('&#128279; Join with a code',()=>netAskJoin());
+    net.appendChild(row);
+    net.insertAdjacentHTML('beforeend','<div class="muted" style="font-size:10px;margin-top:7px">'+
+      'Online needs the published page. Everyone keeps their own pack, wares and shrine; the host '+
+      'carries the map.</div>');
+    cards.parentNode.insertBefore(net,cards.nextSibling);
+  }
   const eb=document.getElementById('endlessBtns');eb.innerHTML='';
   [[false,'Campaign — 5 acts'],[true,'Endless floors']].forEach(([v,n])=>{
     const b=document.createElement('button');b.textContent=n;
@@ -2834,7 +3325,75 @@ function mkMerc(c){
   placeItem(m.grid,charStartItem(c),2,5);
   return m;
 }
+/* ================= SAVING A RUN =================
+   The whole descent written down so you can close the tab and come back to it. Items are stored
+   once each with their anchor, never cell by cell, and anything holding a function (a curse) is
+   kept as its index in the table and looked up again on the way back in. */
+const SAVEKEY="lt_save1";
+function packInst(x){
+  const o={b:x.bid,t:x.tags,l:x.lvl,a:x.at};
+  if(x.rot)o.r=1;
+  if(x.grown)o.g=x.grown;
+  if(x.grant)o.gr=GRANTS.indexOf(x.grant);
+  if(x.curse)o.cu=CURSES.indexOf(x.curse);
+  if(x.forged)o.f=x.forged;
+  if(x.nameOverride)o.n=x.nameOverride;
+  return o;
+}
+function unpackInst(o){
+  const x=mkItem(o.b,o.t,o.l);
+  x.at=o.a; if(o.r)x.rot=1; if(o.g)x.grown=o.g;
+  if(o.gr>=0&&GRANTS[o.gr])x.grant=GRANTS[o.gr];
+  if(o.cu>=0&&CURSES[o.cu])x.curse=CURSES[o.cu];
+  if(o.f)x.forged=o.f; if(o.n)x.nameOverride=o.n;
+  return x;
+}
+const packGrid=g=>anchors(g).map(({inst})=>packInst(inst));
+function unpackGrid(list,rows){
+  const g=Array(PACKW*PACKMAXR).fill(null);
+  (list||[]).forEach(o=>{const x=unpackInst(o);
+    if(!placeItem(g,x,x.at,rows))autoPlace(g,x,rows);});
+  return g;
+}
+function saveRun(){
+  if(!R||!R.party)return;
+  try{
+    const d={v:3,when:Date.now(),
+      floor:R.floor,depth:R.depth,endless:R.endless,mode:R.mode,coins:R.coins,torches:R.torches,
+      blessings:R.blessings,bless:R.bless,roll:R.roll,cleanFloors:R.cleanFloors||0,sold:R.sold||0,
+      store:packGrid(R.store),stash:R.stash.map(packInst),
+      map:R.map?{cols:R.map.cols,rows:R.map.rows,pos:R.map.pos,
+        grid:R.map.grid.map(col=>col.map(n=>({type:n.type,c:n.c,r:n.r,done:n.done,art:n.art,shrine:n.shrine})))}:null,
+      mapFloor:R.mapFloor,
+      party:R.party.map(m=>({cid:m.cid,name:m.name,tags:m.tags,maxHp:m.maxHp,hp:m.hp,dmg:m.dmg,
+        armour:m.armour,spd:m.spd,dodge:m.dodge,lvl:m.lvl,xp:m.xp,grid:packGrid(m.grid)}))};
+    localStorage.setItem(SAVEKEY,JSON.stringify(d));
+  }catch(e){}
+}
+function hasSave(){try{return !!localStorage.getItem(SAVEKEY);}catch(e){return false;}}
+function readSave(){try{return JSON.parse(localStorage.getItem(SAVEKEY)||"null");}catch(e){return null;}}
+function clearSave(){try{localStorage.removeItem(SAVEKEY);}catch(e){}}
+function loadRun(){
+  const d=readSave(); if(!d||!d.party)return false;
+  R={floor:d.floor,depth:d.depth||0,endless:d.endless!==false,mode:d.mode||'solo',
+     coins:d.coins,torches:d.torches,blessings:d.blessings||[],bless:d.bless,roll:d.roll||1,
+     cleanFloors:d.cleanFloors||0,sold:d.sold||0,soldHere:0,
+     stash:(d.stash||[]).map(unpackInst),store:unpackGrid(d.store,STORER),
+     party:d.party.map(p=>{
+       const def=CHARS.find(c=>c.id===p.cid)||CHARS[0];
+       return {cid:p.cid,name:p.name,tags:p.tags,maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
+         spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR)};})};
+  UI.players=R.party.length; UI.mode=R.mode; UI.endless=R.endless;
+  UI.picked=R.party.map(p=>CHARS.findIndex(c=>c.id===p.cid));
+  if(d.map){R.map={cols:d.map.cols,rows:d.map.rows,pos:d.map.pos,grid:d.map.grid};R.mapFloor=d.mapFloor;}
+  document.getElementById('statsTab').style.display='block';
+  renderTorches();
+  if(R.map&&R.mapFloor===R.floor)toRoute(); else startFloor();
+  toast("Picked up where you left off","Floor "+R.floor+", "+R.torches+" torches still lit.");
+  return true;
+}
 function startRun(){
+  clearSave();
   const endless=UI.endless!==false;
   const f0=endless?[1,6,11,16,21][UI.start]:1;
   R={floor:f0,depth:UI.depth,endless,mode:UI.mode||(UI.players>1?'coop':'solo'),
@@ -2846,14 +3405,18 @@ function startRun(){
   document.getElementById('statsTab').style.display='block';
   renderTorches();
   startFloor();
+  saveRun();
 }
 function startFloor(){
   R.coins+=R.bless.greed;
+  setTimeout(saveRun,0);
+  setTimeout(()=>netPush(true),0);
   R.party.forEach(p=>{if(p.hp<=0)p.hp=Math.round(p.maxHp*.4);});
   if(R.floor>(META.best||0)){META.best=R.floor;saveMeta();}
   checkRunAch();
   document.getElementById('blessFloorTitle').textContent=floorLabel(R.floor);
   const opts=pickBlessings(3), row=document.getElementById('blessRow');row.innerHTML='';
+  UI._blessOffer=opts.map(b=>({n:b.n,d:b.d,r:b.r}));
   opts.forEach(b=>{
     const d=document.createElement('div');d.className='relic';d.style.borderColor=RAR[b.r].col;
     d.innerHTML=`<div class="muted" style="font-size:10px;color:${RAR[b.r].col}">${RAR[b.r].n.toLowerCase()}</div>`;
@@ -2933,8 +3496,9 @@ function sellView(body,p){
   if(UI.sellSel&&ownsInst(UI.sellSel)&&sellsLeft()>0){
     const inst=UI.sellSel, pr=sellPrice(inst);
     wrap.appendChild(itemDetail(inst,pr,()=>{
+      if(NET.on&&!NET.host){netSend({k:'sell',uid:inst.uid});UI.sellSel=null;renderShop();return;}
       R.coins+=pr; removeCarried(inst); R.sold=(R.sold||0)+1; R.soldHere=(R.soldHere||0)+1;
-      UI.sellSel=null; SFX.coin(); if(R.sold>=12)unlock("trader"); renderShop();
+      UI.sellSel=null; SFX.coin(); if(R.sold>=12)unlock("trader"); renderShop(); netPush(true);
     },()=>{UI.sellSel=null;renderShop();},true));
   }
   body.appendChild(wrap);
@@ -3099,6 +3663,7 @@ function itemDetail(inst,cost,onBuy,onCancel,sell){
   return d;
 }
 function buyFromPack(p,i,inst){
+  if(NET.on&&!NET.host){netSend({k:'buy',uid:inst.uid,i});return;}
   const pr=price(inst);
   if(R.coins<pr){UI._hint="Not enough coins.";return;}
   R.coins-=pr; liftItem(shopStock[p],inst);
@@ -3152,6 +3717,8 @@ function reachable(M,c,r){
   return Math.abs(r-M.pos.r)<=1;
 }
 function toRoute(){
+  saveRun();
+  netPush(true);
   if(!R.map||R.mapFloor!==R.floor){R.map=genMap(R.floor);R.mapFloor=R.floor;}
   document.getElementById('routeTitle').textContent=floorLabel(R.floor);
   renderMap();show('scr-route');
@@ -3470,7 +4037,7 @@ function shrineForge(body,need){
 /* ===================================================================
    7. BACKPACK
    =================================================================== */
-function openPack(){renderPack();document.getElementById('packModal').classList.add('on');}
+function openPack(){renderPack();document.getElementById('packModal').classList.add('on');drawMergeLines();}
 function closePack(){
   document.getElementById('packModal').classList.remove('on');
   if(UI.sel)cancelCarry();
@@ -3507,6 +4074,8 @@ function slotItem(inst,scale){
 const COARSE=!!(window.matchMedia&&window.matchMedia('(hover:none)').matches);
 function hoverTip(e,inst){if(!COARSE)showTip(e,inst);}
 function holdToDrag(ev,el,inst,gid){
+  if(!netMine(gid)){showTipAt(el,inst);
+    toast("Not your pack","Each of you carries your own.");return;}
   if(ev.pointerType&&ev.pointerType!=='touch'){dragStart(ev,inst,gid);return;}
   const sx=ev.clientX, sy=ev.clientY;
   let started=false;
@@ -3548,8 +4117,10 @@ function itemTile(inst,cell,gap,onclick){
   d.style.cssText=`position:relative;display:flex;align-items:center;justify-content:center;
     width:${bw}px;height:${bh}px;border:2px solid ${RAR[it.r].col};border-radius:4px;
     background:linear-gradient(#141a28,#0a0d15);box-sizing:border-box;cursor:pointer`;
-  const sc=Math.max(2,Math.min(6,Math.floor(Math.min(bw-6,bh-6)/16)));
-  d.appendChild(itemIcon(it.shape,null,sc,null,inst));
+  const sc=Math.max(2,Math.min(6,Math.floor((Math.min(bw,bh)-6)/16)));
+  const ic=itemIcon(it.shape,null,sc,null,inst);
+  if(inst.rot)ic.style.transform='rotate(90deg)';      // the picture turns with the footprint
+  d.appendChild(ic);
   const dots=document.createElement('div');dots.className='tagdot';
   inst.tags.forEach(t=>{const i2=document.createElement('i');i2.style.background=tagCol(t);dots.appendChild(i2);});
   d.appendChild(dots);
@@ -3579,7 +4150,15 @@ function gridView(grid,rows,cell,opts){
     const [w,h]=sizeOf(inst), r=(i/PACKW)|0, c=i%PACKW;
     const t=itemTile(inst,cell,3,opts.onItem?()=>opts.onItem(i,inst):null);
     if(opts.gid){t.dataset.gid=opts.gid;t.dataset.idx=i;
-      if(opts.drag){t.style.touchAction='none';t.onpointerdown=ev=>holdToDrag(ev,t,inst,opts.gid);}}
+      if(opts.drag){t.style.touchAction='none';t.onpointerdown=ev=>holdToDrag(ev,t,inst,opts.gid);
+        if(canRotate(inst)){
+          const rb=document.createElement('button');
+          rb.className='rotbtn';rb.textContent='\u21BB';rb.title='Turn it on its side (or hold R while dragging)';
+          rb.onpointerdown=ev=>ev.stopPropagation();
+          rb.onclick=ev=>{ev.stopPropagation();
+            if(rotateInst(inst,opts.gid)){SFX.click();renderPack();}
+            else toast("No room","It will not lie that way where it is.");};
+          t.appendChild(rb);} }}
     if(opts.reg)opts.reg(inst,t);
     t.style.gridColumn=`${c+1} / span ${w}`;t.style.gridRow=`${r+1} / span ${h}`;
     t.style.width='auto';t.style.height='auto';
@@ -3594,9 +4173,42 @@ function gridView(grid,rows,cell,opts){
   });
   return g;
 }
+/* ---- turning an item on its side ---- */
+function rotateInst(inst,gid){
+  if(!canRotate(inst))return false;
+  const G=gid?gridOf(gid):null;
+  if(!G){inst.rot=inst.rot?0:1;return true;}
+  const at=inst.at;
+  liftItem(G.grid,inst);
+  inst.rot=inst.rot?0:1;
+  if(placeItem(G.grid,inst,at,G.rows))return true;            // turns where it stands
+  for(let i=0;i<PACKW*G.rows;i++)if(placeItem(G.grid,inst,i,G.rows))return true;  // or shuffles along
+  inst.rot=inst.rot?0:1;                                      // no room either way — put it back
+  placeItem(G.grid,inst,at,G.rows);
+  return false;
+}
+function rotateDragged(){
+  if(!DRAG||!canRotate(DRAG.inst))return;
+  DRAG.inst.rot=DRAG.inst.rot?0:1;
+  const g=document.getElementById('dragGhost');
+  if(g){const r=g.getBoundingClientRect();g.remove();
+    const n=itemTile(DRAG.inst,30,3,null);n.id='dragGhost';
+    n.style.cssText+=';position:fixed;z-index:400;pointer-events:none;opacity:.9;box-shadow:0 6px 18px #000';
+    n.style.left=r.left+'px';n.style.top=r.top+'px';
+    document.body.appendChild(n);}
+}
+window.addEventListener('keydown',e=>{
+  if((e.key==='r'||e.key==='R')&&DRAG){e.preventDefault();rotateDragged();}
+});
 /* ---- pointer dragging across every grid ---- */
 let DRAG=null;
+function netMine(gid){            // online: your own pack and the shared storage, nothing else
+  if(!NET.on||NET.host)return true;
+  if(gid==='store'||gid==='tut')return true;
+  return (+gid.slice(4))===NET.seat;
+}
 function gridOf(gid){
+  if(gid==='tut')return {grid:TUT.grid,rows:TUT.rows,unique:false,tut:true};
   if(gid==='store')return {grid:R.store,rows:STORER,unique:false};
   const mi=+gid.slice(4);return {grid:R.party[mi].grid,rows:packRows(),unique:true,mi};
 }
@@ -3606,7 +4218,7 @@ function dragStart(ev,inst,gid){
   const src=gridOf(gid);
   DRAG={inst,fromGid:gid,orig:inst.at};
   liftItem(src.grid,inst);
-  const ghost=itemTile(inst,34,3,null);
+  const ghost=itemTile(inst,30,3,null);
   ghost.id='dragGhost';
   ghost.style.cssText+=';position:fixed;z-index:400;pointer-events:none;opacity:.9;box-shadow:0 6px 18px #000';
   document.body.appendChild(ghost);
@@ -3648,6 +4260,7 @@ function onDragEnd(ev){
   const g=document.getElementById('dragGhost');if(g)g.remove();
   document.querySelectorAll('.ok,.bad').forEach(e=>e.classList.remove('ok','bad'));
   hideTip(); UI.shopSel=null; UI.sellSel=null;     // let go, and the card goes away with it
+  setTimeout(()=>{if(NET.on){ if(NET.host)netPush(true); else netSendMine(); }},0);
   if(!DRAG)return;
   const t=cellUnder(ev), inst=DRAG.inst;
   let done=false;
@@ -3676,10 +4289,16 @@ function renderPack(){
   const rows=packRows();
   body.insertAdjacentHTML('beforeend',
     `<div class="muted" style="font-size:11px;margin-bottom:8px">
-      Drag an item to move it. Green squares take it, red ones don't.
-      Drop a twin on its match to <b style="color:#8ee86b">MERGE</b> (same item, same tags, same level).
+      Drag an item to move it. Green squares take it, red ones don't. The <b style="color:#8ee86b">green line</b>
+      joins up anything that will <b style="color:#8ee86b">MERGE</b> — drop one on the other
+      (same item, same tags, same level). <b>\u21BB</b> turns an item on its side.
       Only <b>one copy of an item</b> can be equipped at a time — keep spares in storage.
       ${UI._hint?'<br><span style="color:#ff8577">'+UI._hint+'</span>':''}</div>`);
+  body.style.position='relative';
+  const mergeSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  mergeSvg.id='mergeLines';
+  mergeSvg.setAttribute('style','position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6');
+  body.appendChild(mergeSvg);
   // ---- storage ----
   const st=document.createElement('div');st.className='frame';st.style.cssText='padding:9px;margin-bottom:10px';
   st.innerHTML=`<div class="pix muted" style="font-size:11px;margin-bottom:6px">
@@ -3718,6 +4337,38 @@ function renderPack(){
   body.insertAdjacentHTML('beforeend',
     `<div class="center muted" style="font-size:11px;margin-top:8px">
       Pack size this floor: <b>${PACKW}×${rows}</b>${rows<PACKMAXR?' — one more row next floor':' — fully unlocked'}</div>`);
+  drawMergeLines();
+}
+/* A line between anything that would merge, so you never have to hunt for the pair yourself. */
+function drawMergeLines(){
+  const svg=document.getElementById('mergeLines'), body=document.getElementById('packBody');
+  if(!svg||!body)return;
+  // the modal may not be laid out yet on the first pass — come back when it is
+  if(body.getBoundingClientRect().width<10){requestAnimationFrame(drawMergeLines);return;}
+  const all=[];
+  const collect=(grid,gid)=>anchors(grid).forEach(({inst,i})=>all.push({inst,gid,i}));
+  R.party.forEach((m,mi)=>collect(m.grid,'pack'+mi));
+  collect(R.store,'store');
+  const B=body.getBoundingClientRect();
+  svg.setAttribute('viewBox','0 0 '+B.width+' '+B.height);
+  const at=e=>{const el=document.querySelector('[data-gid="'+e.gid+'"][data-idx="'+e.i+'"]');
+    if(!el)return null;const r=el.getBoundingClientRect();
+    return {x:r.left-B.left+r.width/2,y:r.top-B.top+r.height/2};};
+  let out='',pairs=0;
+  for(let a=0;a<all.length;a++)for(let b=a+1;b<all.length;b++){
+    if(!sameItem(all[a].inst,all[b].inst)||all[a].inst.lvl>=3)continue;
+    const p=at(all[a]),q=at(all[b]); if(!p||!q)continue;
+    pairs++;
+    const mx=(p.x+q.x)/2, my=Math.min(p.y,q.y)-18;
+    out+='<path d="M'+p.x+' '+p.y+' Q'+mx+' '+my+' '+q.x+' '+q.y+'" fill="none" '+
+         'stroke="#8ee86b" stroke-width="2" stroke-dasharray="5 4" opacity=".85">'+
+         '<animate attributeName="stroke-dashoffset" from="18" to="0" dur="1s" repeatCount="indefinite"/></path>'+
+         '<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#8ee86b" opacity=".9"/>'+
+         '<circle cx="'+q.x+'" cy="'+q.y+'" r="4" fill="#8ee86b" opacity=".9"/>';
+  }
+  svg.innerHTML=out;
+  const n=document.getElementById('mergeNote');
+  if(n)n.textContent=pairs?(pairs+" pair"+(pairs===1?"":"s")+" ready to merge"):"";
 }
 function pickUp(mi,i){ const m=R.party[mi],inst=m.grid[i];if(!inst)return; }
 function cancelCarry(){
@@ -4001,10 +4652,9 @@ function toBattle(node){
   const f=R.floor,P=R.party.length;
   const isExit=!node||node.type==='exit', boss=!!(node&&node.boss);
   B_isExit=isExit;
-  // one more foe every 2 floors, starting at one — but never more than one per merc
-  let count=Math.min(P,1+Math.floor((f-1)/2));
-  if(!isExit)count=Math.max(1,count-1);                 // skirmishes on the way are lighter
-  const weight=(P/count)*(isExit?1:0.95);
+  // one of them for each of you: two mercenaries meet two, three meet three
+  let count=P;
+  const weight=(isExit?1:0.95);
   let defs=[];
   const camp=!R.endless, act=actOf(f), within=(f-1)%ACTLEN;
   const actPool=camp?actFoes(act,within):null;
@@ -4016,11 +4666,15 @@ function toBattle(node){
     const adds=Math.min(count-1,P-1);   // a lone merc faces the boss alone
     const addPool=actPool||FOES.filter(x=>!x.boss&&x.lo<=Math.max(2,f/4));
     for(let i=0;i<adds;i++)defs.push(pick(addPool.length?addPool:FOES.slice(0,4)));}
-  else if(actPool){ for(let i=0;i<count;i++)defs.push(pick(actPool)); }
+  else if(actPool){                       // three of the same thing is a dull line-up
+    const bag=shuffle(actPool);
+    for(let i=0;i<count;i++)defs.push(bag[i%bag.length]);
+  }
   else { const tier=Math.max(1,Math.ceil(f/3.5));
     let pool=FOES.filter(x=>!x.boss&&x.lo<=tier&&x.lo>=tier-3);
     if(pool.length<3)pool=FOES.filter(x=>!x.boss&&x.lo<=tier);
-    for(let i=0;i<count;i++)defs.push(pick(pool.length?pool:FOES.slice(0,4)));}
+    const bag=shuffle(pool.length?pool:FOES.slice(0,4));
+    for(let i=0;i<count;i++)defs.push(bag[i%bag.length]);}
   B={heroes:R.party.map(m=>buildUnit(m,'hero')),
      foes:defs.map(d=>buildUnit(mkFoe(d,f,weight),'foe')),
      t:0,n:0,log:[],over:false,phoenix:R.bless.phoenix};
@@ -4251,6 +4905,7 @@ function tick(){
   updateArena();
   if(!alive(B.foes).length)return endBattle(true);
   if(!alive(B.heroes).length)return endBattle(false);
+  netPush();
   if(B.t>180){                                  // the torch burns down — whoever is standing taller wins
     const fr=s=>s.reduce((a,u)=>a+Math.max(0,u.hp)/u.maxHp,0)/s.length;
     log('<span style="color:#ff8577">The torch is burning down.</span>');
@@ -4271,6 +4926,7 @@ function setSpeed(s){UI.speed=s;['sp1','sp2','sp4'].forEach(i=>document.getEleme
   document.getElementById('sp'+s).classList.add('sel');if(timer)startTicks();}
 function endBattle(win){
   B.over=true;clearInterval(timer);
+  setTimeout(()=>netPush(true),30);
   // wounds carry over as a FRACTION — item health is a layer on top, it must not bank real HP
   B.heroes.forEach(h=>{
     if(h.hp<=0){h.ref.hp=0;return;}
@@ -4330,7 +4986,7 @@ function endBattle(win){
       document.getElementById('resDesc').textContent=
         "Seventy-five floors. The last thing down here is behind you and the torch is still lit. "+
         "Whatever the Ninefold Core was keeping, it is yours now.";
-      unlock("firstBlood"); META.won=(META.won||0)+1; saveMeta(); recordRun("the bottom");
+      unlock("firstBlood"); META.won=(META.won||0)+1; saveMeta(); recordRun("the bottom"); clearSave();
       btn.onclick=()=>{document.getElementById('statsTab').style.display='none';
         document.getElementById('torchTab').style.display='none';initTitle();show('scr-title');};
     } else if(B_isExit){
@@ -4356,7 +5012,7 @@ function endBattle(win){
     }
   } else {
     R.torches--;                                   // the dark takes one
-    R.cleanFloors=0; SFX.torch(); if(R.torches<=0)SFX.death();
+    R.cleanFloors=0; SFX.torch(); if(R.torches<=0){SFX.death();clearSave();}else saveRun();
     renderTorches();
     const out=R.torches<=0;
     document.getElementById('resTitle').textContent=out?"THE LIGHT GOES OUT":"A TORCH GUTTERS OUT";
@@ -4395,8 +5051,15 @@ function endBattle(win){
    =================================================================== */
 function openMenu(){
   if(!R)return;
+  saveRun();
   document.getElementById('menuLine').textContent=
-    "Floor "+R.floor+" · "+REGION(R.floor)+" · "+R.torches+" torch"+(R.torches===1?"":"es")+" left · "+R.coins+" coins";
+    floorLabel(R.floor)+" · "+R.torches+" torch"+(R.torches===1?"":"es")+" left · "+R.coins+" coins";
+  const sb=document.getElementById('saveQuitBtn');
+  if(sb)sb.onclick=()=>{saveRun();closeMenu();
+    document.getElementById('statsTab').style.display='none';
+    document.getElementById('torchTab').style.display='none';
+    initTitle();show('scr-title');
+    toast("Saved","Your run is waiting on the front page.");};
   const b=document.getElementById('endRunBtn');b.textContent="End this run";b.dataset.armed="";
   document.getElementById('menuModal').classList.add('on');
 }
@@ -4408,7 +5071,7 @@ function confirmEndRun(){
     b.textContent="Snuff the torches — are you sure?";
     return;
   }
-  closeMenu();
+  closeMenu(); clearSave();
   document.getElementById('statsTab').style.display='none';
   document.getElementById('torchTab').style.display='none';
   if(R&&R.floor>(META.best||0)){META.best=R.floor;saveMeta();}
