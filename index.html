@@ -62,6 +62,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .slot.hl{border-color:#45a83c;box-shadow:0 0 8px rgba(69,168,60,.5)}
 .slot.ok,.ok{border-color:#8ee86b !important;background:rgba(142,232,107,.18)}
 .slot.bad,.bad{border-color:#ff6b6b !important;background:rgba(255,107,107,.16)}
+.holding{transform:scale(1.09);box-shadow:0 0 16px rgba(232,194,122,.85);z-index:3;transition:transform .2s}
 .lvl{position:absolute;bottom:-3px;right:1px;font-size:9px;color:var(--gold);text-shadow:0 0 3px #000}
 .tagdot{position:absolute;top:1px;left:1px;display:flex;gap:1px}
 .tagdot i{width:4px;height:4px;display:block;border-radius:1px}
@@ -106,6 +107,44 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #introCv{width:100%;max-width:1000px;image-rendering:pixelated}
 #skipHint{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:11px;color:#4a4238;letter-spacing:.3em}
 .statgrid{display:grid;gap:4px 14px;grid-template-columns:auto 1fr;font-size:11px}
+/* ---------------- PHONES ---------------- */
+@media (hover:none){
+  .card:hover,.relic:hover{transform:none}
+  button:hover:not(:disabled){box-shadow:none}
+  .tip{max-width:86vw;font-size:12px}
+}
+@media (max-width:900px){
+  body{padding:48px 5px 54px;font-size:13px}
+  button{padding:10px 12px;font-size:12px;min-height:40px}
+  .btn-main{font-size:13px;padding:11px 16px}
+  .topbar{gap:6px}
+  .topbar .frame{padding:5px 8px !important;flex:1 1 auto}
+  h1{font-size:30px !important} h2{font-size:15px !important}
+  .unit{width:98px;padding:2px}
+  .unit canvas{max-width:72px;height:auto}
+  .relic{width:100%;max-width:330px}
+  .relicbox{width:70px;height:70px}
+  .card{padding:8px}
+  .log{height:92px}
+  .modal{padding:6px}
+  .frame{border-width:2px}
+  .gal{grid-template-columns:repeat(auto-fill,minmax(116px,1fr))}
+  #scr-title>.frame>div{grid-template-columns:1fr !important}
+  #scr-title canvas#menuTorch{max-width:140px !important}
+  .statline{grid-template-columns:54px 1fr 38px;font-size:10px}
+}
+@media (max-width:560px){
+  body{padding:44px 4px 50px;font-size:12px;letter-spacing:.02em}
+  h1{font-size:24px !important}
+  .unit{width:84px}
+  .unit canvas{max-width:58px}
+  .chip{font-size:9px;padding:0 3px}
+  .flavor{font-size:11px}
+  .log{height:78px}
+  .arrowbtn{font-size:18px;padding:4px 9px}
+  .galcell{padding:4px}
+  .gal{grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px}
+}
 .lapwrap{position:relative;padding:5px;border-radius:7px;margin-top:7px;
   background:conic-gradient(from -90deg,#ffd166 0deg 14deg,rgba(255,209,102,.10) 14deg 360deg)}
 .lapinner{background:#080b12;border-radius:4px;padding:4px}
@@ -188,6 +227,27 @@ button:disabled{opacity:.35;cursor:not-allowed}
         <div class="muted" style="margin-top:16px;font-size:11px" id="metaLine"></div>
         <div id="titleArt" style="margin-top:12px;overflow:hidden"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODE -->
+<div class="scr" id="scr-mode">
+  <div class="frame" style="padding:18px">
+    <div class="center">
+      <h2 class="creepy" style="font-size:24px;color:#e8a05a">How will you go down?</h2>
+      <div class="flavor" style="margin:8px 0 16px">Nobody has ever come back up to say which way is wiser.</div>
+    </div>
+    <div class="row" id="modeCards" style="justify-content:center;gap:14px;flex-wrap:wrap"></div>
+    <div class="center" style="margin-top:18px">
+      <div class="pix muted" style="font-size:11px;margin-bottom:8px">The shape of the descent</div>
+      <div class="row" id="endlessBtns" style="justify-content:center;gap:8px;flex-wrap:wrap"></div>
+      <div class="muted" id="endlessNote" style="font-size:11px;margin-top:10px;max-width:520px;
+        margin-left:auto;margin-right:auto;line-height:1.6"></div>
+    </div>
+    <div class="row" style="justify-content:center;gap:8px;margin-top:18px">
+      <button onclick="SFX.click();initTitle();show('scr-title')">&#8592; Back</button>
+      <button class="btn-main" onclick="SFX.click();modeContinue()">Choose your mercenaries &#8594;</button>
     </div>
   </div>
 </div>
@@ -1119,6 +1179,34 @@ function floorDebris(g,r,y,M,Md,n){
   rect(g,0,y,RW,2,Md);
   for(let i=0;i<n;i++){const x=(r()*RW)|0,w=2+((r()*6)|0);rect(g,x,y+2+((r()*(RH-y-3))|0),w,2,M);}
 }
+/* ---- motifs the deeper rooms are built from ---- */
+function roots(g,r,M,n,len){for(let i=0;i<n;i++){let x=(r()*RW)|0,y=0;const h=len+((r()*len)|0);
+  for(let k=0;k<h;k++){g.s(x,y,M);g.s(x+1,y,M);y++;if(r()<0.3)x+=r()<0.5?1:-1;}}}
+function chains(g,r,M,n,len){for(let i=0;i<n;i++){const x=(r()*RW)|0,h=len+((r()*len)|0);
+  for(let y=0;y<h;y++)if(y%3!==2)g.s(x,y,M);}}
+function shelf(g,x,y,w,h,M,Md,rows,r){
+  rect(g,x,y,w,h,Md);
+  for(let i=0;i<rows;i++){const yy=y+2+i*((h-2)/rows|0);rect(g,x+1,yy,w-2,1,M);
+    for(let k=0;k<w-4;k+=4)if(r()<0.6){rect(g,x+2+k,yy-3,3,3,M);g.s(x+3+k,yy-4,M);}}
+}
+function pipes(g,r,M,Mc,n){for(let i=0;i<n;i++){const y=4+((r()*(RH-20))|0),h=3+((r()*3)|0);
+  rect(g,0,y,RW,h,M);for(let x=6;x<RW;x+=18+((r()*14)|0))rect(g,x,y-1,3,h+2,Mc);}}
+function crystals(g,r,M,Mb,n){for(let i=0;i<n;i++){const x=(r()*RW)|0,y=20+((r()*(RH-30))|0),
+  h=5+((r()*12)|0),w=1+((r()*3)|0);
+  for(let k=0;k<h;k++){const ww=Math.max(1,w-((k*w/h)|0));rect(g,x-(ww>>1),y-k,ww,1,k>h*0.6?Mb:M);}}}
+function water(g,r,y,M,Mb){for(let yy=y;yy<RH;yy++)for(let x=0;x<RW;x++)g.s(x,yy,((x+yy*2+((r()*3)|0))%6)?M:Mb);
+  for(let i=0;i<22;i++){const x=(r()*RW)|0;rect(g,x,y+((r()*(RH-y))|0),2+((r()*5)|0),1,Mb);}}
+function banners(g,r,M,Mc,n){for(let i=0;i<n;i++){const x=10+((r()*(RW-20))|0),w=7+((r()*6)|0),
+  h=18+((r()*20)|0);rect(g,x,0,w,h,M);rect(g,x,0,w,2,Mc);
+  for(let k=0;k<w;k+=2)g.s(x+k,h+((r()*3)|0),M);}}
+function steps(g,x,y,n,w,M,Md){for(let i=0;i<n;i++){rect(g,x+i*2,y+i*3,w-i*4,3,M);rect(g,x+i*2,y+i*3,w-i*4,1,Md);}}
+function web(g,r,M,n){for(let i=0;i<n;i++){const x=(r()*RW)|0,y=(r()*26)|0,s2=6+((r()*10)|0);
+  for(let k=0;k<s2;k++){g.s(x+k,y+k,M);g.s(x-k,y+k,M);if(k%3===0)for(let j=-k;j<=k;j++)g.s(x+j,y+k,M);}}}
+function idolFig(g,x,y,h,M,Mc){
+  rect(g,x-6,y+h-4,13,4,Mc); rect(g,x-4,y+8,9,h-12,M); ell(g,x,y+5,4,5,M);
+  rect(g,x-7,y+10,3,10,M); rect(g,x+5,y+10,3,10,M); g.s(x-2,y+4,Mc); g.s(x+2,y+4,Mc);}
+function vents(g,r,M,Mb,n){for(let i=0;i<n;i++){const x=(r()*RW)|0,y=RH-1-((r()*8)|0);
+  for(let k=0;k<6+((r()*10)|0);k++)g.s(x+((r()*3)|0)-1,y-k,k<3?Mb:M);}}
 const ROOMART=[
  {n:"Mossy Crypt",mat:{1:["#6e6858","#474135","#232019"],2:["#3c382e","#272419","#131109"],
    3:["#8ab45a","#4f7a2c","#24400f"],4:["#ffd166","#e8a42a","#8a5a0c"],10:["#efe8d4","#c0b69c","#6e6654"],
@@ -1258,6 +1346,30 @@ function torchBuild(lit,scale){
   else {g.s(4,4,15); g.s(5,3,15);}
   return renderMat(g,TORCHMAT,scale||2);
 }
+/* ---- the chest in a chest room: shut until you put a hand on it ---- */
+const CHESTMAT={1:["#9a6f3a","#6b4a22","#3a2712"],     // boards
+  2:["#e8c27a","#b08a3c","#5d4418"],                   // iron bands and lock
+  3:["#ffe9a3","#ffc24a","#a8700f"],                   // the glow inside
+  4:["#2a2026","#150f14","#090609"]};                  // shadow in the mouth
+function chestBuild(open,scale){
+  const g=G(26,22);
+  if(open){
+    rect(g,2,3,22,6,1); rect(g,2,3,22,2,2);            // lid, thrown back
+    rect(g,3,9,20,3,4);                                // the dark inside
+    rect(g,5,10,16,2,3); g.s(9,9,3); g.s(14,9,3); g.s(18,9,3);
+    rect(g,2,12,22,9,1);                               // body
+    rect(g,2,12,22,2,2); rect(g,2,19,22,2,2);
+    rect(g,7,14,2,7,2); rect(g,17,14,2,7,2);
+  } else {
+    ell(g,13,8,11,5,1); rect(g,2,8,22,2,2);            // domed lid
+    rect(g,2,10,22,11,1);                              // body
+    rect(g,2,10,22,2,2); rect(g,2,19,22,2,2);          // bands
+    rect(g,7,4,2,17,2); rect(g,17,4,2,17,2);
+    rect(g,12,9,3,4,2); g.s(13,11,4);                  // lock
+  }
+  return renderMat(g,CHESTMAT,scale||5);
+}
+function chestCanvas(open,scale){return cached('ch'+(open?1:0)+'_'+(scale||5),()=>chestBuild(open,scale));}
 function renderTorches(){
   const row=document.getElementById('torchRow'), tab=document.getElementById('torchTab');
   if(!row||!R)return;
@@ -1549,21 +1661,36 @@ function placeItem(grid,inst,anchor,rows){
   const cs=canPlace(grid,inst,anchor,rows); if(!cs)return false;
   inst.at=anchor; cs.forEach(i=>grid[i]=inst); return true;
 }
-function autoPlace(grid,inst,rows){
+function autoPlace(grid,inst,rows,unique){
+  if(unique&&hasTwinEquipped(grid,inst))return false;   // only one of each may be worn
   for(let i=0;i<PACKW*rows;i++)if(placeItem(grid,inst,i,rows))return true;
   return false;
 }
 function anchors(grid){const out=[];for(let i=0;i<grid.length;i++){const o=grid[i];if(o&&o.at===i)out.push({inst:o,i});}return out;}
-/* four one-off relics that keep what they earn, fight after fight */
+/* WHERE THE RING IS when it passes over an item: 0..1 clockwise from the top-left corner.
+   Items no longer all go off at once — each one fires as the light reaches it. */
+function ringPhase(inst,anchor,rows){
+  const [w,h]=sizeOf(inst);
+  let dx=((anchor%PACKW)+w/2)/PACKW*2-1, dy=(((anchor/PACKW)|0)+h/2)/rows*2-1;
+  if(Math.abs(dx)<1e-4&&Math.abs(dy)<1e-4)dy=-1e-4;
+  const t=1/Math.max(Math.abs(dx),Math.abs(dy)), bx=dx*t, by=dy*t;
+  const W=PACKW, H=rows, per=2*(W+H);
+  let d;
+  if(Math.abs(by)>=Math.abs(bx)) d=(by<0) ? (bx+1)/2*W : W+H+(1-(bx+1)/2)*W;
+  else                           d=(bx>0) ? W+(by+1)/2*H : W+H+W+(1-(by+1)/2)*H;
+  return Math.max(0,Math.min(0.999,d/per));
+}
+/* four one-off relics that keep what they earn, fight after fight — within reason */
+const GROWCAP={armour:60,dmg:80,hp:200};
 const SPECIALS=[
  {shape:"sword", n:"The Hungering Edge", r:3, cast:{dmg:6}, every:{t:4,kind:'dmgPerm',n:2},
-  tx:"Starts weak. Every 4s in a fight it gains +2 damage — and keeps it, forever."},
+  tx:"Starts weak. Every 4s in a fight it gains +2 damage, and keeps it — up to +80."},
  {shape:"shield",n:"Bulwark Eternal",    r:3, armour:4, every:{t:8,kind:'armourPermItem',n:3},
-  tx:"Every 8s it gains +3 Armour. The stone remembers between fights."},
+  tx:"Every 8s it gains +3 Armour. The stone remembers between fights, up to +60."},
  {shape:"ring",  n:"The Tithe Hook",     r:3, cast:{dmg:7}, goldOnHit:2,
   tx:"Every hit shakes 2 coins loose. Nobody asks whose."},
  {shape:"amulet",n:"Heartstone",         r:3, hp:20, hpPerBattle:12,
-  tx:"+20 Max HP, and +12 more permanently after every battle you survive."},
+  tx:"+20 Max HP, and +12 more after every battle you survive, up to +200."},
 ];
 SPECIALS.forEach(sp=>{ sp.id=ITEMS.length; sp.special=1;
   sp.cost=Math.round(itemPower(sp)*0.55*RAR[sp.r].cost*1.4); ITEMS.push(sp); });
@@ -1571,9 +1698,7 @@ const PASSIVE_SHAPES=["shield","helm","armour","boot","ring","amulet"];
 function isPassive(it){return !it.cast;}
 /* tag roll */
 function tagCount(r){ return r<=1?1 : r===2?(Math.random()<.5?2:1) : 2; }
-function rollTags(it,favour){
-  const n=tagCount(it.r), out=[];
-  let prefer={dagger:["bleed","metal"],sword:["metal","holy"],axe:["bleed","neutral"],
+const PREFER={dagger:["bleed","metal"],sword:["metal","holy"],axe:["bleed","neutral"],
     hammer:["stun","earth"],spear:["metal","neutral"],claw:["bleed","punch"],bow:["wind","neutral"],
     staff:["holy","earth"],orb:["ice","fire"],wand:["fire","ice"],shield:["armour","metal"],
     helm:["armour","metal"],armour:["health","earth"],boot:["dodge","wind"],glove:["punch","speed"],
@@ -1583,11 +1708,25 @@ function rollTags(it,favour){
     whip:["bleed","echo"],trident:["metal","lightning"],chakram:["wind","echo"],grimoire:["shadow","lightning"],
     lantern:["holy","ward"],horn:["armour","health"],mask:["lucky","shadow"],cloak:["dodge","ward"],
     belt:["health","speed"],bracer:["armour","thorns"],idol:["poison","earth"],chalice:["holy","health"],
-    mirror:["thorns","ward"],censer:["holy","burn"],caltrops:["bleed","thorns"],banner:["lucky","holy"]}[it.shape]||[];
-  if(Math.random()<0.22)prefer.push(pick(["lightning","shadow","thorns","vampire","lucky","heavy","echo","ward"]));
-  prefer=prefer.filter(t=>TAGS[t]);                      // never roll a tag that doesn't exist
-  if(favour&&Math.random()<.55) out.push(favour);
-  else if(prefer.length&&Math.random()<.5) out.push(prefer[(Math.random()*prefer.length)|0]);
+    mirror:["thorns","ward"],censer:["holy","burn"],caltrops:["bleed","thorns"],banner:["lucky","holy"]};
+const DEEPTAGS=["lightning","shadow","thorns","vampire","lucky","heavy","echo","ward"];
+/* A shape's two tags are what the thing is FOR. Rolling them together most of the time means
+   two daggers off the same floor usually match — which is the only way a merge ever happens. */
+function rollTags(it,favour,forced){
+  const n=tagCount(it.r), out=[];
+  const pref=(PREFER[it.shape]||[]).filter(t=>TAGS[t]);
+  if(forced&&TAGS[forced])out.push(forced);
+  else if(favour&&TAGS[favour]&&Math.random()<.55)out.push(favour);
+  if(!out.length&&pref.length){
+    if(n>=2&&Math.random()<.70){out.push(pref[0]);if(pref[1])out.push(pref[1]);}
+    else out.push(Math.random()<.75?pref[0]:pref[Math.min(1,pref.length-1)]);
+  }
+  if(out.length<n&&pref.length&&Math.random()<.60){
+    const p=pref.find(t=>!out.includes(t)); if(p)out.push(p);
+  }
+  if(out.length<n&&Math.random()<0.12){
+    const d=pick(DEEPTAGS); if(!out.includes(d))out.push(d);
+  }
   while(out.length<n){ const t=TKEYS[(Math.random()*TKEYS.length)|0]; if(!out.includes(t))out.push(t); }
   return out.slice(0,n).sort();
 }
@@ -1975,7 +2114,8 @@ function stopMusic(){
   AUDIO.nodes=[];AUDIO.started=false;
 }
 function setMusic(on){AUDIO.music=on;saveAudio();if(on)startMusic();else stopMusic();}
-window.addEventListener('mousedown',()=>{if(AUDIO.music)startMusic();},{once:true});
+window.addEventListener('pointerdown',()=>{if(AUDIO.music)startMusic();},{once:true});
+window.addEventListener('touchstart',()=>{if(AUDIO.music)startMusic();},{once:true});
 
 /* ===================================================================
    3. RUN STATE
@@ -2001,6 +2141,7 @@ const ACH=[
  {id:"fullhouse",n:"Full Company",d:"Clear a floor with four mercs."},
  {id:"collector",n:"Collector",d:"Carry 15 different item families at once."},
  {id:"deathless",n:"Steady Hands",d:"Clear 3 floors in a row without losing a torch."},
+ {id:"trader",n:"Hard Bargain",d:"Sell 12 relics back to the merchant in one run."},
 ];
 const ACHBY=Object.fromEntries(ACH.map(a=>[a.id,a]));
 function hasAch(id){return !!(META.ach&&META.ach[id]);}
@@ -2125,7 +2266,24 @@ function grantXP(m,amount){
   return gained;
 }
 const DEPTHS=[{n:"NORMAL",m:1},{n:"HARD",m:1.35},{n:"NIGHTMARE",m:1.8}];
-const REGION=f=>["The Forest Hollow","The Catacombs","The Foundry","The Hollow Shrine","The Ninefold Core"][Math.min(4,((f-1)/5)|0)];
+/* ---------- MODE: who is going down, and how far ---------- */
+const ACTLEN=15, NACTS=5;
+const actOf=f=>Math.min(NACTS,1+Math.floor((f-1)/ACTLEN));
+const ACTNAME=["The Forest Hollow","The Catacombs","The Foundry","The Hollow Shrine","The Ninefold Core"];
+const ACTLINE=["Roots, wet stone, and something keeping pace with you.",
+  "Everything down here was buried on purpose.",
+  "The heat has a rhythm to it. Nothing here was ever alive.",
+  "They kept praying after the god stopped listening.",
+  "The bottom. It has been waiting the whole time."];
+const REGION=f=>(R&&!R.endless)
+  ? ACTNAME[Math.min(4,((f-1)/15)|0)]
+  : ["The Forest Hollow","The Catacombs","The Foundry","The Hollow Shrine","The Ninefold Core"][Math.min(4,((f-1)/5)|0)];
+const ROMAN=["I","II","III","IV","V"];
+function floorLabel(f){
+  if(R&&!R.endless){const a=actOf(f);
+    return "Act "+ROMAN[a-1]+" · Floor "+(f-(a-1)*ACTLEN)+"/"+ACTLEN+" — "+ACTNAME[a-1];}
+  return "Floor "+f+" — "+REGION(f);
+}
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');window.scrollTo(0,0);
   if(id==='scr-title'&&!menuRAF)menuRAF=requestAnimationFrame(menuTorchLoop);}
@@ -2157,9 +2315,24 @@ function rollItem(bias,favour){
     const sp=pick(SPECIALS);
     return mkItem(sp.id, rollTags(sp,favour), 1);
   }
-  const r=rollRarity(R?R.floor:1,bias), sh=pick(SHAPES);
+  const r=rollRarity(R?R.floor:1,bias);
+  let sh=pick(SHAPES);
+  // a third of what the dark offers echoes something the company already carries, so that a
+  // second one of a thing — and therefore a merge — is something you can actually hope for
+  if(R&&R.party&&Math.random()<0.32){
+    const owned=[];
+    R.party.forEach(m=>anchors(m.grid).forEach(({inst})=>owned.push(ITEMS[inst.bid].shape)));
+    if(R.store)anchors(R.store).forEach(({inst})=>owned.push(ITEMS[inst.bid].shape));
+    if(owned.length)sh=owned[(Math.random()*owned.length)|0];
+  }
+  // and a 5% nudge toward tags your mercenaries are proficient in
+  let forced=null;
+  if(R&&R.party&&Math.random()<0.05){
+    const pool=[];R.party.forEach(m=>m.tags.forEach(t=>{if(TAGS[t])pool.push(t);}));
+    if(pool.length)forced=pool[(Math.random()*pool.length)|0];
+  }
   const bid=ITEMS.findIndex(i=>i.shape===sh&&i.r===r);
-  return mkItem(bid, rollTags(ITEMS[bid],favour), 1);
+  return mkItem(bid, rollTags(ITEMS[bid],favour,forced), 1);
 }
 
 /* ===================================================================
@@ -2364,7 +2537,50 @@ const STORY=[
  {art:9, t:"You signed this morning. There is one torch left in the bracket by the first step, and the innkeeper has not looked at your face since.", last:1},
 ];
 let storyI=0;
-function goSelect(){storyI=0;renderStory();show('scr-story');}
+/* ---------- MODE: who is going down, and how far ---------- */
+function goSelect(){renderMode();show('scr-mode');}
+function renderMode(){
+  if(UI.mode===undefined)UI.mode='solo';
+  if(UI.endless===undefined)UI.endless=false;
+  const cards=document.getElementById('modeCards');cards.innerHTML='';
+  [['solo','Solo','One mercenary. One pack. Everything is on you.',1],
+   ['coop','Co-op','Two to four mercenaries on this device — each gets their own pack, their own wares and their own shrine. Pass it along.',4]]
+  .forEach(([k,n,d])=>{
+    const c=document.createElement('div');c.className='card center';
+    c.style.cssText='width:260px;padding:14px';
+    if(UI.mode===k)c.classList.add('sel');
+    c.innerHTML=`<div class="gold pix" style="font-size:14px;margin-bottom:6px">${n}</div>
+      <div class="muted" style="font-size:11px;line-height:1.6">${d}</div>`;
+    if(k==='coop'){
+      const row=document.createElement('div');row.className='row';
+      row.style.cssText='justify-content:center;gap:6px;margin-top:10px';
+      for(let i=2;i<=4;i++){const b=document.createElement('button');b.textContent=i;
+        if(UI.mode==='coop'&&UI.players===i)b.classList.add('sel');
+        b.onclick=ev=>{ev.stopPropagation();UI.mode='coop';UI.players=i;UI.picked=[];renderMode();};
+        row.appendChild(b);}
+      c.appendChild(row);
+    }
+    c.onclick=()=>{UI.mode=k;UI.players=(k==='solo')?1:Math.max(2,UI.players||2);UI.picked=[];renderMode();};
+    cards.appendChild(c);
+  });
+  const eb=document.getElementById('endlessBtns');eb.innerHTML='';
+  [[false,'Campaign — 5 acts'],[true,'Endless floors']].forEach(([v,n])=>{
+    const b=document.createElement('button');b.textContent=n;
+    if(UI.endless===v)b.classList.add('sel');
+    b.onclick=()=>{UI.endless=v;renderMode();};eb.appendChild(b);
+  });
+  document.getElementById('endlessNote').innerHTML=UI.endless
+    ? "The stair never stops. Floors keep coming and keep getting worse until the last torch goes out — the only ending is how deep you got."
+    : "Five acts of "+ACTLEN+" floors: <span class='gold'>"+ACTNAME.join(" · ")+
+      "</span>. Every act is harder than the one above it, and you are handed two fresh torches "+
+      "when you clear one. Reach the bottom of act five and the run is <b class='gold'>won</b>.";
+}
+function modeContinue(){
+  if(UI.mode==='solo')UI.players=1;
+  if(!UI.endless)UI.start=0;
+  if(META.seenStory){endStory();return;}
+  storyI=0;renderStory();show('scr-story');
+}
 function renderStory(){
   const S=STORY[storyI];
   const art=document.getElementById('storyArt');art.innerHTML='';
@@ -2375,17 +2591,23 @@ function renderStory(){
   document.getElementById('storyDots').textContent=STORY.map((_,i)=>i===storyI?'●':'·').join(' ');
 }
 function storyNext(){storyI++; if(storyI>=STORY.length){endStory();return;} renderStory();}
-function endStory(){UI.picked=[];UI.ci=0;renderSelect();show('scr-select');}
+function endStory(){META.seenStory=1;saveMeta();UI.picked=[];UI.ci=0;renderSelect();show('scr-select');}
 function openSelectDirect(){UI.picked=[];UI.ci=0;renderSelect();show('scr-select');}
 function renderTopBar(){
   const pb=document.getElementById('playerBtns');pb.innerHTML='';
-  for(let i=1;i<=4;i++){const b=document.createElement('button');b.textContent=i;
+  const lo=UI.mode==='coop'?2:1, hi=UI.mode==='solo'?1:4;
+  for(let i=lo;i<=hi;i++){const b=document.createElement('button');b.textContent=i;
     if(UI.players===i)b.classList.add('sel');b.onclick=()=>{UI.players=i;UI.picked=[];renderSelect()};pb.appendChild(b);}
   const ab=document.getElementById('actBtns');ab.innerHTML='';
-  [1,6,11,16,21].forEach((f,i)=>{const b=document.createElement('button');
-    const lock=i>=(META.starts||1);b.textContent=lock?"⚿":("F"+f);b.disabled=lock;
-    if(UI.start===i)b.classList.add('sel');b.onclick=()=>{UI.start=i;renderSelect()};ab.appendChild(b);});
-  document.getElementById('actName').textContent=REGION([1,6,11,16,21][UI.start]);
+  if(UI.endless){
+    [1,6,11,16,21].forEach((f,i)=>{const b=document.createElement('button');
+      const lock=i>=(META.starts||1);b.textContent=lock?"⚿":("F"+f);b.disabled=lock;
+      if(UI.start===i)b.classList.add('sel');b.onclick=()=>{UI.start=i;renderSelect()};ab.appendChild(b);});
+    document.getElementById('actName').textContent=REGION([1,6,11,16,21][UI.start]);
+  } else {
+    ab.insertAdjacentHTML('beforeend','<span class="gold pix" style="font-size:11px">Act I · Floor 1</span>');
+    document.getElementById('actName').textContent=ACTNAME[0]+" — "+(ACTLEN*NACTS)+" floors to the bottom";
+  }
   const db=document.getElementById('depthBtns');db.innerHTML='';
   DEPTHS.forEach((d,i)=>{const b=document.createElement('button');b.textContent=d.n;
     if(UI.depth===i)b.classList.add('sel');b.onclick=()=>{UI.depth=i;renderSelect()};db.appendChild(b);});
@@ -2451,11 +2673,13 @@ function mkMerc(c){
   return m;
 }
 function startRun(){
-  const f0=[1,6,11,16,21][UI.start];
-  R={floor:f0,depth:UI.depth,coins:0,stash:[],store:Array(PACKW*STORER).fill(null),blessings:[],torches:TORCH_MAX,
+  const endless=UI.endless!==false;
+  const f0=endless?[1,6,11,16,21][UI.start]:1;
+  R={floor:f0,depth:UI.depth,endless,mode:UI.mode||(UI.players>1?'coop':'solo'),
+     coins:0,stash:[],store:Array(PACKW*STORER).fill(null),blessings:[],torches:TORCH_MAX,
      bless:{aspd:0,crit:0,atk:0,greed:0,mend:0,leech:0,regen:0,phoenix:0,disc:0,bounty:0,stackBonus:0,foeDmg:0,tb:{}},
      party:UI.picked.map(i=>mkMerc(CHARS[i]))};
-  R.coins=Math.round(R.party.reduce((a,m)=>a+m.def.gold,0)/R.party.length);
+  R.coins=Math.round(R.party.reduce((a,m)=>a+m.def.gold,0)/R.party.length*(0.6+0.4*R.party.length));
   R.roll=1;
   document.getElementById('statsTab').style.display='block';
   renderTorches();
@@ -2466,7 +2690,7 @@ function startFloor(){
   R.party.forEach(p=>{if(p.hp<=0)p.hp=Math.round(p.maxHp*.4);});
   if(R.floor>(META.best||0)){META.best=R.floor;saveMeta();}
   checkRunAch();
-  document.getElementById('blessFloorTitle').textContent="Floor "+R.floor+" — "+REGION(R.floor);
+  document.getElementById('blessFloorTitle').textContent=floorLabel(R.floor);
   const opts=pickBlessings(3), row=document.getElementById('blessRow');row.innerHTML='';
   opts.forEach(b=>{
     const d=document.createElement('div');d.className='relic';d.style.borderColor=RAR[b.r].col;
@@ -2483,16 +2707,19 @@ function startFloor(){
 }
 /* ---- MERCHANT ---- */
 let shopStock=null,rerollCost=8;  // the merchant's pack, laid out like yours
+let shopTalk="";
 function toShop(){
-  shopStock=null;rerollCost=8;UI.shopP=0;
+  shopStock=null;rerollCost=8;UI.shopP=0;UI.shopMode='buy';UI.sellSel=null;R.soldHere=0;
+  shopTalk=pick(ROOMTALK.shop);
   document.getElementById('shopTitle').textContent="The Merchant";
-  document.getElementById('shopDesc').innerHTML=
-    '<span class="flavor">'+pick(ROOMTALK.shop)+'</span><br>'+
-    "She is always here, one floor down, with a fresh pack. Click a ware to look at it properly before you buy.";
   renderShop();show('scr-shop');
 }
 function price(inst){const it=ITEMS[inst.bid];
-  return Math.max(4,Math.round(it.cost*lvlMul(inst.lvl)*(1+0.018*R.floor)*(1-R.bless.disc)));}
+  return Math.max(4,Math.round(it.cost*lvlMul(inst.lvl)*(1+0.055*R.floor)*(1-R.bless.disc)));}
+/* she buys as well as sells — at a merchant's rate, and only so much per floor */
+const SELLCAP=5;
+function sellPrice(inst){return Math.max(3,Math.round(price(inst)*0.28));}
+function sellsLeft(){return Math.max(0,SELLCAP-(R.soldHere||0));}
 function equippedTwin(){                       // 10% of wares echo something you already carry
   const pool=[];
   R.party.forEach(m=>anchors(m.grid).forEach(({inst})=>pool.push(inst)));
@@ -2525,12 +2752,76 @@ function playerTabs(active,onPick){
   });
   return bar;
 }
+function ownsInst(inst){return allCarried().some(c=>c.inst===inst)||R.stash.includes(inst);}
+function sellView(body,p){
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;gap:16px;align-items:flex-start;justify-content:center;flex-wrap:wrap';
+  const box=(title,grid,rows)=>{
+    const b=document.createElement('div');
+    b.style.cssText='border:2px solid #2b3348;border-radius:8px;padding:10px;background:linear-gradient(#141828,#0a0d15)';
+    b.innerHTML='<div class="pix muted" style="font-size:10px;margin-bottom:6px">'+title+'</div>';
+    b.appendChild(gridView(grid,rows,30,{
+      onItem:(i,inst)=>{UI.sellSel=inst;renderShop();},
+      badge:inst=>({text:'+'+sellPrice(inst)+'c',col:'#aef07c'}),
+      mark:inst=>UI.sellSel===inst}));
+    return b;
+  };
+  wrap.appendChild(box(R.party[p].name.replace('The ','')+" — worn",R.party[p].grid,packRows()));
+  wrap.appendChild(box("Storage",R.store,STORER));
+  if(UI.sellSel&&ownsInst(UI.sellSel)&&sellsLeft()>0){
+    const inst=UI.sellSel, pr=sellPrice(inst);
+    wrap.appendChild(itemDetail(inst,pr,()=>{
+      R.coins+=pr; removeCarried(inst); R.sold=(R.sold||0)+1; R.soldHere=(R.soldHere||0)+1;
+      UI.sellSel=null; SFX.coin(); if(R.sold>=12)unlock("trader"); renderShop();
+    },()=>{UI.sellSel=null;renderShop();},true));
+  }
+  body.appendChild(wrap);
+  if(R.stash.length){
+    const row=document.createElement('div');row.className='row';
+    row.style.cssText='justify-content:center;gap:5px;flex-wrap:wrap;margin-top:12px;max-width:860px';
+    row.insertAdjacentHTML('beforeend','<div class="muted" style="font-size:10px;width:100%;text-align:center">Loose — no room for these anywhere</div>');
+    R.stash.forEach(inst=>{
+      const t=itemTile(inst,26,3,()=>{UI.sellSel=inst;renderShop();});
+      if(UI.sellSel===inst)t.style.boxShadow='0 0 10px rgba(174,240,124,.9)';
+      t.title=iname(inst)+" — sells for "+sellPrice(inst);
+      row.appendChild(t);
+    });
+    body.appendChild(row);
+  }
+}
 function renderShop(){
   document.getElementById('shopCoins').textContent=R.coins;
   const rows=6;
   if(!shopStock)shopStock=R.party.map(()=>stockFor());
   const p=Math.min(UI.shopP||0,R.party.length-1);
   const body=document.getElementById('shopBody');body.innerHTML='';
+  const modebar=document.createElement('div');modebar.className='row';
+  modebar.style.cssText='justify-content:center;gap:6px;margin-bottom:10px';
+  [['buy','Her wares'],['sell','Sell yours']].forEach(([k,lab])=>{
+    const t=document.createElement('button');t.textContent=lab;
+    if((UI.shopMode||'buy')===k)t.classList.add('sel');
+    t.onclick=()=>{UI.shopMode=k;UI.shopSel=null;UI.sellSel=null;renderShop();};
+    modebar.appendChild(t);
+  });
+  body.appendChild(modebar);
+  if((UI.shopMode||'buy')!=='sell'){
+    document.getElementById('shopDesc').innerHTML=
+      '<span class="flavor">'+shopTalk+'</span><br>'+
+      "She is always here, one floor down, with a fresh pack. Click a ware to look at it properly before you buy — or sell her what you are done carrying.";
+  }
+  if((UI.shopMode||'buy')==='sell'){
+    document.getElementById('shopDesc').innerHTML=
+      '<span class="flavor">"Anything you are tired of carrying, I will take off you — at my price."</span><br>'+
+      (sellsLeft()>0
+        ? "She pays under a third of asking, and she only has coin for <b class='gold'>"+sellsLeft()+
+          "</b> more this floor. Click something of yours to look at it before you let it go."
+        : "<span class='cursed'>\"That is my coin spent for this floor. Bring me the rest further down.\"</span>");
+    if(R.party.length>1)body.appendChild(playerTabs(p,i=>{UI.shopP=i;UI.sellSel=null;renderShop();}));
+    sellView(body,p);
+    const rb0=document.getElementById('rerollBtn');
+    rb0.textContent="Reroll stock ("+rerollCost+")";rb0.disabled=R.coins<rerollCost;
+    return;
+  }
   if(R.party.length>1){
     body.appendChild(playerTabs(p,i=>{UI.shopP=i;renderShop();}));
     body.insertAdjacentHTML('beforeend',
@@ -2618,7 +2909,7 @@ function skillLine(inst){
   if(!it.cast&&!ev&&!pr)bits.push('<span class="muted">Always on — no trigger.</span>');
   return `<div style="font-size:11px;line-height:1.6">${bits.join('<br>')}</div>`;
 }
-function itemDetail(inst,cost,onBuy,onCancel){
+function itemDetail(inst,cost,onBuy,onCancel,sell){
   const it=ITEMS[inst.bid], F=inst.forged;
   const d=document.createElement('div');d.className='frame';
   d.style.cssText='padding:12px;width:238px;border-color:'+RAR[it.r].col;
@@ -2638,8 +2929,8 @@ function itemDetail(inst,cost,onBuy,onCancel){
   const bar=document.createElement('div');bar.className='row';bar.style.cssText='margin-top:10px;gap:6px';
   if(onBuy){
     const bb=document.createElement('button');bb.className='btn-main';bb.style.flex='1';
-    bb.textContent=(cost!=null?"Buy · "+cost+"c":"Take");
-    bb.disabled=cost!=null&&R.coins<cost;bb.onclick=onBuy;bar.appendChild(bb);
+    bb.textContent=sell?("Sell · +"+cost+"c"):(cost!=null?"Buy · "+cost+"c":"Take");
+    bb.disabled=!sell&&cost!=null&&R.coins<cost;bb.onclick=onBuy;bar.appendChild(bb);
   }
   if(onCancel){const cb=document.createElement('button');cb.textContent="Close";cb.onclick=onCancel;bar.appendChild(cb);}
   d.appendChild(bar);
@@ -2650,7 +2941,7 @@ function buyFromPack(p,i,inst){
   if(R.coins<pr){UI._hint="Not enough coins.";return;}
   R.coins-=pr; liftItem(shopStock[p],inst);
   const bought=mkItem(inst.bid,inst.tags,inst.lvl);
-  if(!autoPlace(R.party[p].grid,bought,packRows()))toStash(bought);  // straight into their pack if it fits
+  if(!autoPlace(R.party[p].grid,bought,packRows(),true))toStash(bought);  // worn if it fits and isn't a twin
   renderShop(); openPack();
 }
 function doReroll(){if(R.coins<rerollCost)return;R.coins-=rerollCost;rerollCost+=4;
@@ -2674,12 +2965,18 @@ const ROOMS={
 };
 function genMap(floor){
   const COLS=4, ROWS=3, grid=[];
-  const pool=["fight","fight","fight","shop","chest","chest","event","event","shrine","shrine"];
+  // mostly fighting. Shrines, chests and whatever is waiting in the dark are the exception,
+  // and they thin out further the deeper you go.
+  const rare=Math.max(1,3-Math.floor((floor-1)/8));
+  const pool=["fight","fight","fight","fight","fight","fight","fight"];
+  for(let i=0;i<rare;i++)pool.push("chest","event","shrine");
+  pool.push("shop");
   for(let c=0;c<COLS;c++){
     const col=[];
     for(let r=0;r<ROWS;r++)col.push({type:pick(pool),c,r,done:false});
-    // never a whole column of the same room
-    if(col.every(x=>x.type===col[0].type))col[1].type=pick(pool.filter(p=>p!==col[0].type));
+    // never a whole column of the same quiet room — three fights in a row is fine, three shrines is not
+    if(col[0].type!=='fight'&&col.every(x=>x.type===col[0].type))
+      col[1].type=pick(pool.filter(p=>p!==col[0].type));
     grid.push(col);
   }
   const boss=(floor%5===0);
@@ -2694,7 +2991,7 @@ function reachable(M,c,r){
 }
 function toRoute(){
   if(!R.map||R.mapFloor!==R.floor){R.map=genMap(R.floor);R.mapFloor=R.floor;}
-  document.getElementById('routeTitle').textContent="Floor "+R.floor+" — "+REGION(R.floor);
+  document.getElementById('routeTitle').textContent=floorLabel(R.floor);
   renderMap();show('scr-route');
 }
 function renderMap(){
@@ -2815,12 +3112,46 @@ function renderCoinShop(body){
   body.appendChild(row);
 }
 function renderChest(body){
-  const n=3+R.bless.bounty,row=document.createElement('div');
+  const node=R.curNode||{};
+  if(!node.chestOpen){                       // shut. It opens when a hand goes on it.
+    const w=document.createElement('div');
+    w.className='center';w.style.cssText='margin:14px 0;cursor:pointer';
+    const c=chestCanvas(false,5);c.style.cssText='filter:drop-shadow(0 0 14px rgba(232,194,122,.25))';
+    w.appendChild(c);
+    w.insertAdjacentHTML('beforeend',
+      '<div class="gold pix" style="font-size:12px;margin-top:10px">Click the chest</div>'+
+      '<div class="flavor" style="font-size:11px;margin-top:3px">The lock is old and nobody is coming.</div>');
+    w.onclick=()=>{
+      node.chestOpen=true;SFX.merge&&SFX.merge();
+      const bd=document.getElementById('nodeBody');bd.innerHTML='';
+      if(R.curNode)bd.appendChild(roomBanner(R.curNode.art||0));
+      renderChest(bd);
+    };
+    body.appendChild(w);
+    return;
+  }
+  const lid=document.createElement('div');
+  lid.className='center';lid.style.cssText='margin:8px 0 2px';
+  lid.appendChild(chestCanvas(true,4));
+  body.appendChild(lid);
+  const n=3+R.bless.bounty+(R.party.length>1?R.party.length-1:0);
+  const row=document.createElement('div');
   row.className='row';row.style.cssText='flex-wrap:wrap;justify-content:center;gap:10px';
-  for(let i=0;i<n;i++){const inst=rollItem();
-    const d=itemCard(inst,()=>{toStash(inst);
-      row.querySelectorAll('.card').forEach(c=>c.classList.add('dis'));openPack();});
-    row.appendChild(d);}
+  if(!node.chestOffers){node.chestOffers=[];for(let i=0;i<n;i++)node.chestOffers.push(rollItem());}
+  let picks=node.chestPicks===undefined?R.party.length:node.chestPicks;
+  const note=document.createElement('div');note.className='center muted';
+  note.style.cssText='font-size:11px;margin:6px 0';
+  note.textContent=picks>1?"Take "+picks+" — one for each of you.":(picks===1?"Take one.":"Taken.");
+  body.appendChild(note);
+  node.chestOffers.forEach(inst=>{
+    const d=itemCard(inst,()=>{
+      if(picks<=0)return;
+      toStash(inst);picks--;node.chestPicks=picks;d.classList.add('dis');
+      note.textContent=picks>0?picks+" more to take.":"Taken.";
+      if(picks<=0)row.querySelectorAll('.card').forEach(c=>c.classList.add('dis'));
+      openPack();});
+    if(node.chestTaken&&node.chestTaken.includes(inst))d.classList.add('dis');
+    row.appendChild(d);});
   body.appendChild(row);
 }
 function renderEvent(body){
@@ -2915,7 +3246,7 @@ function shrineCursed(body){
        <div class="cursed" style="font-size:11px">Cursed: ${inst.curse.d}</div>`);
     d.onclick=()=>{
       const m=R.party[p];inst.curse.f(R,m);
-      if(!autoPlace(m.grid,inst,packRows()))toStash(inst);
+      if(!autoPlace(m.grid,inst,packRows(),true))toStash(inst);
       node.taken=true;R.cursedTaken=(R.cursedTaken||0)+1;checkRunAch();
       const bd=document.getElementById('nodeBody');bd.innerHTML='';
       if(R.curNode)bd.appendChild(roomBanner(R.curNode.art||0));
@@ -3006,9 +3337,32 @@ function slotItem(inst,scale){
   inst.tags.forEach(t=>{const i2=document.createElement('i');i2.style.background=tagCol(t);dots.appendChild(i2);});
   w.appendChild(dots);
   if(inst.lvl>1){const l=document.createElement('span');l.className='lvl';l.textContent='L'+inst.lvl;w.appendChild(l);}
-  w.onmouseenter=e=>showTip(e,inst);w.onmouseleave=hideTip;
+  w.onmouseenter=e=>hoverTip(e,inst);w.onmouseleave=hideTip;
   return w;
 }
+/* On a phone there is no hover and no right mouse button: a tap reads the relic, and holding
+   it for a moment picks it up. On a mouse it still drags the instant you press. */
+const COARSE=!!(window.matchMedia&&window.matchMedia('(hover:none)').matches);
+function hoverTip(e,inst){if(!COARSE)showTip(e,inst);}
+function holdToDrag(ev,el,inst,gid){
+  if(ev.pointerType&&ev.pointerType!=='touch'){dragStart(ev,inst,gid);return;}
+  const sx=ev.clientX, sy=ev.clientY;
+  let started=false;
+  const clear=()=>{clearTimeout(tm);el.classList.remove('holding');
+    window.removeEventListener('pointerup',up);window.removeEventListener('pointermove',mv);};
+  const mv=e2=>{ if(!started&&Math.hypot(e2.clientX-sx,e2.clientY-sy)>14)clear(); };
+  const up=()=>{ if(!started){clear();showTipAt(el,inst);} };
+  const tm=setTimeout(()=>{
+    started=true; clear(); hideTip();
+    if(navigator.vibrate)try{navigator.vibrate(15);}catch(e){}
+    dragStart({clientX:sx,clientY:sy,pointerType:'touch',preventDefault(){}},inst,gid);
+  },280);
+  el.classList.add('holding');
+  window.addEventListener('pointerup',up);
+  window.addEventListener('pointermove',mv);
+}
+function showTipAt(el,inst){showTip({currentTarget:el},inst);
+  clearTimeout(showTipAt._t);showTipAt._t=setTimeout(hideTip,3200);}
 function showTip(e,inst){
   const it=ITEMS[inst.bid],tip=document.getElementById('tip');
   tip.innerHTML=
@@ -3038,7 +3392,8 @@ function itemTile(inst,cell,gap,onclick){
   inst.tags.forEach(t=>{const i2=document.createElement('i');i2.style.background=tagCol(t);dots.appendChild(i2);});
   d.appendChild(dots);
   if(inst.lvl>1){const l=document.createElement('span');l.className='lvl';l.textContent='L'+inst.lvl;d.appendChild(l);}
-  d.onmouseenter=e=>showTip(e,inst);d.onmouseleave=hideTip;
+  d.onmouseenter=e=>hoverTip(e,inst);d.onmouseleave=hideTip;
+  if(COARSE&&!onclick)d.onpointerup=ev=>{if(!document.getElementById('dragGhost'))showTipAt(d,inst);};
   if(onclick)d.onclick=ev=>{ev.stopPropagation();onclick();};
   return d;
 }
@@ -3062,7 +3417,7 @@ function gridView(grid,rows,cell,opts){
     const [w,h]=sizeOf(inst), r=(i/PACKW)|0, c=i%PACKW;
     const t=itemTile(inst,cell,3,opts.onItem?()=>opts.onItem(i,inst):null);
     if(opts.gid){t.dataset.gid=opts.gid;t.dataset.idx=i;
-      if(opts.drag)t.onmousedown=ev=>dragStart(ev,inst,opts.gid);}
+      if(opts.drag){t.style.touchAction='none';t.onpointerdown=ev=>holdToDrag(ev,t,inst,opts.gid);}}
     if(opts.reg)opts.reg(inst,t);
     t.style.gridColumn=`${c+1} / span ${w}`;t.style.gridRow=`${r+1} / span ${h}`;
     t.style.width='auto';t.style.height='auto';
@@ -3085,6 +3440,7 @@ function gridOf(gid){
 }
 function dragStart(ev,inst,gid){
   ev.preventDefault();
+  hideTip();
   const src=gridOf(gid);
   DRAG={inst,fromGid:gid,orig:inst.at};
   liftItem(src.grid,inst);
@@ -3093,8 +3449,9 @@ function dragStart(ev,inst,gid){
   ghost.style.cssText+=';position:fixed;z-index:400;pointer-events:none;opacity:.9;box-shadow:0 6px 18px #000';
   document.body.appendChild(ghost);
   moveGhost(ev);
-  window.addEventListener('mousemove',onDragMove);
-  window.addEventListener('mouseup',onDragEnd);
+  window.addEventListener('pointermove',onDragMove);
+  window.addEventListener('pointerup',onDragEnd);
+  window.addEventListener('pointercancel',onDragEnd);
   renderPack();
 }
 function moveGhost(ev){
@@ -3123,10 +3480,12 @@ function onDragMove(ev){
   });
 }
 function onDragEnd(ev){
-  window.removeEventListener('mousemove',onDragMove);
-  window.removeEventListener('mouseup',onDragEnd);
+  window.removeEventListener('pointermove',onDragMove);
+  window.removeEventListener('pointerup',onDragEnd);
+  window.removeEventListener('pointercancel',onDragEnd);
   const g=document.getElementById('dragGhost');if(g)g.remove();
   document.querySelectorAll('.ok,.bad').forEach(e=>e.classList.remove('ok','bad'));
+  hideTip(); UI.shopSel=null; UI.sellSel=null;     // let go, and the card goes away with it
   if(!DRAG)return;
   const t=cellUnder(ev), inst=DRAG.inst;
   let done=false;
@@ -3234,6 +3593,7 @@ function buildUnit(src,side){
   let spd=src.spd||8, atk=(side==='hero')?R.bless.atk:0;
   const tb=(side==='hero')?Object.assign({},R.bless.tb):{};
   const prof=src.tags||[];
+  const gridRows=(side==='hero')?packRows():5;
   const placed=anchors(src.grid);
   placed.forEach(({inst,i})=>{
     const it0=ITEMS[inst.bid], L=lvlMul(inst.lvl);
@@ -3253,7 +3613,7 @@ function buildUnit(src,side){
     }
     // a class tag does nothing on its own — it makes any item carrying it 15% better
     const pm=inst.tags.some(t=>prof.includes(t))?1.15:1;
-    const mult=L*pm*(1+adjBonus(src.grid,i))*(1+atk);
+    const mult=L*pm*(1+adjBonus(src.grid,i))*(1+atk)*(src.pow||1);
     if(it.armour)u.armour+=Math.round(it.armour*L*pm);
     if(it.hp){const h=Math.round(it.hp*L*pm);u.maxHp+=h;u.hp+=h;}
     if(it.spd)spd+=it.spd*L*pm;
@@ -3290,13 +3650,23 @@ function buildUnit(src,side){
       else if(STATUS_OF[t])status.push({tag:STATUS_OF[t],mag});
     });
     el.bonus+=el0heavy;
+    /* what a cursed shrine granted this relic — the curse was never free, so this has to pay */
+    const GT=inst.grant; let gmult=1,gheal=0,ghaste=0;
+    if(GT){
+      if(GT.k==='power')gmult=1+GT.v;
+      else if(GT.k==='lifesteal')u.lifesteal+=GT.v;
+      else if(GT.k==='stackBonus')status.forEach(s=>s.mag+=GT.v);
+      else if(GT.k==='healOnTrigger')gheal=GT.v;
+      else if(GT.k==='haste')ghaste=GT.v;
+    }
     if(it.cast){
       const growDmg=(inst.grown&&inst.grown.dmg)||0;
       const itc=growDmg?Object.assign({},it,{cast:Object.assign({},it.cast,{dmg:(it.cast.dmg||0)+growDmg})}):it;
-      u.casts.push({it:itc,inst,pm,mult,el,status,mainTag:inst.tags[0]||null,echo:u.echo||0,
-        gold:it.goldOnHit||0});
+      u.casts.push({it:itc,inst,pm,mult:mult*gmult,el,status,mainTag:inst.tags[0]||null,echo:u.echo||0,
+        gold:it.goldOnHit||0,phase:ringPhase(inst,i,gridRows),heal:gheal,haste:ghaste});
     }
-    if(it.every)u.timers.push({it,inst,pm,mult:L*pm,every:it.every,status,left:it.every.t*(0.3+Math.random()*0.5)});
+    if(it.every){const ev=ghaste?Object.assign({},it.every,{t:Math.max(1,it.every.t*(1-ghaste))}):it.every;
+      u.timers.push({it,inst,pm,mult:L*pm*gmult,every:ev,status,left:ev.t*(0.3+Math.random()*0.5)});}
   });
   if(side==='hero'&&src.cid){                     // the class signature, one step per few levels
     const S=SIGNATURE[src.cid], n=sigSteps(src);
@@ -3305,12 +3675,21 @@ function buildUnit(src,side){
   }
   u.baseArmour=u.armour; u.dodge=Math.min(.6,u.dodge);
   u.ward=u.ward||0; u.thorns=u.thorns||0; u.echo=u.echo||0;
+  // ceilings: stacked without them, lifesteal and thorns alone decide the run
+  u.lifesteal=Math.min(.30,u.lifesteal);
+  u.thorns=Math.min(25,u.thorns);
+  u.ward=Math.min(40,u.ward);
   if(!u.casts.length)u.casts.push({it:{n:"Desperate Blow",cast:{dmg:Math.round((src.dmg||8)*1.2)}},
-    inst:{lvl:1,tags:[]},pm:1,mult:1,el:{bonus:0},status:[],mainTag:null});
+    inst:{lvl:1,tags:[]},pm:1,mult:1,el:{bonus:0},status:[],mainTag:null,phase:0});
+  u.casts.sort((a,b)=>(a.phase||0)-(b.phase||0));
+  // items fire in the order the light reaches them, but half-evened out across the lap:
+  // a pack loaded along the top row would otherwise dump everything in the first second
+  {const n=u.casts.length;u.casts.forEach((c,k)=>{c.phase=0.5*(c.phase||0)+0.5*(k/n);});}
   // SPEED drives the ring: one lap around the backpack, then every item casts
   u.spd=Math.max(2,spd+(side==='hero'?R.bless.aspd*8:0));
-  u.lap=Math.max(1.3,Math.min(9,40/u.spd));
-  u.lapT=u.lap;
+  u.lap=Math.max(1.7,Math.min(9,40/u.spd));   // a floor on the lap, or stacked Speed runs away with it
+  // start the light just short of the first relic, so the opening blow doesn't wait a whole lap
+  u.lapT=u.lap*(1-Math.max(0,(u.casts[0].phase||0)-0.03));
   return u;
 }
 function applyOnHit(u,c,t){
@@ -3335,7 +3714,7 @@ function doCast(u,c,foes,allies){
       const d=hurt(t,(cst.dmg*c.mult+el.bonus)*cm,c.mainTag,u,cst.pierce||el.pierce,el.noDodge);
       if(d)applyOnHit(u,c,t);
       if(d&&c.gold&&u.side==='hero'){R.coins+=c.gold;float(u,'+'+c.gold+'c','#e8c27a');SFX.coin();}
-      shown+=d;
+      shown+=Math.max(0,d);
       if(el.arc>0){const others=alive(foes).filter(x=>x!==t);
         if(others.length){const o=others[(Math.random()*others.length)|0];
           hurt(o,(el.arc+(u.arcBonus||0))*cm,'lightning',u,false,true);float(o,'arc','#8ad4ff');}}
@@ -3352,6 +3731,7 @@ function doCast(u,c,foes,allies){
     if(u.ref&&u.ref.cid==='paladin'){const low=alive(allies).sort((x,y)=>x.hp/x.maxHp-y.hp/y.maxHp)[0];
       if(low&&low!==u){low.hp=Math.min(low.maxHp,low.hp+Math.round(h*0.5));float(low,'+'+Math.round(h*0.5),'#8ad4ff');}}}
   if(el.armourGain>0)u.armour+=Math.round(el.armourGain);
+  if(c.heal&&u.hp>0){const h=Math.round(c.heal);u.hp=Math.min(u.maxHp,u.hp+h);float(u,'+'+h,'#aef07c');}
 }
 function runTimer(u,T,foes,allies){
   const k=T.every.kind, n=Math.max(1,Math.round(T.every.n*T.mult));
@@ -3363,11 +3743,12 @@ function runTimer(u,T,foes,allies){
   }
   flashItem(u,T.inst);
   if(k==='armourPerm'){u.armour+=n; if(u.side==='hero'&&u.ref)u.ref.armour+=n; float(u,'+'+n+' ARM','#8ad4ff');}
-  if(k==='armourPermItem'){                        // the relic itself keeps the stone
-    u.armour+=n; T.inst.grown=T.inst.grown||{}; T.inst.grown.armour=(T.inst.grown.armour||0)+n;
+  if(k==='armourPermItem'){                        // the relic itself keeps the stone — up to a point
+    u.armour+=n; T.inst.grown=T.inst.grown||{};
+    T.inst.grown.armour=Math.min(GROWCAP.armour,(T.inst.grown.armour||0)+n);
     float(u,'+'+n+' ARM','#8ad4ff');}
   if(k==='dmgPerm'){
-    T.inst.grown=T.inst.grown||{}; T.inst.grown.dmg=(T.inst.grown.dmg||0)+n;
+    T.inst.grown=T.inst.grown||{}; T.inst.grown.dmg=Math.min(GROWCAP.dmg,(T.inst.grown.dmg||0)+n);
     const c=u.casts.find(x=>x.inst===T.inst);
     if(c)c.it=Object.assign({},c.it,{cast:Object.assign({},c.it.cast,{dmg:(c.it.cast.dmg||0)+n})});
     float(u,'+'+n+' DMG','#ff8577');}
@@ -3388,15 +3769,44 @@ function foeLoadout(def,floor){
   }
   return grid;
 }
+/* PACING. A fight should feel like a fight whether the company is carrying three commons or a
+   merged pack of epics, so foe HEALTH leans a little on how well-equipped the party really is.
+   Their damage does not bend — only how long they take to fall — so a better build still wins
+   more comfortably, it just doesn't erase the room in one circuit of the ring.
+   The baseline is measured across a thousand simulated runs: a mercenary's pack is worth
+   about 280 on floor 1 and climbs by about 96 a floor. */
+function packPower(){
+  let s=0,n=0;
+  R.party.forEach(m=>{n++;anchors(m.grid).forEach(({inst})=>{
+    s+=itemPower(ITEMS[inst.bid])*lvlMul(inst.lvl);});});
+  return s/Math.max(1,n);
+}
+function pacing(f){
+  return Math.max(0.45,Math.min(1.45,packPower()/(280+96*(f-1))));
+}
 function mkFoe(def,floor,weight){
-  const dm=DEPTHS[R.depth].m, f=floor;
+  // CAMPAIGN: 75 floors is a long road, so it climbs more gently than the endless stair —
+  // but every act lands a step up on top of it, so act five hits harder than anything above.
+  const camp=R&&!R.endless;
+  const actM=camp?1+0.15*(actOf(floor)-1):1;
+  const dm=DEPTHS[R.depth].m, f=camp?1+(floor-1)*0.42:floor;
   // never more than one foe per merc, so each foe carries the slack when there are fewer
   const w=weight||1;
-  const hpS=(1+0.30*(f-1)+0.010*(f-1)*(f-1))*3.6*w;   // fights should last many laps, not one
-  const dmS=(1+0.13*(f-1))*0.70*Math.sqrt(w)*(1+R.bless.foeDmg);
+  // fights should last many laps, not one. The 0.7/(f+1) term thickens the early floors, where a
+  // full party used to delete a skirmish before the ring finished a circuit; the taper keeps the
+  // first floor honest for someone who hasn't bought anything yet.
+  const early=Math.min(1,0.62+0.19*f);
+  const hpS=(1+0.34*(f-1)+0.020*(f-1)*(f-1))*5.8*(1+0.7/(f+1))*early*pacing(f)*actM*w;
+  // w, not sqrt(w): fewer-but-bigger foes must hit as hard in total as a full line of them,
+  // otherwise a small party takes far less damage per merc than a big one
+  const dmS=(1+0.10*(f-1)+0.0045*(f-1)*(f-1))*0.80*actM*w*(1+R.bless.foeDmg);
   const e={name:def.n,foeDef:def,maxHp:Math.round(def.hp*hpS*dm),hp:Math.round(def.hp*hpS*dm),
-    armour:Math.min(30,Math.round(def.armour*(1+f*0.05)*dm)),dodge:def.dodge,dmg:Math.round(def.dmg*dmS*dm),
-    tags:[def.res],grid:foeLoadout(def,f),weak:def.weak,res:def.res,boss:def.boss||0,spd:8};
+    armour:Math.min(45,Math.round(def.armour*(1+f*0.06)*dm)),dodge:def.dodge,dmg:Math.round(def.dmg*dmS*dm),
+    // they swing oftener than they used to: a foe that acts once every five seconds is scenery
+    tags:[def.res],grid:foeLoadout(def,floor),weak:def.weak,res:def.res,boss:def.boss||0,spd:11,
+    // THEIR gear has to scale too: a foe's damage comes from its pack, and without this
+    // the things on floor 40 hit no harder than the things on floor 8
+    pow:dmS*dm};
   return e;
 }
 function toBattle(node){
@@ -3406,7 +3816,7 @@ function toBattle(node){
   // one more foe every 2 floors, starting at one — but never more than one per merc
   let count=Math.min(P,1+Math.floor((f-1)/2));
   if(!isExit)count=Math.max(1,count-1);                 // skirmishes on the way are lighter
-  const weight=(P/count)*(isExit?1:0.7);
+  const weight=(P/count)*(isExit?1:0.95);
   let defs=[];
   if(boss){ const BS=FOES.filter(x=>x.boss), bi=((f/5)|0)-1;
     defs.push(BS[bi<BS.length?bi:(bi%BS.length)]||BS[BS.length-1]);
@@ -3420,7 +3830,7 @@ function toBattle(node){
      foes:defs.map(d=>buildUnit(mkFoe(d,f,weight),'foe')),
      t:0,n:0,log:[],over:false,phoenix:R.bless.phoenix};
   document.getElementById('battleTitle').textContent=
-    "Floor "+f+" — "+REGION(f)+(boss?" — BOSS":(isExit?" — The Stair":" — Skirmish"))+
+    floorLabel(f)+(boss?" — BOSS":(isExit?" — The Stair":" — Skirmish"))+
     " — "+count+" foe"+(count>1?"s":"");
   document.getElementById('log').innerHTML='';
   const bn=document.getElementById('battleRoom');
@@ -3558,19 +3968,28 @@ function hurt(target,amount,tag,src,pierce,noDodge){
   if(tag&&target.res===tag)m*=0.6;
   if(src&&src.ref&&src.ref.cid==='wizard'&&target.st.freeze>0&&target.st.burn>0)m*=1.25;
   let d=amount*m;
-  if(!pierce)d=Math.max(d*0.25,d-(target.armour||0));
-  if(target.ward)d=Math.max(d*0.2,d-target.ward);          // Ward soaks a flat slice
-  d=Math.max(1,Math.round(d));
-  target.hp-=d;flash(target);
+  // ARMOUR IS A SHIELD POOL, not a permanent discount. 100 Armour hit for 10 leaves 90 Armour and
+  // no wound; when the plate is gone, everything lands. It refills from your items each fight.
+  let soaked=0;
+  if(!pierce&&target.armour>0){
+    soaked=Math.min(target.armour,d);
+    target.armour=Math.round((target.armour-soaked)*10)/10;
+    d-=soaked;
+    if(soaked>=1)float(target,'-'+Math.round(soaked)+' ARM','#8ad4ff');
+  }
+  if(target.ward&&d>0)d=Math.max(d*0.2,d-target.ward);     // Ward soaks a flat slice
+  d=(soaked>0&&d<=0)?0:Math.max(1,Math.round(d));
+  if(d>0){target.hp-=d;flash(target);}
   if(d>0&&Math.random()<0.35)SFX.hit();
-  if(target.thorns&&src&&src.alive&&src!==target){          // Thorns bite back
+  if(d>0&&target.thorns&&src&&src.alive&&src!==target){     // Thorns bite back
     const tb=Math.max(1,Math.round(target.thorns));
     src.hp-=tb;float(src,'-'+tb,'#aef07c');
     if(src.hp<=0){src.hp=0;src.alive=false;log(`<span class="muted">${src.name} dies on the thorns.</span>`);}}
-  float(target,'-'+d,tag?tagCol(tag):'#fff');
-  if(src&&src.lifesteal>0){src.hp=Math.min(src.maxHp,src.hp+Math.round(d*src.lifesteal));}
+  if(d>0)float(target,'-'+d,tag?tagCol(tag):'#fff');
+  if(src&&src.lifesteal>0&&d>0){src.hp=Math.min(src.maxHp,src.hp+Math.round(d*src.lifesteal));}
   if(target.hp<=0){target.hp=0;target.alive=false;log(`<span class="muted">${target.name} falls.</span>`);}
-  return d;
+  // -1 means the blow connected but the plate ate all of it: tags still get in, health does not move
+  return d>0?d:(soaked>0?-1:0);
 }
 function applyStack(target,tag,n,src){
   if(!target.alive||!n)return;
@@ -3605,14 +4024,23 @@ function tick(){
     const slow=1+Math.min(.6,u.st.freeze*0.04);
     u.timers.forEach(T=>{T.left-=dt/slow; if(T.left<=0){T.left+=T.every.t; runTimer(u,T,foes,allies);}});
     u.lapT-=dt/slow;
+    // the light sweeps the border and each item goes off as it is reached — a stream, not a burst
+    const prog=1-u.lapT/u.lap;
+    let reps=1;
+    if(u.ref&&u.ref.cid==='fighter'&&(u.lapN+1)%4===0)reps=2;   // Fighter: every 4th lap lands twice
+    u.casts.forEach(c=>{
+      if(c.fired||prog<(c.phase||0))return;
+      c.fired=1;
+      let n=reps+((c.haste&&(u.lapN+1)%4===0)?1:0);             // "triggers faster" earns an extra pass
+      for(let k=0;k<n;k++){
+        doCast(u,c,foes,allies);
+        if(c.echo&&Math.random()<c.echo)doCast(u,c,foes,allies); // Echo: a second casting
+        if(!alive(foes).length)break;
+      }
+    });
     if(u.lapT<=0){
       u.lapT+=u.lap; u.lapN++;
-      let reps=1;
-      if(u.ref&&u.ref.cid==='fighter'&&u.lapN%4===0)reps=2;   // Fighter: every 4th lap lands twice
-      for(let k=0;k<reps;k++)u.casts.forEach(c=>{
-        doCast(u,c,foes,allies);
-        if(c.echo&&Math.random()<c.echo)doCast(u,c,foes,allies);   // Echo: a second casting
-      });
+      u.casts.forEach(c=>c.fired=0);
       if(u.el)u.el.classList.add('lapflash');
       setTimeout(()=>u.el&&u.el.classList.remove('lapflash'),160);
     }
@@ -3628,7 +4056,11 @@ function tick(){
   updateArena();
   if(!alive(B.foes).length)return endBattle(true);
   if(!alive(B.heroes).length)return endBattle(false);
-  if(B.t>180)return endBattle(alive(B.heroes).length>0);
+  if(B.t>180){                                  // the torch burns down — whoever is standing taller wins
+    const fr=s=>s.reduce((a,u)=>a+Math.max(0,u.hp)/u.maxHp,0)/s.length;
+    log('<span style="color:#ff8577">The torch is burning down.</span>');
+    return endBattle(fr(B.heroes)>=fr(B.foes));
+  }
 }
 function beginFight(){
   if(!B||!B.pending)return;
@@ -3644,7 +4076,12 @@ function setSpeed(s){UI.speed=s;['sp1','sp2','sp4'].forEach(i=>document.getEleme
   document.getElementById('sp'+s).classList.add('sel');if(timer)startTicks();}
 function endBattle(win){
   B.over=true;clearInterval(timer);
-  B.heroes.forEach(h=>{h.ref.hp=Math.max(0,Math.round(h.hp));});
+  // wounds carry over as a FRACTION — item health is a layer on top, it must not bank real HP
+  B.heroes.forEach(h=>{
+    if(h.hp<=0){h.ref.hp=0;return;}
+    const fr=Math.max(0,Math.min(1,h.hp/h.maxHp));
+    h.ref.hp=Math.max(1,Math.round(h.ref.maxHp*fr));
+  });
   if(win){
     renderTorches();
     unlock("firstBlood");
@@ -3655,14 +4092,16 @@ function endBattle(win){
     R.party.forEach(p=>{
       anchors(p.grid).forEach(({inst})=>{const it=ITEMS[inst.bid];
         if(it.hpPerBattle&&p.hp>0){inst.grown=inst.grown||{};
-          inst.grown.hp=(inst.grown.hp||0)+it.hpPerBattle;}});
+          inst.grown.hp=Math.min(GROWCAP.hp,(inst.grown.hp||0)+it.hpPerBattle);}});
       if(p.cid==='paladin'&&p.hp>0){p.maxHp+=12;p.hp+=12;}
       if(R.bless.mend>0&&p.hp>0)p.hp=Math.min(p.maxHp,p.hp+Math.round(p.maxHp*R.bless.mend));
     });
     const boss=B.foes.some(f=>f.boss);
-    const gold=Math.round((B_isExit?26+R.floor*12:15+R.floor*7)*(0.9+Math.random()*0.3))+(boss?120:0);
+    // four packs to fill out of one purse was never fair — the pay scales with the company
+    const crew=0.55+0.45*R.party.length;
+    const gold=Math.round((B_isExit?24+R.floor*6.5:12+R.floor*3.5)*crew*(0.9+Math.random()*0.3))+(boss?90:0);
     R.coins+=gold;
-    const xp=Math.round((B_isExit?9+R.floor*1.6:5+R.floor*0.9)+(boss?26:0));
+    const xp=Math.round((B_isExit?17+R.floor*4.1:9+R.floor*2.4)+(boss?40:0));
     const levelled=[];
     R.party.forEach(p=>{ if(p.hp>0&&grantXP(p,xp)>0)levelled.push(p); });
     if(levelled.length)SFX.level();
@@ -3670,19 +4109,46 @@ function endBattle(win){
     document.getElementById('resTitle').textContent=boss?"BOSS SLAIN":(B_isExit?"FLOOR CLEARED":"ROOM CLEARED");
     document.getElementById('resTitle').style.color='var(--gold)';
     document.getElementById('resDesc').textContent=
-      "+"+gold+" coins, +"+xp+" XP each. Choose one relic from the spoils.";
+      "+"+gold+" coins, +"+xp+" XP each. Take "+(R.party.length>1?R.party.length+" relics — one each":"one relic")+" from the spoils.";
     const res=document.getElementById('resBody');res.innerHTML='';
     const row=document.createElement('div');row.className='row';row.style.cssText='justify-content:center;gap:10px;flex-wrap:wrap';
-    const n=(B_isExit?3:2)+R.bless.bounty;
+    const n=(B_isExit?3:2)+R.bless.bounty+(R.party.length>1?R.party.length-1:0);
+    let picks=R.party.length;                   // one relic for each mercenary standing
     for(let i=0;i<n;i++){const inst=rollItem(boss?rollLifted(R.floor):undefined);
-      const d=itemCard(inst,()=>{toStash(inst);
-        row.querySelectorAll('.card').forEach(c=>c.classList.add('dis'));openPack();});
+      const d=itemCard(inst,()=>{
+        if(picks<=0)return;
+        toStash(inst);picks--;d.classList.add('dis');
+        document.getElementById('resDesc').textContent=picks>0
+          ?picks+" more relic"+(picks===1?"":"s")+" to take.":"Taken.";
+        if(picks<=0)row.querySelectorAll('.card').forEach(c=>c.classList.add('dis'));
+        openPack();});
       row.appendChild(d);}
     res.appendChild(row);
     const btn=document.getElementById('resBtn');
-    if(B_isExit){
-      btn.textContent="Descend to Floor "+(R.floor+1);
-      btn.onclick=()=>{R.floor++;if(R.floor>5&&(META.starts||1)<Math.min(5,1+Math.floor((R.floor-1)/5))){
+    if(B_isExit&&!R.endless&&R.floor>=ACTLEN*NACTS){      // the bottom of act five. It is over.
+      btn.textContent="The way back up";
+      document.getElementById('resTitle').textContent="THE DARK GIVES WAY";
+      document.getElementById('resDesc').textContent=
+        "Seventy-five floors. The last thing down here is behind you and the torch is still lit. "+
+        "Whatever the Ninefold Core was keeping, it is yours now.";
+      unlock("firstBlood"); META.won=(META.won||0)+1; saveMeta(); recordRun("the bottom");
+      btn.onclick=()=>{document.getElementById('statsTab').style.display='none';
+        document.getElementById('torchTab').style.display='none';initTitle();show('scr-title');};
+    } else if(B_isExit){
+      const nextAct=!R.endless&&R.floor%ACTLEN===0;
+      btn.textContent=nextAct
+        ? "Into Act "+ROMAN[actOf(R.floor+1)-1]+" — "+ACTNAME[actOf(R.floor+1)-1]
+        : "Descend to Floor "+(R.floor+1);
+      if(nextAct){
+        const back=Math.min(TORCH_MAX,R.torches+2)-R.torches;
+        if(back>0)document.getElementById('resDesc').textContent+=
+          "  The act is finished — you find "+back+" more torch"+(back===1?"":"es")+" in the stairwell.";
+      }
+      btn.onclick=()=>{
+        if(nextAct){R.torches=Math.min(TORCH_MAX,R.torches+2);renderTorches();
+          toast("Act "+ROMAN[actOf(R.floor)-1]+" cleared",ACTLINE[Math.min(4,actOf(R.floor+1)-1)]);}
+        R.floor++;
+        if(R.endless&&R.floor>5&&(META.starts||1)<Math.min(5,1+Math.floor((R.floor-1)/5))){
           META.starts=Math.min(5,1+Math.floor((R.floor-1)/5));saveMeta();}
         startFloor();};
     } else {
