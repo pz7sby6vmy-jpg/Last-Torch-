@@ -172,6 +172,76 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 .stpill{display:inline-flex;align-items:center;gap:2px;border-radius:3px;padding:0 3px;
   font-size:10px;border:1px solid;background:rgba(0,0,0,.45);line-height:14px}
 .statgrid b{color:#fff;font-weight:400}
+
+/* ---------------- BATTLE SCREEN ---------------- */
+.bhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;
+  padding:8px 12px;border:2px solid #2a2230;border-radius:6px;background:linear-gradient(90deg,#1a1016,#0c0a10 70%)}
+.bhead .bt1{font-size:15px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+.bhead .bt2{font-size:11px;color:#b9a597;letter-spacing:.1em;margin-top:2px}
+.bhead .bt2 b{color:#ff8577;font-weight:normal}
+.seg{display:flex;border:2px solid #2a2230;border-radius:5px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-height:0;padding:6px 12px;background:#0d0a10;font-size:11px}
+.seg button+button{border-left:1px solid #2a2230}
+.seg button.on,.seg button.sel{background:linear-gradient(#ffd166,#c8902e);color:#1a0f08;box-shadow:none}
+.stage{position:relative;border:2px solid #2e2533;border-radius:8px;overflow:hidden;background:#05060a;
+  box-shadow:inset 0 0 0 1px #000,0 6px 18px rgba(0,0,0,.5)}
+.stage .sbg{position:absolute;inset:0;line-height:0}
+.stage .sbg canvas{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;filter:brightness(.62) saturate(.9)}
+.stage .shade{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(rgba(5,6,10,.15),rgba(5,6,10,0) 30%,rgba(5,6,10,.55) 62%,rgba(5,6,10,.92)),
+  radial-gradient(ellipse at 50% 40%,transparent 50%,rgba(0,0,0,.55))}
+.stage .roomtag{position:absolute;left:10px;top:8px;z-index:3;font-size:10px;letter-spacing:.2em;color:#e8c27a;
+  text-transform:uppercase;text-shadow:0 0 6px #000,1px 1px 0 #000;background:rgba(5,6,10,.55);padding:3px 7px;border-radius:3px;border:1px solid rgba(232,194,122,.25)}
+.lineup{position:relative;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:6px;padding:46px 10px 12px;min-height:280px}
+.lineup .side{align-items:flex-end;align-content:flex-end;gap:8px}
+.vsmark{align-self:center;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:#ffd166;letter-spacing:.05em;background:radial-gradient(#2a1510,#0d0709);border:2px solid #5a3a22;
+  box-shadow:0 0 14px rgba(255,140,60,.35);text-shadow:0 0 6px #ff8c3c}
+.unit{width:138px;padding:0;border:0}
+.unit .fig{position:relative;height:112px;display:flex;align-items:flex-end;justify-content:center;line-height:0}
+.unit .fig::after{content:'';position:absolute;bottom:-3px;left:22%;right:22%;height:9px;border-radius:50%;background:rgba(0,0,0,.55);filter:blur(1px);z-index:-1}
+.unit .fig canvas{max-height:112px;width:auto}
+.plate{margin-top:6px;background:rgba(9,8,13,.86);border:2px solid #2e2533;border-radius:5px;padding:5px 6px 4px;text-align:center}
+.unit.foe .plate{border-color:#3d2229}
+.unit.boss .plate{border-color:#8d2f2f;box-shadow:0 0 10px rgba(255,90,90,.3)}
+.unit.tgt .plate{border-color:var(--gold);box-shadow:0 0 0 1px #000,0 0 12px rgba(255,209,102,.45)}
+.unit.tgt .fig::before{content:'\25BC';position:absolute;top:-14px;left:50%;transform:translateX(-50%);color:var(--gold);font-size:11px;animation:bob 1.2s ease-in-out infinite;line-height:1}
+.unit .nm{font-size:11px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unit .nm .lv{color:#8f8170;font-size:9px;margin-left:3px}
+.unit .hpbar{position:relative;height:13px;margin-top:4px;border:1px solid #000;box-shadow:0 0 0 1px #3a2228;background:#1b0b10}
+.unit .hpbar i{background:linear-gradient(#ff6b7f,#c42b45 55%,#8d1f31)}
+.unit.hero .hpbar i{background:linear-gradient(#a4f07c,#4fae3a 55%,#2d7124)}
+.unit .hpbar span{position:absolute;inset:0;font-size:9px;line-height:12px;color:#fff;text-shadow:1px 1px 0 #000,-1px 0 0 #000;letter-spacing:.04em}
+.unit .armbar{height:4px;margin-top:2px;background:#0b1420;border-radius:1px;overflow:hidden;display:none}
+.unit .armbar i{display:block;height:100%;background:linear-gradient(#bfe6ff,#4a9bd6);transition:width .12s}
+.unit .armbar.on{display:block}
+.unit .vsline{font-size:9px;color:#c9b38c;min-height:12px;margin-top:2px}
+.unit .wr{display:flex;gap:3px;justify-content:center;margin-top:3px;flex-wrap:wrap}
+.unit .wr .chip{margin:0;font-size:9px;background:rgba(0,0,0,.4)}
+.readycall{position:relative;margin:10px 0 0;padding:12px;border:2px solid #5a4322;border-radius:6px;text-align:center;
+  background:linear-gradient(#1b130b,#0e0a07)}
+.readycall .flavor{color:#d7c3a0}
+.peekgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.peekgrid>*{min-width:0}
+.ptitle{font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #2a2230}
+.blog{margin-top:10px;border:2px solid #1f1a26;border-radius:6px;background:#06070b;overflow:hidden}
+.blog .lh{font-size:10px;letter-spacing:.18em;color:#7f7268;padding:4px 8px;background:#0e0b12;border-bottom:1px solid #1f1a26}
+.blog .log{border:0;border-radius:0;background:transparent;padding:6px 8px}
+@media (max-width:900px){
+  .unit{width:104px} .unit .fig{height:84px} .unit .fig canvas{max-height:84px;max-width:none}
+  .lineup{min-height:220px;padding:40px 6px 10px}
+}
+@media (max-width:700px){ .peekgrid{grid-template-columns:1fr} }
+@media (max-width:440px){ #statsTab .tl{display:none} #statsTab button{padding:8px 11px} #torchTab .pix{display:none} }
+.statgrid.pk{grid-template-columns:62px auto !important;justify-content:start}
+@media (max-width:560px){
+  .bhead{padding:6px 8px} .bhead .bt1{font-size:13px} .seg button{padding:6px 10px}
+  .unit{width:112px} .unit .fig{height:64px} .unit .fig canvas{max-height:64px} .unit .nm{font-size:10px}
+  .fnum{font-size:10px}
+  .lineup{grid-template-columns:1fr 26px 1fr;gap:4px;padding:36px 4px 10px;align-items:start}
+  .lineup .side{flex-direction:column;align-items:center;flex-wrap:nowrap;gap:10px}
+  .vsmark{width:26px;height:26px;font-size:9px;align-self:start;margin-top:70px}
+}
 </style>
 </head>
 <body>
@@ -441,28 +511,31 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 
 <!-- BATTLE -->
 <div class="scr" id="scr-battle">
-  <div class="frame" style="padding:12px">
-    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">
-      <h2 style="font-size:15px;color:var(--gold)" id="battleTitle"></h2>
-      <div class="row" style="gap:6px" id="battleCtl">
+  <div class="frame" style="padding:10px">
+    <div class="bhead">
+      <div><div class="bt1" id="battleTitle"></div><div class="bt2" id="battleSub"></div></div>
+      <div class="seg" id="battleCtl">
         <button onclick="setSpeed(1)" id="sp1">1x</button>
         <button onclick="setSpeed(2)" id="sp2">2x</button>
         <button onclick="setSpeed(4)" id="sp4">4x</button>
       </div>
     </div>
-    <div id="readyBar" class="center" style="display:none;margin-bottom:10px">
-      <div class="muted" style="font-size:11px;margin-bottom:8px" id="readyText"></div>
+    <div class="stage" id="arena">
+      <div class="sbg" id="battleRoom"></div><div class="shade"></div>
+      <div class="roomtag" id="roomTag"></div>
+      <div class="lineup">
+        <div class="side" id="heroSide"></div>
+        <div class="vsmark pix">VS</div>
+        <div class="side" id="foeSide"></div>
+      </div>
+    </div>
+    <div id="readyBar" class="readycall" style="display:none">
+      <div style="font-size:11px;margin-bottom:10px" id="readyText"></div>
       <button onclick="openPack()">Rearrange Backpacks</button>
       <button class="btn-main" onclick="beginFight()">&#9876; Ready</button>
     </div>
-    <div id="battleRoom"></div>
-    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:start">
-      <div class="side" id="heroSide"></div>
-      <div class="pix center" style="color:#39425c;font-size:11px;padding-top:36px">VS</div>
-      <div class="side" id="foeSide"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px" id="packPeek"></div>
-    <div class="log" id="log" style="margin-top:10px"></div>
+    <div class="peekgrid" id="packPeek"></div>
+    <div class="blog"><div class="lh pix">BATTLE LOG</div><div class="log" id="log"></div></div>
   </div>
 </div>
 
@@ -479,8 +552,8 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 
 <!-- STATS TAB -->
 <div id="statsTab" style="position:fixed;top:10px;right:10px;z-index:40;display:none">
-  <button onclick="openStats()">&#9636; Stats</button>
-  <button onclick="openMenu()">&#9776; Menu</button>
+  <button onclick="openStats()">&#9636;<span class="tl"> Stats</span></button>
+  <button onclick="openMenu()">&#9776;<span class="tl"> Menu</span></button>
 </div>
 <div class="modal" id="menuModal">
   <div class="frame" style="padding:18px;max-width:420px;width:100%">
@@ -630,30 +703,98 @@ function cached(key,build){
   if(!c){c=build();_sprCache[key]=c;}
   const o=document.createElement('canvas');o.width=c.width;o.height=c.height;
   o.getContext('2d').drawImage(c,0,0);
-  o.style.imageRendering='pixelated';
+  o.style.imageRendering=c.dataset.smooth?'auto':'pixelated';
+  if(c.dataset.css){o.style.width=c.dataset.css+'px';o.style.height=c.dataset.css+'px';}
   return o;
 }
-function renderMat(mask,M,scale){
+/* ---- colour helpers ---- */
+const _rgbC={};
+function rgbOf(h){
+  if(_rgbC[h])return _rgbC[h];
+  let t=h.replace('#','');if(t.length===3)t=t.split('').map(c=>c+c).join('');
+  const n=parseInt(t,16);return (_rgbC[h]=[(n>>16)&255,(n>>8)&255,n&255]);
+}
+const mixRgb=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+const css=c=>'rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')';
+const WHITE=[255,250,236], INK=[8,8,13];
+/* EVERY SPRITE goes through here: heroes, enemies, rooms, items, torches, chests.
+   Five tones instead of three — a soft step between light and mid and between mid and dark,
+   where one material meets another — plus a fine grain so flat areas read as cloth, stone or
+   metal, a gleam on the brightest edges, and a contact shadow under overhangs. */
+function renderMat(mask,M,scale,opt){
+  opt=opt||{};
   const w=mask.w,h=mask.h,c=document.createElement('canvas');
   c.width=w*scale;c.height=h*scale;
-  const x=c.getContext('2d');
-  for(let y=0;y<h;y++)for(let i=0;i<w;i++){
-    const m=mask.g(i,y); if(!m)continue;
-    const sh=M[m]||M[1]||["#eee","#999","#444"];
-    const up=mask.g(i,y-1),lf=mask.g(i-1,y),dn=mask.g(i,y+1),rt=mask.g(i+1,y);
-    let col;
-    if(!up||!lf)col=sh[0];
-    else if(!dn||!rt)col=sh[2];
-    else if(up!==m&&lf!==m)col=sh[0];
-    else col=sh[1];
-    x.fillStyle=col;x.fillRect(i*scale,y*scale,scale,scale);
+  const x=c.getContext('2d'), seed=opt.seed||(w*31+h*17);
+  const grain=opt.grain===undefined?1:opt.grain;
+  if(opt.shadow){                                   // a soft drop shadow behind small sprites
+    x.fillStyle='rgba(0,0,0,.38)';
+    for(let y=0;y<h;y++)for(let i=0;i<w;i++)if(mask.g(i,y))x.fillRect((i+1)*scale,(y+1)*scale,scale,scale);
+  }
+  if(opt.glow){                                     // legendary aura, two pixels out
+    x.fillStyle=opt.glow;
+    for(let y=0;y<h;y++)for(let i=0;i<w;i++){
+      if(mask.g(i,y))continue;
+      let near=false;
+      for(let dy=-2;dy<=2&&!near;dy++)for(let dx=-2;dx<=2;dx++)if(mask.g(i+dx,y+dy)){near=true;break;}
+      if(near)x.fillRect(i*scale,y*scale,scale,scale);
+    }
   }
   x.fillStyle="#08080d";
   for(let y=0;y<h;y++)for(let i=0;i<w;i++){
     if(mask.g(i,y))continue;
     if(mask.g(i-1,y)||mask.g(i+1,y)||mask.g(i,y-1)||mask.g(i,y+1))x.fillRect(i*scale,y*scale,scale,scale);
   }
+  for(let y=0;y<h;y++)for(let i=0;i<w;i++){
+    const m=mask.g(i,y); if(!m)continue;
+    const sh=M[m]||M[1]||["#eee","#999","#444"];
+    const L=rgbOf(sh[0]),Md=rgbOf(sh[1]),D=rgbOf(sh[2]);
+    const up=mask.g(i,y-1),lf=mask.g(i-1,y),dn=mask.g(i,y+1),rt=mask.g(i+1,y);
+    let col;
+    if(!up||!lf)col=L;                                         // lit edge, upper-left
+    else if(!dn||!rt)col=D;                                    // shaded edge, lower-right
+    else if(up!==m||lf!==m)col=mixRgb(L,Md,.45);               // a seam catching the light
+    else if(dn!==m||rt!==m)col=mixRgb(Md,D,.5);                // a seam falling into shadow
+    else {
+      const u2=mask.g(i,y-2),l2=mask.g(i-2,y);
+      col=(u2!==m||l2!==m)?mixRgb(L,Md,.75):Md;                // light soaks a little way in
+    }
+    // contact shadow under anything that overhangs
+    if(mask.g(i,y-1)&&mask.g(i,y-1)!==m&&up)col=mixRgb(col,D,.35);
+    // grain
+    if(grain){
+      const hsh=((i*73856093)^(y*19349663)^seed)>>>0, r=hsh%100;
+      if(r<9)col=mixRgb(col,D,.17);
+      else if(r>94)col=mixRgb(col,L,.14);
+    }
+    // gleam on the very brightest corners
+    if(!up&&!lf&&opt.gleam!==0)col=mixRgb(col,WHITE,.28);
+    x.fillStyle=css(col);x.fillRect(i*scale,y*scale,scale,scale);
+  }
+  if(opt.sparkle){                                  // a few glints for epic and legendary relics
+    for(let y=0;y<h;y++)for(let i=0;i<w;i++){
+      if(!mask.g(i,y))continue;
+      const edge=!mask.g(i,y-1)||!mask.g(i-1,y);
+      const hsh=((i*2654435761)^(y*40503)^seed)>>>0;
+      if(edge&&hsh%100<opt.sparkle){x.fillStyle='#fff6d0';x.fillRect(i*scale,y*scale,scale,scale);}
+    }
+  }
   return c;
+}
+/* Pixel-art upscale (EPX / Scale2x): doubles a mask's resolution and rounds off its staircases,
+   so a 16x16 relic is drawn with 32x32 worth of shading. */
+function scale2x(m){
+  const g=G(m.w*2,m.h*2);
+  for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){
+    const P=m.g(x,y),A=m.g(x,y-1),B=m.g(x+1,y),C=m.g(x-1,y),D=m.g(x,y+1);
+    let e0=P,e1=P,e2=P,e3=P;
+    if(C===A&&C!==D&&A!==B)e0=A;
+    if(A===B&&A!==C&&B!==D)e1=B;
+    if(D===C&&D!==B&&C!==A)e2=C;
+    if(B===D&&B!==A&&D!==C)e3=D;
+    g.s(2*x,2*y,e0);g.s(2*x+1,2*y,e1);g.s(2*x,2*y+1,e2);g.s(2*x+1,2*y+1,e3);
+  }
+  return g;
 }
 const DK=15;                         // shared "dark detail" material
 function body64(g,M){
@@ -681,7 +822,7 @@ const HEROMAT={
  paladin:{1:["#ffd98a","#d9a63c","#8a5f16"],2:["#fff6e2","#ddcda8","#95855f"],
    3:["#f0c49a","#cf9a6e","#8c5f3f"],5:["#eaf1f8","#a3b6c9","#5d6e81"],
    6:["#fff0b0","#e8b84b","#95691a"],7:["#fffbe8","#ffe27a","#f2b43a"],
-   8:["#9a7murky","#5c4428","#2e2114"],15:["#2a2026","#161018","#0a060c"]},
+   8:["#9a7a4a","#5c4428","#2e2114"],15:["#2a2026","#161018","#0a060c"]},
  fighter:{1:["#ffb061","#e8732a","#9c3f0d"],2:["#4a4a54","#27272e","#121216"],
    3:["#ffd3a6","#e0a977","#9c6b44"],4:["#ffe9a3","#e8c25a","#9c7b22"],
    10:["#ffffff","#d8d8dc","#8f8f96"],6:["#4a4a54","#27272e","#121216"],
@@ -953,9 +1094,122 @@ const HEROART={
    g.s(45,45,11); g.s(55,44,11); g.s(50,42,11);
  },
 };
+
+/* ---------- CHARACTER RENDERER ----------
+   Heroes and foes are drawn at double resolution: the 64x64 mask is smoothed up to 128x128,
+   every body part gets its own rounded volume (lit from the upper left, dithered between tones),
+   materials are told apart by colour (metal shines, skin stays smooth, cloth folds, fur bristles),
+   parts are separated by thin ink lines, glowing eyes bleed light, and a cool rim catches the
+   right-hand edge so figures pop off the dark rooms. */
+const BAYER4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function hslOf(c){const r=c[0]/255,g=c[1]/255,b=c[2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;
+  if(mx===mn)return[0,0,l];const d=mx-mn,s=l>.5?d/(2-mx-mn):d/(mx+mn);
+  let h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;return[h*60,s,l];}
+function matClass(sh,override){
+  if(override)return override;
+  const L=rgbOf(sh[0]),Md=rgbOf(sh[1]);const [h,sat,l]=hslOf(Md),[,sL,lL]=hslOf(L);
+  if(l<0.16)return 'dark';
+  if(sL>0.62&&lL>0.62&&sat>0.55)return 'glow';
+  if(sat<0.24&&l>0.32)return 'metal';
+  if(h>=12&&h<=42&&sat>0.22&&sat<0.8&&l>0.48&&l<0.82)return 'skin';
+  if(h>40&&h<62&&sat>0.45&&l>0.45)return 'gold';
+  return 'cloth';
+}
+function boxBlur(src,w,h,r){
+  const tmp=new Float32Array(w*h),out=new Float32Array(w*h),n=2*r+1;
+  for(let y=0;y<h;y++){let acc=0;for(let x=-r;x<=r;x++)acc+=src[y*w+Math.min(w-1,Math.max(0,x))];
+    for(let x=0;x<w;x++){tmp[y*w+x]=acc/n;acc+=src[y*w+Math.min(w-1,x+r+1)]-src[y*w+Math.max(0,x-r)];}}
+  for(let x=0;x<w;x++){let acc=0;for(let y=-r;y<=r;y++)acc+=tmp[Math.min(h-1,Math.max(0,y))*w+x];
+    for(let y=0;y<h;y++){out[y*w+x]=acc/n;acc+=tmp[Math.min(h-1,y+r+1)*w+x]-tmp[Math.max(0,y-r)*w+x];}}
+  return out;
+}
+function renderChar(mask0,M,scale,opt){
+  opt=opt||{};
+  const m=scale2x(mask0),w=m.w,h=m.h,N=w*h;
+  const k=Math.max(1,Math.ceil(scale/2));
+  const c=document.createElement('canvas');c.width=w*k;c.height=h*k;
+  if(w*k!==mask0.w*scale){c.dataset.css=mask0.w*scale;if(scale<2)c.dataset.smooth=1;}
+  const x=c.getContext('2d'),img=x.createImageData(w,h),px=img.data;
+  const any=new Float32Array(N),mats={};
+  for(let i=0;i<N;i++){const v=m.d[i];if(v){any[i]=1;(mats[v]=mats[v]||[]).push(i);}}
+  const anyB=boxBlur(any,w,h,6),anyB2=boxBlur(any,w,h,2);
+  const height=new Float32Array(N),cls={},emis={};
+  for(const v in mats){
+    const ind=new Float32Array(N);for(const i of mats[v])ind[i]=1;
+    const b=boxBlur(ind,w,h,3);
+    for(const i of mats[v])height[i]=0.55*b[i]+0.45*anyB[i];
+    const sh=M[v]||M[1]||["#eee","#999","#444"];
+    cls[v]=matClass(sh,opt.cls&&opt.cls[v]);
+    if(cls[v]==='glow'&&mats[v].length>220&&!(opt.cls&&opt.cls[v]))cls[v]='cloth';      // only small bright bits glow
+    if(cls[v]==='glow')emis[v]=1;
+  }
+  const H=(i,j)=>(i<0||j<0||i>=w||j>=h)?0:height[j*w+i];
+  const at=(i,j)=>m.g(i,j);
+  const seed=opt.seed||7;
+  const put=(i,col,a)=>{px[i*4]=col[0];px[i*4+1]=col[1];px[i*4+2]=col[2];px[i*4+3]=a===undefined?255:a;};
+  const rim=rgbOf(opt.rim||'#8fa6e0');
+  // outline first (sel-out: lit side takes the neighbour's darkest tone, shadow side is ink)
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+    if(at(i,j))continue;
+    const nb=at(i+1,j)||at(i,j+1)||at(i-1,j)||at(i,j-1);
+    if(!nb){const d=at(i+1,j+1)||at(i-1,j-1)||at(i+1,j-1)||at(i-1,j+1);if(d)put(j*w+i,INK,140);continue;}
+    const sh=M[nb]||M[1]||["#eee","#999","#444"];
+    const litSide=at(i+1,j)||at(i,j+1);
+    put(j*w+i,litSide?mixRgb(rgbOf(sh[2]),INK,.55):INK);
+  }
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+    const v=at(i,j);if(!v)continue;const idx=j*w+i;
+    const sh=M[v]||M[1]||["#eee","#999","#444"];
+    const L=rgbOf(sh[0]),Md=rgbOf(sh[1]),D=rgbOf(sh[2]),cl=cls[v];
+    let col;
+    if(cl==='glow'){
+      col=at(i,j-1)!==v||at(i-1,j)!==v?mixRgb(L,WHITE,.55):L;
+    } else {
+      const nx=H(i-1,j)-H(i+1,j), ny=H(i,j-1)-H(i,j+1);
+      const gain=cl==='metal'?5.2:cl==='skin'?3.2:cl==='gold'?4.6:3.8;
+      let t=0.56+(nx*-0.62+ny*-0.78)*gain;                    // light from the upper left
+      t+=(height[idx]-0.6)*0.35;                                 // the core of a form sits brighter
+      if(cl==='cloth'){                                          // soft folds running down the cloth
+        const f=Math.sin(i*0.55+Math.sin(j*0.11+seed)*2.2+((seed*7)%5));
+        t+=f*0.07;}
+      if(cl==='fur'||opt.fur===+v){const hh=((i*73856093)^(Math.floor(j/3)*19349663)^seed)>>>0;
+        if(hh%7===0)t-=0.22; else if(hh%11===0)t+=0.12;}
+      t=Math.max(0,Math.min(1,t));
+      // quantise into 7 tones with ordered dither, so it still reads as pixel art
+      const q=t*6+(BAYER4[(j&3)*4+(i&3)]/16-0.5)*0.9;
+      const lv=Math.max(0,Math.min(6,Math.round(q)))/6;
+      col=lv<0.5?mixRgb(D,Md,lv*2):mixRgb(Md,L,(lv-0.5)*2);
+      if(cl==='metal'&&t>0.80)col=mixRgb(col,WHITE,.45);          // specular
+      if(cl==='gold'&&t>0.84)col=mixRgb(col,[255,247,214],.5);
+      if(cl==='dark')col=mixRgb(Md,lv>0.6?L:D,.5);
+      // thin ink line where one part meets another below/right of it
+      const dn=at(i,j+1),rt=at(i+1,j);
+      if((dn&&dn!==v&&!emis[dn])||(rt&&rt!==v&&!emis[rt]))col=mixRgb(col,INK,.5);
+      // the lit rim, upper-left edge
+      if(!at(i,j-1)||!at(i-1,j))col=mixRgb(col,cl==='metal'?WHITE:L,cl==='metal'?.55:.35);
+      // cool back-light on the right-hand edge
+      else if(!at(i+1,j)||!at(i+2,j))col=mixRgb(col,rim,.32);
+      // ambient occlusion: deep in the silhouette and low down gets darker
+      const ao=Math.max(0,(j/h-0.6)/0.4)*0.22+(1-anyB2[idx])*0;
+      col=mixRgb(col,INK,ao);
+      if(cl!=='skin'&&cl!=='metal'){const hs=((i*2654435761)^(j*40503)^seed)>>>0;
+        if(hs%100<6)col=mixRgb(col,D,.25);}
+    }
+    put(idx,col);
+  }
+  // glowing bits bleed a little light onto what is around them
+  for(const v in emis){const L=rgbOf((M[v]||M[1])[0]);
+    for(const i0 of mats[v]){const i=i0%w,j=(i0/w)|0;
+      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const ii=i+dx,jj=j+dy;
+        if(ii<0||jj<0||ii>=w||jj>=h)continue;const q=jj*w+ii;const vv=m.d[q];
+        if(vv&&!emis[vv]){const f=0.10;px[q*4]+= (L[0]-px[q*4])*f;px[q*4+1]+=(L[1]-px[q*4+1])*f;px[q*4+2]+=(L[2]-px[q*4+2])*f;}}}}
+  if(k===1){x.putImageData(img,0,0);return c;}
+  const t=document.createElement('canvas');t.width=w;t.height=h;t.getContext('2d').putImageData(img,0,0);
+  x.imageSmoothingEnabled=false;x.drawImage(t,0,0,w*k,h*k);return c;
+}
 function heroMask(c){const g=G(64,64);(HEROART[c.id]||body64)(g,RNG(c.seed));return g;}
 function heroSprite(c,scale){
-  return cached('h'+c.id+'_'+(scale||3),()=>renderMat(heroMask(c),HEROMAT[c.id]||HEROMAT.fighter,scale||3));}
+  return cached('h2'+c.id+'_'+(scale||3),()=>renderChar(heroMask(c),HEROMAT[c.id]||HEROMAT.fighter,scale||3,{seed:(c.seed||3)%97}));}
 /* ---------- FOE SPRITES (64x64, full colour) ---------- */
 function speck(g,r,x,y,w,h,mat,n){for(let i=0;i<n;i++){const px=x+((r()*w)|0),py=y+((r()*h)|0);if(g.g(px,py))g.s(px,py,mat);}}
 function legs(g,x,y,dx,dy,n,mat,spread){
@@ -1194,13 +1448,104 @@ const FOEMAT={
       4:["#ff6b6b","#d3303a","#6d111c"],10:["#fff6ea","#dccfbe","#8f8678"],
       3:["#ffe08a","#d9a33c","#8a5f16"],15:["#1a0e20","#0e0812","#060309"]},
 };
+
+/* ---------- ACT DRESSING ----------
+   The fifty foes share a dozen body plans, so each act dresses its residents in its own place:
+   moss, mushrooms and hanging vine in the Forest Hollow; grave-wraps, candles and cracked bone
+   in the Catacombs; iron plate, rivets and molten seams in the Foundry; halos, frost and gilt
+   sigils in the Hollow Shrine; glowing veins, extra eyes and obsidian shards in the Ninefold Core.
+   Their colours are pulled toward the act's own light as well. */
+const ACTTINT=[["#4f6a32",.26],["#8a8c9a",.30],["#6a4632",.30],["#7a86b8",.40],["#2a1636",.55]];
+const ACTDRESSMAT=[
+ {20:["#a8d46a","#5f9a34","#2c5418"],21:["#f2e8cc","#cfc0a0","#7f7258"],22:["#ff8a6a","#d0402c","#6e1a12"],
+  23:["#ffffff","#f0e8e0","#b0a898"],24:["#8ad65a","#3f8a2a","#1a4410"]},
+ {20:["#e8dcc0","#b8a888","#6a5e48"],21:["#fff4d8","#e6d6aa","#9a8a62"],22:["#fff7c0","#ffd166","#ff8a2a"],
+  23:["#2a2228","#181418","#0a080a"],24:["#6a5a46","#46392a","#221a12"]},
+ {20:["#6a7078","#3e434a","#1c1f24"],21:["#ffe7a0","#d9a440","#7a5414"],22:["#fff2a0","#ff9a2a","#c8380c"],
+  23:["#9aa0a8","#5a6068","#2a2e34"]},
+ {20:["#fff6c8","#ffd86a","#e09a20"],21:["#f4fbff","#bfe4fa","#6a9cc4"],22:["#ffe9a0","#e8b84b","#8a6516"],
+  23:["#3a2a4a","#22182c","#100a16"]},
+ {20:["#ffb0ff","#ff3cc8","#a0107a"],21:["#fff6a0","#ffd03a","#c08a10"],22:["#1a0e1c","#0e0810","#050306"],
+  23:["#8a6ab4","#3a2654","#140a20"]}];
+const ACTDRESSCLS=[{},{22:'glow'},{22:'glow',21:'gold'},{20:'glow',21:'metal',22:'gold'},{20:'glow',21:'glow',22:'dark',23:'metal'}];
+function dressFoe(g,f,r){
+  const a=(f.act||1)-1, W=g.w, H=g.h, boss=!!f.boss;
+  const tops=[],body=[],unders=[];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const v=g.g(x,y);if(!v)continue;
+    if(!g.g(x,y-1))tops.push([x,y]);
+    if(!g.g(x,y+1))unders.push([x,y]);
+    if(g.g(x-1,y)&&g.g(x+1,y)&&g.g(x,y-1)&&g.g(x,y+1)&&v<20)body.push([x,y]);}
+  if(!body.length)return;
+  const pick=L=>L[(r()*L.length)|0];
+  let minY=99,maxY=0,sx=0,sy=0;body.forEach(([x,y])=>{minY=Math.min(minY,y);maxY=Math.max(maxY,y);sx+=x;sy+=y;});
+  const cx=Math.round(sx/body.length),cy=Math.round(sy/body.length);
+  const inB=(x,y)=>{const v=g.g(x,y);return v&&v<20;};
+  const walk=(x,y,n,mat,dirx,diry,keep)=>{for(let i=0;i<n;i++){if(keep&&!inB(x,y))break;g.s(x,y,mat);
+      if(r()<0.6)y+=diry; if(r()<0.5)x+=dirx+(r()<0.3?(r()<.5?-1:1):0); else if(r()<.3)x+=(r()<.5?-1:1);}};
+  const highTops=tops.filter(([x,y])=>y<cy-4);
+  if(a===0){                                   // FOREST HOLLOW
+    tops.forEach(([x,y])=>{if(r()<0.62){g.s(x,y,20);if(inB(x,y+1))g.s(x,y+1,20);if(r()<.3&&inB(x,y+2))g.s(x,y+2,20);}});
+    const nm=(boss?4:2)+((r()*2)|0);
+    for(let i=0;i<nm&&highTops.length;i++){const [x,y]=pick(highTops);const sz=1+((r()*2)|0)+(boss?1:0);
+      rect(g,x,y-2-sz,2,3+sz,21); ell(g,x+1,y-3-sz,2+sz,1+(sz>>1),22); g.s(x-sz+1,y-3-sz,23); g.s(x+sz,y-4-sz,23);}
+    for(let i=0;i<3+(boss?2:0);i++){const [x,y]=pick(tops);let px=x,py=y;
+      for(let k=0;k<8+((r()*10)|0);k++){if(!inB(px,py)&&k>2)break;g.s(px,py,24);if(k%4===2){g.s(px+1,py,20);g.s(px+2,py-1,20);}py++;if(r()<.35)px+=r()<.5?-1:1;}}
+  } else if(a===1){                            // CATACOMBS
+    const bands=2+((r()*2)|0)+(boss?1:0);
+    for(let b=0;b<bands;b++){const y0=cy-8+((r()*20)|0),sl=r()<.5?-1:1;
+      body.forEach(([x,y])=>{const yy=y0+Math.round((x-cx)*sl/5);if(y===yy||y===yy+1)g.s(x,y,20);});}
+    for(let i=0;i<(boss?3:1+((r()*2)|0))&&highTops.length;i++){const [x,y]=pick(highTops);
+      rect(g,x,y-5,2,5,21); g.s(x,y-6,23); rect(g,x,y-9,2,3,22); g.s(x+1,y-10,22);
+      g.s(x-1,y-1,21); g.s(x+2,y,21);}
+    for(let i=0;i<2;i++){const [x,y]=pick(body);walk(x,y,7,23,r()<.5?-1:1,1,true);}
+    unders.filter(([x,y])=>y>54).forEach(([x,y])=>{if(r()<.7){g.s(x,y,24);if(r()<.5)g.s(x,y+1,24);}});
+  } else if(a===2){                            // FOUNDRY
+    for(let y=minY+5;y<maxY-2;y+=8)body.forEach(([x,yy])=>{if(yy===y){g.s(x,y,20);
+      if((x+y)%6===0&&inB(x,y-2)){g.s(x,y-2,21);}}});
+    for(let i=0;i<(boss?4:2);i++){const [x,y]=pick(body);walk(x,y,8+((r()*6)|0),22,r()<.5?-1:1,1,true);}
+    if(inB(cx,cy)){ell(g,cx,cy,3,3,20);ell(g,cx,cy,2,2,22);g.s(cx-1,cy-1,21);}
+    if(highTops.length){const [x,y]=pick(highTops);rect(g,x-1,y-6,3,6,20);rect(g,x-2,y-7,5,1,23);
+      g.s(x,y-9,22);if(r()<.6)g.s(x+1,y-11,22);}
+  } else if(a===3){                            // HOLLOW SHRINE
+    let tx=cx,ty=99;tops.forEach(([x,y])=>{if(y<ty||(y===ty&&Math.abs(x-cx)<Math.abs(tx-cx))){ty=y;tx=x;}});
+    const hr=boss?9:6; ty=Math.max(7,ty);
+    for(let t=0;t<64;t++){const an=t/64*Math.PI*2,hx=Math.round(tx+Math.cos(an)*hr),hy=Math.round(ty-5+Math.sin(an)*2);
+      if(hy>=0&&!g.g(hx,hy))g.s(hx,hy,20);}
+    tops.forEach(([x,y])=>{if(r()<.75){g.s(x,y,21);if(r()<.3&&inB(x,y+1))g.s(x,y+1,21);}});
+    unders.filter(([x,y])=>y<58).forEach(([x,y])=>{if(r()<.35){const n=1+((r()*4)|0);for(let k=1;k<=n;k++)if(!g.g(x,y+k))g.s(x,y+k,21);}});
+    if(inB(cx,cy-2)){rect(g,cx,cy-5,1,7,22);rect(g,cx-2,cy-3,5,1,22);ell(g,cx,cy-3,1,1,22);}
+    const by=Math.min(maxY,cy+8);body.forEach(([x,y])=>{if(y===by+Math.round(Math.abs(x-cx)/3)&&(x%3===0))g.s(x,y,23);});
+  } else {                                     // NINEFOLD CORE
+    for(let i=0;i<(boss?6:4);i++){const [x,y]=pick(body);let px=x,py=y,dx=r()<.5?-1:1;
+      for(let k=0;k<14;k++){if(!inB(px,py))break;g.s(px,py,20);px+=dx;if(r()<.5)py+=r()<.5?-1:1;
+        if(r()<.15){let qx=px,qy=py;for(let j=0;j<4;j++){qy++;if(inB(qx,qy))g.s(qx,qy,20);}}}}
+    for(let i=0;i<(boss?7:3+((r()*2)|0));i++){const [x,y]=pick(body);
+      if(!inB(x-2,y)||!inB(x+2,y))continue;rect(g,x-2,y-1,5,3,22);rect(g,x-1,y,3,1,21);g.s(x,y,22);}
+    for(let i=0;i<(boss?5:3)&&highTops.length;i++){const [x,y]=pick(highTops);
+      const hgt=5+((r()*6)|0),lean=r()<.5?-1:1;
+      for(let k=0;k<hgt;k++){const w=Math.max(1,Math.round(3*(1-k/hgt)));const xx=x+Math.round(lean*k/3);
+        rect(g,xx-(w>>1),y-k,w,1,23);}}
+  }
+}
+function foeMats(f){
+  const a=(f.act||1)-1, base=FOEMAT[f.id]||FOEMAT.rat, out={};
+  const [tc,ts]=ACTTINT[a], T=rgbOf(tc);
+  for(const k in base){const sh=base[k];
+    if(matClass(sh)==='glow'){out[k]=sh;continue;}
+    out[k]=sh.map(h=>'#'+mixRgb(rgbOf(h),T,ts).map(v=>(Math.round(v)|256).toString(16).slice(1)).join(''));}
+  return Object.assign(out,ACTDRESSMAT[a]);
+}
 function foeMask(f){
   const g=G(64,64), r=RNG(f.seed||7);
   (FOEART[f.kind]||FOEART.beast)(g,r,FOEOPT[f.id]||{});
+  dressFoe(g,f,RNG((f.seed||7)*13+5));
   return g;
 }
 function foeSprite(f,scale){
-  return cached('f'+f.id+'_'+(scale||2),()=>renderMat(foeMask(f),FOEMAT[f.id]||FOEMAT.rat,scale||2));}
+  return cached('f2'+f.id+'_'+(scale||2),()=>renderChar(foeMask(f),foeMats(f),scale||2,
+    {seed:(f.seed||7)%97,fur:FOEFUR[f.kind]||0,cls:Object.assign({},FOECLS[f.kind],ACTDRESSCLS[(f.act||1)-1])}));}
+const FOEFUR={beast:1};
+const FOECLS={};
 /* ---------- ROOM BACKDROPS (240x84, ten of them) ---------- */
 const RW=240, RH=84;
 function wall(g,r,L,D,bw,bh){
@@ -1655,6 +2000,67 @@ function itemMask(shape){
      g.s(6,5,2); break;
    case 'censer':   rect(g,7,0,2,4,2); line(g,4,4,8,4,2); line(g,12,4,8,4,2); ell(g,8,9,4,4,1);
      rect(g,5,12,6,2,2); g.s(7,8,9); for(let i=0;i<3;i++)g.s(6+i*2,5,2); break;
+   case 'rapier':   rect(g,7,2,2,9,1); g.s(8,0,1); g.s(8,1,1); rect(g,4,11,9,1,2); ell(g,8,12,2,1,2);
+     rect(g,7,12,2,3,3); g.s(8,15,9); line(g,4,11,4,14,2); line(g,4,14,7,15,2); break;
+   case 'greatsword': rect(g,6,0,4,11,1); g.s(6,0,0); g.s(9,0,0); rect(g,7,1,2,9,9); rect(g,1,11,14,2,2);
+     rect(g,7,13,2,2,3); rect(g,6,15,4,1,2); break;
+   case 'sickle':   // crescent blade growing out of the top of the grip, tapering to a hooked point
+     for(let y=0;y<16;y++)for(let x=0;x<16;x++){const dx=x+.5-8.5, dy=9.5-(y+.5), d=Math.hypot(dx,dy);
+       let an=Math.atan2(dy,dx)*180/Math.PI; if(an<-20)continue;
+       const t=Math.max(0,Math.min(1,(an+15)/165));          // 0 at the tip, 1 at the heel
+       if(an>168)continue;
+       const outer=6.9, inner=6.7-3.4*t;
+       if(d<=outer&&d>=inner)g.s(x,y,1);}
+     g.s(5,4,9);g.s(6,3,9);g.s(8,2,9);
+     rect(g,2,9,3,2,2); rect(g,2,11,3,5,3); g.s(3,15,2); break;
+   case 'mace':     rect(g,7,8,2,7,3); g.s(7,10,2); g.s(8,12,2); ell(g,8,4,4,4,1); rect(g,2,3,2,3,2); rect(g,12,3,2,3,2);
+     rect(g,7,0,2,1,2); g.s(8,0,9); ell(g,8,4,1,1,9); rect(g,6,15,4,1,2); break;
+   case 'halberd':  rect(g,7,1,2,15,3); tri(g,8,0,8,3,2,1);
+     for(let y=3;y<10;y++){const w=y<5?3+(y-3)*1:(y<8?5:5-(y-7));rect(g,7-w,y,w,1,1);}   // axe blade, flush to the shaft
+     for(let y=3;y<10;y++)g.s(7-((y<5?3+(y-3):(y<8?5:5-(y-7)))),y,9);
+     rect(g,9,5,3,2,1); g.s(12,6,1); g.s(12,5,9);                   // back spike
+     rect(g,6,10,4,1,2); rect(g,6,2,4,1,2); break;
+   case 'sling':    // two cords meeting in a leather cup that cradles a stone
+     line(g,3,1,6,10,3); line(g,13,1,10,10,3); g.s(3,0,2); g.s(13,0,2); ell(g,3,1,1,1,2); ell(g,13,1,1,1,2);
+     for(let x=5;x<=11;x++){const y=10+Math.round(2.6*Math.sin((x-5)/6*Math.PI));g.s(x,y,2);g.s(x,y+1,2);}
+     ell(g,8,10,2,2,1); g.s(7,9,9); break;
+   case 'javelin':  rect(g,7,5,2,11,3); tri(g,8,0,8,6,4,1); rect(g,7,9,2,2,2); g.s(8,1,9); break;
+   case 'tome':     rect(g,2,2,12,12,3); rect(g,3,3,10,10,3); rect(g,2,2,2,2,1); rect(g,12,2,2,2,1); rect(g,2,12,2,2,1);
+     rect(g,12,12,2,2,1); rect(g,7,4,2,8,2); rect(g,5,6,6,2,2); g.s(8,7,9); rect(g,13,4,1,8,1); break;
+   case 'scepter':  rect(g,7,6,2,9,3); ell(g,8,4,3,3,1); ell(g,8,4,1,1,9); g.s(5,1,1); g.s(8,0,1); g.s(11,1,1);
+     rect(g,6,8,4,1,2); rect(g,6,14,4,2,2); break;
+   case 'gauntlet': rect(g,3,5,10,7,1); for(let i=0;i<4;i++)rect(g,3+i*3,2,2,3,1); rect(g,3,7,10,1,2);
+     rect(g,4,12,8,3,2); g.s(5,9,9); g.s(10,9,9); g.s(13,7,1); break;
+   case 'pauldron': ell(g,8,8,7,5,1); rect(g,1,9,14,4,0); ell(g,8,8,7,4,1); rect(g,2,6,12,1,2); rect(g,3,9,10,1,2);
+     g.s(8,2,9); g.s(8,3,1); rect(g,2,12,12,2,2); break;
+   case 'greaves':  rect(g,4,1,8,11,1); ell(g,8,4,3,2,2); g.s(8,4,9); rect(g,4,8,8,1,2); rect(g,3,12,10,3,3);
+     rect(g,4,12,8,1,2); break;
+   case 'towershield': rect(g,2,1,12,14,3); rect(g,2,1,12,1,1); rect(g,2,14,12,1,1); rect(g,2,1,1,14,1);
+     rect(g,13,1,1,14,1); rect(g,2,7,12,1,2); ell(g,8,7,2,2,1); g.s(8,7,9); g.s(4,3,1); g.s(11,3,1);
+     g.s(4,12,1); g.s(11,12,1); break;
+   case 'talisman': rect(g,7,1,2,4,3); ell(g,8,8,5,5,2); ell(g,8,8,3,3,0); ell(g,8,13,2,2,9); g.s(8,5,1); break;
+   case 'charm':    line(g,4,1,8,5,3); line(g,12,1,8,5,3); ell(g,8,10,4,4,2); tri(g,8,4,8,8,3,2); g.s(7,9,9); g.s(6,10,9); break;
+   case 'skull':    ell(g,8,7,6,6,1); rect(g,4,11,8,4,1); ell(g,6,7,1,1,9); ell(g,10,7,1,1,9); g.s(8,10,0);
+     for(let i=0;i<4;i++)g.s(5+i*2,14,0); line(g,9,2,11,5,2); break;
+   case 'bell':     rect(g,7,0,2,2,2); for(let y=2;y<12;y++){const w=2+Math.round((y-2)*0.5);rect(g,8-w,y,w*2,1,1);}
+     rect(g,1,12,14,2,1); rect(g,4,7,8,1,2); ell(g,8,14,1,1,9); break;
+   case 'hourglass':rect(g,3,0,10,2,3); rect(g,3,14,10,2,3); rect(g,3,2,1,12,3); rect(g,12,2,1,12,3);
+     for(let y=2;y<8;y++){const w=Math.max(1,Math.round(4-(y-2)*0.6));rect(g,8-w,y,w*2,1,1);}
+     for(let y=8;y<14;y++){const w=Math.max(1,Math.round(1+(y-8)*0.6));rect(g,8-w,y,w*2,1,1);}
+     rect(g,6,3,4,2,2); rect(g,5,11,6,2,2); g.s(8,8,9); g.s(8,9,9); break;
+   case 'lute':     ell(g,7,10,5,5,3); ell(g,7,10,1,1,0); rect(g,7,1,2,6,3); rect(g,6,0,4,2,2); line(g,8,2,8,13,9);
+     rect(g,5,13,5,1,2); g.s(5,1,1); g.s(10,1,1); break;
+   case 'flask':    rect(g,7,1,2,3,1); rect(g,7,0,2,1,3); ell(g,8,10,5,5,1); ell(g,8,11,4,3,2); g.s(6,9,9); g.s(9,8,9);
+     line(g,9,3,12,5,3); break;
+   case 'net':      for(let x=1;x<15;x+=3)line(g,x,1,x,14,3); for(let y=1;y<15;y+=3)line(g,1,y,14,y,3);
+     for(let x=1;x<15;x+=3)for(let y=1;y<15;y+=3)g.s(x,y,1); g.s(1,14,2); g.s(13,14,2); g.s(7,7,9); break;
+   case 'key':      ell(g,8,4,3,3,1); ell(g,8,4,1,1,0); rect(g,7,7,2,8,1); rect(g,9,11,3,1,1); rect(g,9,13,2,1,1);
+     g.s(8,1,9); rect(g,6,7,4,1,2); break;
+   case 'heart':    ell(g,5,6,3,3,2); ell(g,11,6,3,3,2); for(let y=6;y<15;y++){const w=Math.round(6-(y-6)*0.75);
+       if(w>0)rect(g,8-w,y,w*2,1,2);} rect(g,7,1,2,3,1); g.s(4,5,9); g.s(5,4,9); line(g,8,7,8,11,1); break;
+   case 'anvil':    rect(g,2,3,12,3,1); rect(g,0,4,2,1,1); rect(g,5,6,6,4,1); rect(g,3,10,10,3,1); rect(g,2,13,12,2,2);
+     rect(g,3,3,10,1,9); break;
+   case 'darts':    for(let i=0;i<3;i++){const x=3+i*4; rect(g,x,2,1,9,1); g.s(x,1,9); rect(g,x-1,11,3,2,2); g.s(x,13,3);} break;
    case 'caltrops': for(let i=0;i<3;i++){const x=3+i*5,y=6+((i%2)*4);
      g.s(x,y,1);g.s(x+1,y+1,1);g.s(x-1,y+1,1);g.s(x,y+2,1);g.s(x,y-1,9);} rect(g,1,13,14,2,2); break;
    case 'banner':   rect(g,3,1,2,14,2); rect(g,5,2,8,7,1); for(let i=0;i<3;i++)g.s(6+i*3,5,2);
@@ -1669,22 +2075,117 @@ const WOODEN={dagger:0,sword:0,axe:1,hammer:1,spear:1,claw:0,bow:1,staff:1,orb:0
   shield:0,helm:0,armour:0,boot:1,glove:1,ring:0,amulet:1,potion:1,bomb:1,totem:1,
   crossbow:1,scythe:1,flail:1,katar:0,whip:1,trident:1,chakram:0,grimoire:1,lantern:1,horn:1,
   mask:1,cloak:1,belt:1,bracer:1,idol:1,chalice:0,mirror:1,censer:0,caltrops:0,banner:1};
+/* What each tier is made of. Iron and raw wood at the bottom; steel and oak; blued steel and
+   dark heartwood; moon-steel and ebony with silver; gilt and bloodwood at the top. */
+const TIER_METAL=["#9a8f80","#d8dee6","#a9c6ec","#c8b8dc","#ffe0a0"];
+const TIER_BONE =["#a48e6c","#c9b48a","#d9c79e","#ebe4d6","#ffe0a0"];
+const TIER_HAFT =["#7a5a36","#6e5230","#4a3424","#2e2432","#6a2418"];
+const TIER_GRIP =["#5a5048","#55606e","#3e4a66","#3a2a46","#3a1a12"];
+const TIER_TRIM =["#9a8f80","#d8dee6","#ffffff","#e6ecf6","#ffd56a"];
 function itemMats(shape,tagA,tagB,rarity){
-  const metal = WOODEN[shape] ? "#c9b48a" : "#dfe8f2";          // bone/wood vs steel
-  const haft  = WOODEN[shape] ? "#6e5230" : "#55606e";
+  const r=rarity|0, wood=WOODEN[shape];
+  const metal = wood ? TIER_BONE[r] : TIER_METAL[r];
+  const haft  = wood ? TIER_HAFT[r] : TIER_GRIP[r];
   return {1:tri3(metal), 2:tri3(tagA||"#9aa6bc"), 3:tri3(haft),
-          9:tri3(rarity>=3?"#ffe9a3":(tagB||"#ffffff")), 4:["#0a0a10","#0a0a10","#0a0a10"]};
+          9:tri3(r>=3?"#ffe9a3":(tagB||"#ffffff")), 10:tri3(TIER_TRIM[r]),
+          4:["#0a0a10","#0a0a10","#0a0a10"]};
 }
+/* THE TIER PASS. Takes the double-resolution outline of an item and works it up for its rarity,
+   so a common sword and a legendary one are different objects, not one object in two colours. */
+function tierMask(base,shape,r){
+  const W=base.w,H=base.h,m=G(W,H);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)m.s(x,y,base.g(x,y));
+  const hsh=(x,y,k)=>(((x*73856093)^(y*19349663)^(k*83492791)^(shape.length*2654435))>>>0)%100;
+  const cells=v=>{const o=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(m.g(x,y)===v)o.push([x,y]);return o;};
+  const bbox=a=>{let x0=99,x1=-1,y0=99,y1=-1;a.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);});
+    return {x0,x1,y0,y1,cx:Math.round((x0+x1)/2),cy:Math.round((y0+y1)/2),w:x1-x0+1,h:y1-y0+1};};
+  const edge=(x,y)=>!m.g(x-1,y)||!m.g(x+1,y)||!m.g(x,y-1)||!m.g(x,y+1);
+  const inside=(x,y,v)=>m.g(x-1,y)===v&&m.g(x+1,y)===v&&m.g(x,y-1)===v&&m.g(x,y+1)===v;
+  let main=cells(1); if(!main.length)main=cells(2);
+  const mb=main.length?bbox(main):{x0:8,x1:23,y0:8,y1:23,cx:16,cy:16,w:16,h:16};
+  const haft=cells(3), hb=haft.length>5?bbox(haft):null;
+  const all=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(m.g(x,y))all.push([x,y]);
+  const ab=bbox(all);
+  const tall=mb.h>=mb.w;
+
+  if(r===0){                                   // worn: nicks out of the edges, a crack or two
+    main.forEach(([x,y])=>{if(edge(x,y)&&hsh(x,y,1)<13)m.s(x,y,0);});
+    haft.forEach(([x,y])=>{if(edge(x,y)&&hsh(x,y,2)<7)m.s(x,y,0);});
+    main.forEach(([x,y])=>{if(inside(x,y,1)&&hsh(x,y,3)<5)m.s(x,y,3);});
+    return m;
+  }
+  // uncommon and up: a wrapped grip or a band across the body
+  {
+    const T=hb||mb, v=hb?3:1;
+    if(T.h>=T.w){const y=T.cy;for(let x=T.x0;x<=T.x1;x++)for(let d=0;d<2;d++)if(m.g(x,y+d)===v)m.s(x,y+d,2);}
+    else {const x=T.cx;for(let y=T.y0;y<=T.y1;y++)for(let d=0;d<2;d++)if(m.g(x+d,y)===v)m.s(x+d,y,2);}
+    if(hb&&hb.h>8){const y2=hb.y0+Math.round(hb.h*0.75);for(let x=hb.x0;x<=hb.x1;x++)if(m.g(x,y2)===3)m.s(x,y2,2);}
+  }
+  if(r===1)return m;
+  // rare and up: a worked edge along the long sides, an engraved line and a set stone
+  {
+    const add=[];
+    main.forEach(([x,y])=>{
+      if(m.g(x,y)!==1)return;
+      if(tall){ if(y%3===0){ if(!m.g(x-1,y)&&x<=mb.cx)add.push([x-1,y]); if(!m.g(x+1,y)&&x>=mb.cx)add.push([x+1,y]); } }
+      else    { if(x%3===0){ if(!m.g(x,y-1)&&y<=mb.cy)add.push([x,y-1]); if(!m.g(x,y+1)&&y>=mb.cy)add.push([x,y+1]); } }
+    });
+    add.forEach(([x,y])=>m.s(x,y,1));
+  }
+  {
+    if(tall){for(let y=mb.y0+2;y<=mb.y1-2;y++)if(inside(mb.cx,y,1))m.s(mb.cx,y,9);}
+    else {for(let x=mb.x0+2;x<=mb.x1-2;x++)if(inside(x,mb.cy,1))m.s(x,mb.cy,9);}
+    const acc=cells(2), gb=acc.length?bbox(acc):mb;
+    const gx=gb.cx, gy=gb.cy, g=r>=3?2:1;
+    for(let dy=-g;dy<=g;dy++)for(let dx=-g;dx<=g;dx++)if(Math.abs(dx)+Math.abs(dy)<=g&&m.g(gx+dx,gy+dy))m.s(gx+dx,gy+dy,9);
+  }
+  if(r===2)return m;
+  // epic and up: trimmed edges and flared fins
+  main.forEach(([x,y])=>{if(m.g(x,y)===1&&edge(x,y))m.s(x,y,10);});
+  {
+    const fin=(x,y,dx,dy)=>{for(let k=1;k<=4;k++){const w=Math.max(0,3-k);
+      for(let j=-w;j<=w;j++){const px=x+dx*k+(dy?j:0),py=y+dy*k+(dx?j:0);if(!m.g(px,py))m.s(px,py,10);}}};
+    // anchor each fin on the item's actual edge, so nothing floats off an odd shape
+    const rowEnds=y=>{let a=-1,b=-1;for(let x=0;x<W;x++)if(m.g(x,y)){if(a<0)a=x;b=x;}return [a,b];};
+    const colEnds=x=>{let a=-1,b=-1;for(let y=0;y<H;y++)if(m.g(x,y)){if(a<0)a=y;b=y;}return [a,b];};
+    if(tall){const [a,b]=rowEnds(mb.cy);if(a>=0){fin(a,mb.cy,-1,0);fin(b,mb.cy,1,0);}}
+    else {const [a,b]=colEnds(mb.cx);if(a>=0){fin(mb.cx,a,0,-1);fin(mb.cx,b,0,1);}}
+  }
+  if(r===3)return m;
+  // legendary: a crown of points, runes that glow, a second stone
+  {
+    [-5,0,5].forEach((o,i)=>{const x=ab.cx+o,h=i===1?5:3;
+      let top=-1;for(let y=0;y<H;y++)if(m.g(x,y)){top=y;break;}
+      if(top<0)return;                                 // nothing to stand on in that column
+      for(let k=1;k<=h;k++){m.s(x,top-k,10);if(k<h-1){m.s(x-1,top-k+1,10);m.s(x+1,top-k+1,10);}}
+      m.s(x,top-h,9);});
+    main.forEach(([x,y])=>{if(m.g(x,y)===1&&inside(x,y,1)&&hsh(x,y,4)<10)m.s(x,y,9);});
+    if(hb){const x=hb.cx,y=hb.y1-1;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(m.g(x+dx,y+dy))m.s(x+dx,y+dy,9);}
+  }
+  return m;
+}
+const _mask32={};
 function itemIcon(shape,palette,scale,key,inst){
   // NOTE: canvases must be re-rendered, never cloneNode'd — a cloned canvas is blank.
   const m=_maskCache[shape]||(_maskCache[shape]=itemMask(shape));
+  const m2=_mask32[shape]||(_mask32[shape]=scale2x(m));
+  scale=scale||4;
+  const tierOf=inst?ITEMS[inst.bid].r:-1;
+  const key2=shape+'|'+tierOf;
+  const mT=tierOf<0?m2:(_mask32[key2]||(_mask32[key2]=tierMask(m2,shape,tierOf)));
+  const k=Math.max(1,Math.ceil(scale/2));            // drawn at double resolution...
+  let c;
   if(inst){
     const tA=inst.tags[0]?tagCol(inst.tags[0]):null, tB=inst.tags[1]?tagCol(inst.tags[1]):null;
     const r=ITEMS[inst.bid].r;
-    return cached('i'+shape+'_'+(scale||4)+'_'+(tA||'')+(tB||'')+r,
-      ()=>renderMat(m,itemMats(shape,tA,tB,r),scale||4));
+    c=cached('i5'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
+      ()=>renderMat(mT,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13,
+        sparkle:r>=4?7:(r>=3?4:0), glow:r>=4?'rgba(255,133,107,.22)':null}));
+  } else {
+    c=cached('p2'+shape+'_'+k+'_'+(key||''),()=>render(m2,palette,k,null));
   }
-  return cached('p'+shape+'_'+(scale||4)+'_'+(key||''),()=>render(m,palette,scale||4,null));
+  c.style.width=(16*scale)+'px';c.style.height=(16*scale)+'px';   // ...shown at the usual size
+  return c;
 }
 
 /* ===================================================================
@@ -1921,6 +2422,89 @@ const PREFER={dagger:["bleed","metal"],sword:["metal","holy"],axe:["bleed","neut
     belt:["health","speed"],bracer:["armour","thorns"],idol:["poison","earth"],chalice:["holy","health"],
     mirror:["thorns","ward"],censer:["holy","burn"],caltrops:["bleed","thorns"],banner:["lucky","holy"]};
 const DEEPTAGS=["lightning","shadow","thorns","vampire","lucky","heavy","echo","ward"];
+/* ===== THE SECOND ARMOURY — 25 more kinds of relic, 125 more items =====
+   Added after the specials so every item that existed before keeps its number (saves rely on it). */
+const SHAPES2=["rapier","greatsword","sickle","mace","halberd","sling","javelin","tome","scepter",
+  "gauntlet","pauldron","greaves","towershield","talisman","charm","skull","bell","hourglass","lute",
+  "flask","net","key","heart","anvil","darts"];
+Object.assign(NAMES,{
+ rapier:["Bent Rapier","Duelist's Rapier","Needle of Vesh","Silverthorn","The Final Point"],
+ greatsword:["Notched Greatsword","Iron Zweihander","Oathkeeper","Graveborn Colossus","The Long Night"],
+ sickle:["Rusted Sickle","Reaping Sickle","Crescent of Thorns","Bloodmoon Sickle","The Gleaner"],
+ mace:["Knobbed Club","Flanged Mace","Bishop's Mace","Morning Judgement","The Verdict"],
+ halberd:["Pike-Hook","Guard's Halberd","Watchman's Glaive","Gatebreaker","The Long Watch"],
+ sling:["Shepherd's Sling","Leather Sling","Stonesinger","Giant's Bane","The First Stone"],
+ javelin:["Fire-Hardened Stick","Iron Javelin","Skirmisher's Pilum","Thunderbolt","The Thrown Star"],
+ tome:["Water-Stained Prayers","Psalter","Book of Hours","Gospel of Ash","The Unwritten Page"],
+ scepter:["Tin Scepter","Brass Scepter","Scepter of Office","Rod of Dominion","The Crownless Rod"],
+ gauntlet:["Rivet Fist","Iron Gauntlet","Knuckleduster Gauntlet","Fist of the Mountain","The Closed Hand"],
+ pauldron:["Leather Pauldron","Iron Spaulder","Gryphon Pauldron","Mantle of the Wall","The Unbowed Shoulder"],
+ greaves:["Shin Wraps","Iron Greaves","Strider Greaves","Greaves of the Long March","The Untiring Legs"],
+ towershield:["Door Plank","Pavise","Wall of the Watch","Rampart","The Last Gate"],
+ talisman:["Knotted Thread","Lucky Bone","Hare's Foot","Fate-Knot","The Ninth Chance"],
+ charm:["Blood Bead","Vein Charm","Leech-Stone","Heart-Thief","The Red Thread"],
+ skull:["Cracked Skull","Grave Skull","Whispering Skull","Skull of the Choir","The Ninefold Head"],
+ bell:["Cow Bell","Hand Bell","Funeral Bell","Bell of Ending","The Ninth Toll"],
+ hourglass:["Leaking Glass","Sand Timer","Glass of Moments","Stolen Hour","The Last Minute"],
+ lute:["Two-String Lute","Minstrel's Lute","Lute of Rest","Dirge-Harp","The Lullaby"],
+ flask:["Bad Wine","Pitch Flask","Alchemist's Fire","Bottled Plague","The Final Vintage"],
+ net:["Fishing Net","Weighted Net","Snare of Hooks","Spider-Silk Net","The Patient Web"],
+ key:["Bent Key","Iron Key","Vault Key","Key of the Hoard","The Key to Everything"],
+ heart:["Pig's Heart","Beast Heart","Heart of the Hollow","Ever-Beating Heart","The Ninefold Heart"],
+ anvil:["Scrap Anvil","Smith's Anvil","Dwarf-Anvil","Anvil of the Deep","The Unbreakable"],
+ darts:["Tacks","Throwing Darts","Barbed Darts","Viper Darts","The Nine Needles"],
+});
+Object.assign(SIZES,{rapier:[1,4],greatsword:[2,5],sickle:[1,3],mace:[1,4],halberd:[2,5],sling:[1,2],
+  javelin:[1,4],tome:[2,2],scepter:[1,3],gauntlet:[2,2],pauldron:[2,2],greaves:[2,3],towershield:[3,4],
+  talisman:[1,1],charm:[1,1],skull:[2,2],bell:[2,2],hourglass:[1,2],lute:[2,3],flask:[1,2],net:[3,2],
+  key:[1,2],heart:[2,2],anvil:[3,2],darts:[1,2]});
+Object.assign(WOODEN,{rapier:0,greatsword:0,sickle:0,mace:0,halberd:1,sling:1,javelin:1,tome:1,scepter:0,
+  gauntlet:0,pauldron:0,greaves:0,towershield:1,talisman:1,charm:0,skull:1,bell:0,hourglass:1,lute:1,
+  flask:0,net:1,key:0,heart:1,anvil:0,darts:0});
+Object.assign(PREFER,{rapier:["dodge","metal"],greatsword:["metal","heavy"],sickle:["bleed","poison"],
+  mace:["stun","holy"],halberd:["metal","heavy"],sling:["lucky","neutral"],javelin:["wind","metal"],
+  tome:["holy","health"],scepter:["holy","lightning"],gauntlet:["punch","metal"],pauldron:["armour","earth"],
+  greaves:["armour","speed"],towershield:["armour","ward"],talisman:["lucky","dodge"],charm:["vampire","health"],
+  skull:["shadow","poison"],bell:["stun","echo"],hourglass:["speed","echo"],lute:["health","echo"],
+  flask:["fire","poison"],net:["freeze","ice"],key:["lucky","metal"],heart:["health","vampire"],
+  anvil:["earth","armour"],darts:["poison","bleed"]});
+function shapeStats2(shape,r){
+  const P=RAR[r].p, I=v=>Math.max(1,Math.round(v*P)), D=v=>Math.round(v*P*100)/100, pc=v=>Math.round(D(v)*100);
+  switch(shape){
+   case 'rapier':     return {cast:{dmg:I(12)},crit:.12,proc:{chance:.20,n:2},tx:"Quick thrust. +12% crit, 20% on hit to inflict its tags."};
+   case 'greatsword': return {cast:{dmg:I(36)},tx:"One slow, enormous stroke."};
+   case 'sickle':     return {cast:{dmg:I(10)},proc:{chance:.45,n:2,force:'bleed'},tx:"Hooked cut. 45% on hit to Bleed."};
+   case 'mace':       return {cast:{dmg:I(20)},proc:{chance:.30,n:3,force:'stun'},tx:"Flanged blow. 30% on hit to Stun."};
+   case 'halberd':    return {cast:{dmg:I(27),pierce:1},tx:"Axe on a pole. Ignores Armour."};
+   case 'sling':      return {cast:{dmg:I(10)},crit:.15,tx:"A stone, flung. +15% crit."};
+   case 'javelin':    return {cast:{dmg:I(17),pierce:1},tx:"Thrown hard enough to go through Armour."};
+   case 'tome':       return {cast:{dmg:I(6)},every:{t:5,kind:'healAlly',n:I(18)},tx:"Every 5s: heal the weakest ally "+I(18)+"."};
+   case 'scepter':    return {cast:{dmgAll:I(9)},crit:.06,tx:"Commands every foe at once. +6% crit."};
+   case 'gauntlet':   return {cast:{dmg:I(9),hits:3},armour:I(2),tx:"Three iron punches. +"+I(2)+" Armour."};
+   case 'pauldron':   return {armour:I(6),every:{t:7,kind:'armourPerm',n:1},tx:"+"+I(6)+" Armour. Every 7s: +1 Armour, permanently."};
+   case 'greaves':    return {armour:I(4),spd:D(0.9),tx:"+"+I(4)+" Armour, +"+D(0.9)+" Speed."};
+   case 'towershield':return {armour:I(9),every:{t:5,kind:'armourTemp',n:3},tx:"+"+I(9)+" Armour. Every 5s: +3 Armour for this fight."};
+   case 'talisman':   return {crit:D(.06),dodge:D(.03),tx:"+"+pc(.06)+"% crit, +"+pc(.03)+"% Dodge. Fits anywhere."};
+   case 'charm':      return {hp:I(10),lifesteal:D(.03),tx:"+"+I(10)+" HP, +"+pc(.03)+"% Lifesteal. Fits anywhere."};
+   case 'skull':      return {every:{t:3,kind:'statusAll',n:I(2)},tx:"Every 3s: "+I(2)+" of its tags to every foe."};
+   case 'bell':       return {every:{t:5,kind:'statusAll',n:Math.max(3,I(3))},tx:"Every 5s its toll lands "+Math.max(3,I(3))+" of its tags on every foe."};
+   case 'hourglass':  return {spd:D(2.2),tx:"+"+D(2.2)+" Speed — the ring comes round sooner."};
+   case 'lute':       return {hp:I(8),every:{t:6,kind:'healAlly',n:I(22)},tx:"+"+I(8)+" HP. Every 6s: heal the weakest ally "+I(22)+"."};
+   case 'flask':      return {cast:{dmgAll:I(6)},proc:{chance:.60,n:2},tx:"Thrown — splashes every foe, 60% to inflict its tags."};
+   case 'net':        return {cast:{dmgAll:I(5)},proc:{chance:.60,n:3,force:'freeze'},tx:"Tangles every foe. 60% each to Freeze."};
+   case 'key':        return {cast:{dmg:I(8)},goldOnHit:Math.max(1,Math.round(P/2)),tx:"Every hit turns up "+Math.max(1,Math.round(P/2))+" coin"+(Math.round(P/2)>1?"s":"")+"."};
+   case 'heart':      return {hp:I(22),hpPerBattle:Math.max(2,I(3)),tx:"+"+I(22)+" HP, and +"+Math.max(2,I(3))+" more after every battle you survive."};
+   case 'anvil':      return {armour:I(8),hp:I(20),every:{t:9,kind:'armourPerm',n:1},tx:"+"+I(8)+" Armour, +"+I(20)+" HP. Every 9s: +1 Armour, permanently."};
+   case 'darts':      return {cast:{dmg:I(5),hits:3},proc:{chance:.20,n:1},tx:"Three darts. 20% each to inflict its tags."};
+  }
+}
+SHAPES2.forEach(sh=>{ for(let r=0;r<5;r++){
+  const st=shapeStats2(sh,r);
+  ITEMS.push(Object.assign({id:ITEMS.length,shape:sh,r:r,n:NAMES[sh][r],
+    cost:Math.round(itemPower(st)*0.55*RAR[r].cost)},st));
+}});
+SHAPES.push(...SHAPES2);
+
 /* A shape's two tags are what the thing is FOR. Rolling them together most of the time means
    two daggers off the same floor usually match — which is the only way a merge ever happens. */
 function rollTags(it,favour,forced){
@@ -2951,6 +3535,9 @@ function netSnapshot(){
     shop:shopStock?shopStock.map(packGrid):null,
     bo:R.blessOffers?R.blessOffers.map(o=>o.map(b=>({n:b.n,d:b.d,r:b.r,sh:b.sh,tag:b.tag||null}))):null,
     bt:R.blessTaken||null,
+    loot:R.loot?{done:R.loot.done,items:R.loot.items.map(x=>({i:packInst(x.inst),v:x.votes,to:x.to,fr:x.from||''}))}:null,
+    resTitle:(document.getElementById('resTitle')||{}).textContent||'',
+    resDesc:(document.getElementById('resDesc')||{}).textContent||'',
     arena:(B&&!B.over)?{t:+B.t.toFixed(1),
       h:B.heroes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st})),
       f:B.foes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st,
@@ -2999,6 +3586,13 @@ function netApplySnap(m){
     else netRouteView();
     show('scr-route');}
   else if(want==='scr-node'){netNodeView(d);show('scr-node');}
+  else if(want==='scr-result'&&d.loot){
+    R.loot={done:d.loot.done,items:d.loot.items.map(x=>({inst:unpackInst(x.i),votes:x.v||{},to:x.to,from:x.fr||''}))};
+    document.getElementById('resTitle').textContent=d.resTitle||'';
+    document.getElementById('resDesc').textContent=d.resDesc||'';
+    renderLoot();
+    const rb=document.getElementById('resBtn');if(rb)rb.style.display='none';   // the host moves the party on
+    show('scr-result');}
   else if(want==='scr-battle'||want==='scr-result'){netWaitView(want);}
   else show(want);
   if(document.getElementById('packModal').classList.contains('on'))renderPack();
@@ -3052,19 +3646,19 @@ function netRenderArena(a){
   const hs=document.getElementById('heroSide'), fs=document.getElementById('foeSide');
   if(!hs||!fs)return;
   const line=(u,foe)=>{
-    const d=document.createElement('div');d.className='unit';
+    const d=document.createElement('div');d.className='unit '+(foe?'foe':'hero');
     if(u.hp<=0)d.classList.add('dead');
-    const art=document.createElement('div');
+    const art=document.createElement('div');art.className='fig';
     if(foe){const def=FOES.find(f=>f.id===u.id);if(def)art.appendChild(foeSprite(def,2));}
     else {const m=R.party.find(p=>p.name===u.n);if(m)art.appendChild(heroSprite(m.def,2));}
     d.appendChild(art);
     d.insertAdjacentHTML('beforeend',
-      '<div style="font-size:11px;color:#fff">'+u.n+'</div>'+
-      '<div class="hpbar"><i style="width:'+Math.max(0,Math.round(100*u.hp/u.mx))+'%"></i></div>'+
-      '<div class="muted" style="font-size:10px">'+u.hp+'/'+u.mx+(u.ar>0?' &#128737;'+u.ar:'')+'</div>'+
-      '<div>'+Object.keys(u.st||{}).filter(k=>u.st[k]>0).map(k=>
-        '<span class="chip">'+k+' '+Math.round(u.st[k])+'</span>').join('')+'</div>'+
-      (u.tg?'<div style="font-size:9px;color:#938478">\u2192 '+u.tg+'</div>':''));
+      '<div class="plate"><div class="nm">'+u.n+'</div>'+
+      '<div class="hpbar"><i style="width:'+Math.max(0,Math.round(100*u.hp/u.mx))+'%"></i><span>'+u.hp+' / '+u.mx+'</span></div>'+
+      (u.ar>0?'<div style="font-size:9px;color:#8ad4ff;margin-top:2px">&#128737; '+u.ar+'</div>':'')+
+      '<div class="stbar" style="margin-top:3px">'+Object.keys(u.st||{}).filter(k=>u.st[k]>0).map(k=>
+        '<span class="stpill" style="color:'+((STATUS_ICON[k]||[])[1]||'#fff')+';border-color:currentColor">'+((STATUS_ICON[k]||[])[0]||k)+' '+Math.round(u.st[k])+'</span>').join('')+'</div>'+
+      (u.tg?'<div class="vsline">\u2192 '+u.tg+'</div>':'')+'</div>');
     return d;};
   hs.innerHTML='';fs.innerHTML='';
   a.h.forEach(u=>hs.appendChild(line(u,false)));
@@ -3153,6 +3747,13 @@ function netHostAct(m){
     if(hit&&sellsLeft()>0){R.coins+=sellPrice(hit.inst);removeCarried(hit.inst);
       R.sold=(R.sold||0)+1;R.soldHere=(R.soldHere||0)+1;}
     netPush(true);
+  } else if(m.k==='trade'){
+    const fee=Math.max(0,Math.min(500,+m.fee||0));
+    R.coins=Math.max(0,R.coins-fee);
+    toast((NET.names[seat]||'Someone')+" paid "+fee+" coins to trade","");
+    netPush(true);
+  } else if(m.k==='loot'){
+    lootVote(seat,m.i,m.mi);
   } else if(m.k==='bless'){
     takeBless(seat,m.i);
   } else if(m.k==='vote'){
@@ -3598,6 +4199,7 @@ function mkMerc(c){
 const SAVEKEY="lt_save1";
 function packInst(x){
   const o={b:x.bid,t:x.tags,l:x.lvl,a:x.at};
+  if(x.owner!=null)o.o=x.owner;
   if(x.rot)o.r=1;
   if(x.grown)o.g=x.grown;
   if(x.grant)o.gr=GRANTS.indexOf(x.grant);
@@ -3608,7 +4210,7 @@ function packInst(x){
 }
 function unpackInst(o){
   const x=mkItem(o.b,o.t,o.l);
-  x.at=o.a; if(o.r)x.rot=1; if(o.g)x.grown=o.g;
+  x.at=o.a; if(o.r)x.rot=1; if(o.g)x.grown=o.g; if(o.o!=null)x.owner=o.o;
   if(o.gr>=0&&GRANTS[o.gr])x.grant=GRANTS[o.gr];
   if(o.cu>=0&&CURSES[o.cu])x.curse=CURSES[o.cu];
   if(o.f)x.forged=o.f; if(o.n)x.nameOverride=o.n;
@@ -3668,6 +4270,7 @@ function startRun(){
      party:UI.picked.map(i=>mkMerc(CHARS[i]))};
   R.coins=Math.round(R.party.reduce((a,m)=>a+m.def.gold,0)/R.party.length*(0.6+0.4*R.party.length));
   R.roll=1;
+  R.party.forEach((m,i)=>anchors(m.grid).forEach(({inst})=>inst.owner=i));   // your starting relic is yours
   document.getElementById('statsTab').style.display='block';
   renderTorches();
   startFloor();
@@ -3925,6 +4528,7 @@ function buyFromPack(p,i,inst){
   if(R.coins<pr){UI._hint="Not enough coins.";return;}
   R.coins-=pr; liftItem(shopStock[p],inst);
   const bought=mkItem(inst.bid,inst.tags,inst.lvl);
+  bought.owner=p;                                   // you paid for it, it is yours
   if(!autoPlace(R.party[p].grid,bought,packRows(),true))toStash(bought);  // worn if it fits and isn't a twin
   renderShop(); openPack();
 }
@@ -4455,6 +5059,133 @@ function gridView(grid,rows,cell,opts){
   return g;
 }
 /* ---- turning an item on its side ---- */
+/* TRADING. Anything with an owner costs gold to hand to someone else — a quarter of what the
+   merchant would ask, out of the shared purse. Finds nobody has claimed (a chest, the storage
+   pack's leftovers) are free to whoever picks them up first. */
+function tradeFee(inst){return Math.max(5,Math.round(price(inst)*0.25));}
+function tradeCheck(inst,toMi){
+  if(toMi==null||inst.owner==null||inst.owner===toMi)return {ok:true,fee:0};
+  const fee=tradeFee(inst);
+  return {ok:R.coins>=fee,fee};
+}
+function settleTrade(inst,toMi,fee){
+  if(fee>0&&NET.on&&!NET.host)netSend({k:'trade',fee,uid:inst.uid});   // the host keeps the purse
+  if(fee>0){
+    const from=R.party[inst.owner], to=R.party[toMi];
+    R.coins-=fee; SFX.coin&&SFX.coin();
+    toast("Traded for "+fee+" coins",
+      (from?from.name.replace('The ',''):'Someone')+" \u2192 "+(to?to.name.replace('The ',''):'someone')+": "+iname(inst));
+  }
+  if(toMi!=null)inst.owner=toMi;
+}
+/* After a won fight: one to three things off the enemies' own backs. On your own it is simply
+   yours. On one device you hand each one out. Online, everyone votes on who should carry it —
+   most votes wins, and a tie goes to whoever has come away with least so far. */
+function rollLoot(boss){
+  // every enemy has an even chance of dropping one thing from its own pack. A boss always does.
+  // Bounty blessings shorten the odds.
+  const chance=Math.min(0.9,0.5+0.15*(R.bless.bounty||0));
+  const items=[];
+  (B&&B.foes||[]).forEach(f=>{
+    const carried=anchors(f.grid||[]).map(a=>a.inst);
+    if(!carried.length)return;
+    if(!(f.boss||Math.random()<chance))return;
+    const src=carried[(Math.random()*carried.length)|0];
+    const x=mkItem(src.bid,src.tags.slice(),src.lvl);
+    if(src.rot)x.rot=1;
+    items.push({inst:x,votes:{},to:null,from:f.name});
+  });
+  R.loot={items,done:items.length===0};
+  if(R.party.length===1){items.forEach(it=>giveLoot(it,0));R.loot.done=true;}
+}
+function giveLoot(it,mi){
+  if(it.to!=null)return;
+  it.to=mi; it.inst.owner=mi;
+  if(!autoPlace(R.party[mi].grid,it.inst,packRows(),true))toStash(it.inst);
+}
+function lootVote(seat,i,mi){
+  if(!R.loot||R.loot.done)return;
+  const it=R.loot.items[i]; if(!it||it.to!=null)return;
+  if(mi<0||mi>=R.party.length)return;
+  const voters=(NET.on&&Object.keys(NET.names||{}).length>1)?Object.keys(NET.names).length:0;
+  if(!voters){giveLoot(it,mi);}                     // one device: whoever is holding it decides
+  else {
+    it.votes[seat]=mi;
+    if(Object.keys(it.votes).length>=voters)settleLoot(it);
+  }
+  if(R.loot.items.every(x=>x.to!=null))R.loot.done=true;
+  renderLoot(); netPush(true);
+}
+function settleLoot(it){
+  const tally={};Object.values(it.votes).forEach(v=>tally[v]=(tally[v]||0)+1);
+  let best=-1,bn=-1;Object.keys(tally).forEach(k=>{if(tally[k]>bn){bn=tally[k];best=+k;}});
+  const tied=Object.keys(tally).filter(k=>tally[k]===bn).map(Number);
+  if(tied.length>1){
+    const had=mi=>R.loot.items.filter(x=>x.to===mi).length;
+    tied.sort((a,b)=>had(a)-had(b)||Math.random()-.5);
+    best=tied[0];
+  }
+  if(best<0){                                       // nobody voted: whoever has come away with least
+    const had=mi=>R.loot.items.filter(x=>x.to===mi).length;
+    const order=R.party.map((_,i)=>i).sort((a,b)=>had(a)-had(b)||Math.random()-.5);
+    best=order[0];
+  }
+  giveLoot(it,best);
+}
+function resolveLoot(force){
+  if(!R.loot||R.loot.done)return;
+  if(NET.on&&!NET.host)return;
+  R.loot.items.forEach(it=>{if(it.to==null)settleLoot(it);});
+  R.loot.done=true;
+  netPush(true);
+}
+function renderLoot(){
+  const res=document.getElementById('resBody'); if(!res||!R.loot)return;
+  res.innerHTML='';
+  const online=NET.on&&Object.keys(NET.names||{}).length>1;
+  const solo=R.party.length===1;
+  if(!R.loot.items.length){
+    res.insertAdjacentHTML('beforeend','<div class="flavor" style="margin:8px 0">'+
+      'You go through their packs. Nothing in there survived the fight.</div>');
+    return;
+  }
+  res.insertAdjacentHTML('beforeend','<div class="pix muted" style="font-size:10px;letter-spacing:.25em;margin:4px 0 10px">'+
+    'OFF THEIR BACKS \u2014 '+R.loot.items.length+' THING'+(R.loot.items.length===1?'':'S')+
+    (solo?', ALL YOURS':online?', VOTE ON WHO CARRIES EACH':', HAND EACH ONE OUT')+'</div>');
+  const row=document.createElement('div');row.className='row';
+  row.style.cssText='justify-content:center;gap:12px;flex-wrap:wrap;align-items:flex-start';
+  R.loot.items.forEach((it,i)=>{
+    const col=document.createElement('div');col.style.cssText='display:flex;flex-direction:column;align-items:center;gap:6px';
+    if(it.from)col.insertAdjacentHTML('beforeend','<div class="muted" style="font-size:10px">dropped by '+it.from+'</div>');
+    const card=itemCard(it.inst,null);card.style.cursor='default';col.appendChild(card);
+    if(it.to!=null){
+      col.insertAdjacentHTML('beforeend','<div class="granted" style="font-size:11px">\u2192 '+
+        R.party[it.to].name.replace('The ','')+'</div>');
+    } else {
+      const btns=document.createElement('div');btns.className='row';
+      btns.style.cssText='gap:4px;flex-wrap:wrap;justify-content:center;max-width:230px';
+      R.party.forEach((m,mi)=>{
+        const n=Object.values(it.votes).filter(v=>v===mi).length;
+        const mine=online&&it.votes[NET.seat]===mi;
+        const b=document.createElement('button');
+        b.style.cssText='font-size:10px;padding:6px 8px;min-height:0'+(mine?';border-color:#8ee86b;color:#cfeeb8':'');
+        b.textContent=m.name.replace('The ','')+(online&&n?' \u00b7 '+n:'');
+        b.onclick=()=>{SFX.click();
+          if(online&&!NET.host){it.votes[NET.seat]=mi;renderLoot();netSend({k:'loot',i,mi});return;}
+          lootVote(online?NET.seat:0,i,mi);};
+        btns.appendChild(b);
+      });
+      col.appendChild(btns);
+      if(online){const v=Object.keys(it.votes).length,t=Object.keys(NET.names).length;
+        col.insertAdjacentHTML('beforeend','<div class="muted" style="font-size:10px">'+v+'/'+t+' voted</div>');}
+    }
+    row.appendChild(col);
+  });
+  res.appendChild(row);
+  if(online&&NET.host&&!R.loot.done)
+    res.insertAdjacentHTML('beforeend','<div class="muted" style="font-size:10px;margin-top:8px">'+
+      'Moving on shares out anything still undecided by the votes so far.</div>');
+}
 function rotateInst(inst,gid){
   if(!canRotate(inst))return false;
   const G=gid?gridOf(gid):null;
@@ -4521,6 +5252,17 @@ function cellUnder(ev){
 }
 function onDragMove(ev){
   moveGhost(ev);
+  {const t0=cellUnder(ev);let fee=0;
+   if(t0&&DRAG&&R.party.length>1){const G0=gridOf(t0.gid);if(G0.mi!==undefined)fee=tradeCheck(DRAG.inst,G0.mi).fee;}
+   let tag=document.getElementById('tradeTag');
+   if(fee>0){
+     if(!tag){tag=document.createElement('div');tag.id='tradeTag';
+       tag.style.cssText='position:fixed;z-index:401;pointer-events:none;font-size:11px;padding:2px 6px;'+
+         'border-radius:4px;background:#2a1a0c;border:1px solid var(--gold);color:var(--gold)';
+       document.body.appendChild(tag);}
+     tag.textContent='Trade: '+fee+'c'+(R.coins<fee?' (not enough)':'');
+     tag.style.left=(ev.clientX+14)+'px';tag.style.top=(ev.clientY-30)+'px';
+   } else if(tag)tag.remove();}
   document.querySelectorAll('.ok,.bad').forEach(e=>e.classList.remove('ok','bad'));
   const t=cellUnder(ev);if(!t||!DRAG)return;
   const G=gridOf(t.gid);
@@ -4541,21 +5283,34 @@ function onDragEnd(ev){
   const g=document.getElementById('dragGhost');if(g)g.remove();
   document.querySelectorAll('.ok,.bad').forEach(e=>e.classList.remove('ok','bad'));
   hideTip(); UI.shopSel=null; UI.sellSel=null;     // let go, and the card goes away with it
+  const tt=document.getElementById('tradeTag'); if(tt)tt.remove();
   setTimeout(()=>{if(NET.on){ if(NET.host)netPush(true); else netSendMine(); }},0);
   if(!DRAG)return;
   const t=cellUnder(ev), inst=DRAG.inst;
   let done=false;
   if(t){
     const G=gridOf(t.gid), target=G.grid[t.idx];
+    const toMi=(G.mi!==undefined&&R.party.length>1)?G.mi:null;      // a pack, not storage
+    const who=toMi!=null?R.party[toMi].name.replace('The ',''):'';
     if(target&&sameItem(target,inst)&&target.lvl<3){
-      target.lvl++; SFX.merge(); if(target.lvl>=3)unlock("merger"); done=true;      // merge
-    } else if(placeItem(G.grid,inst,t.idx,G.rows)&&!(G.unique&&hasTwinEquipped(G.grid,inst))){
-      done=true;
+      const into=(target.owner!=null)?target.owner:toMi;               // merging hands it to them
+      const tc=tradeCheck(inst,into);
+      if(!tc.ok)UI._hint="Merging that into "+R.party[into].name.replace('The ','')+"\u2019s costs "+tc.fee+
+        " coins as a trade \u2014 the purse can\u2019t cover it.";
+      else{settleTrade(inst,into,tc.fee);
+        target.lvl++; SFX.merge(); if(target.lvl>=3)unlock("merger"); done=true;}      // merge
     } else {
-      liftItem(G.grid,inst);
-      UI._hint=G.unique&&hasTwinEquipped(G.grid,inst)
-        ? "Only one of each item can be equipped — keep the twin in storage."
-        : "It doesn't fit there — it needs "+sizeStr(inst)+" clear tiles.";
+      const tc=tradeCheck(inst,toMi);
+      if(!tc.ok){
+        UI._hint="Trading that to "+who+" costs "+tc.fee+" coins \u2014 the purse can\u2019t cover it.";
+      } else if(placeItem(G.grid,inst,t.idx,G.rows)&&!(G.unique&&hasTwinEquipped(G.grid,inst))){
+        settleTrade(inst,toMi,tc.fee); done=true;
+      } else {
+        liftItem(G.grid,inst);
+        UI._hint=G.unique&&hasTwinEquipped(G.grid,inst)
+          ? "Only one of each item can be equipped — keep the twin in storage."
+          : "It doesn't fit there — it needs "+sizeStr(inst)+" clear tiles.";
+      }
     }
   }
   if(!done){                                                           // put it back where it came from
@@ -4584,7 +5339,9 @@ function renderPack(){
   const st=document.createElement('div');st.className='frame';st.style.cssText='padding:9px;margin-bottom:10px';
   st.innerHTML=`<div class="pix muted" style="font-size:11px;margin-bottom:6px">
     Storage pack — ${anchors(R.store).length} stored · nothing here is active</div>`;
-  st.appendChild(gridView(R.store,STORER,34,{gid:'store',drag:true}));
+  st.appendChild(gridView(R.store,STORER,34,{gid:'store',drag:true,
+    badge:inst=>(R.party.length>1&&inst.owner!=null&&R.party[inst.owner])
+      ?{text:R.party[inst.owner].name.replace('The ','').slice(0,6),col:'#c9b28a'}:null}));
   if(R.stash.length){
     const sr=document.createElement('div');sr.className='row';
     sr.style.cssText='flex-wrap:wrap;gap:6px;margin-top:8px';
@@ -4871,7 +5628,9 @@ function foeLoadout(def,floor){
   const n=Math.min(6,def.lo+Math.floor(floor/6));
   for(let i=0;i<n;i++){
     const sh=def.pack[i%def.pack.length];
-    const r=Math.max(0,Math.min(4,Math.floor((floor-2)/7)+(i<1?1:0)));
+    // what they carry rolls like anything else you would find at this depth; the first item
+    // is their best, a step up — that is the one worth hoping for when they fall
+    const r=i<1?rollLifted(floor,4):rollRarity(floor);
     const bid=ITEMS.findIndex(x=>x.shape===sh&&x.r===r);
     const tags=rollTags(ITEMS[bid],def.res);
     autoPlace(grid,mkItem(bid,tags,floor>12&&i===0?2:1),5);
@@ -4925,12 +5684,12 @@ function mkFoe(def,floor,weight){
   // full party used to delete a skirmish before the ring finished a circuit; the taper keeps the
   // first floor honest for someone who hasn't bought anything yet.
   const early=Math.min(1,0.62+0.19*fH);
-  const hpS=(1+0.34*(fH-1)+0.020*(fH-1)*(fH-1))*7.1*(1+0.7/(fH+1))*early*pacing(fH)*actM*w;
+  const hpS=(1+0.34*(fH-1)+0.020*(fH-1)*(fH-1))*6.6*(1+0.7/(fH+1))*early*pacing(fH)*actM*w;
   // w, not sqrt(w): fewer-but-bigger foes must hit as hard in total as a full line of them,
   // otherwise a small party takes far less damage per merc than a big one
   // They hit hard enough that a fight costs you something. The floor's landing gives a little
   // back (see endBattle) — the tension lives inside a floor, not across the whole run.
-  const dmS=(1+0.07*(f-1)+0.0030*(f-1)*(f-1))*2.75*Math.min(1,0.75+0.1*f)*actM*Math.pow(w,0.7)*(1+R.bless.foeDmg);
+  const dmS=(1+0.07*(f-1)+0.0030*(f-1)*(f-1))*2.4*Math.min(1,0.75+0.1*f)*actM*Math.pow(w,0.7)*(1+R.bless.foeDmg);
   const e={name:def.n,foeDef:def,maxHp:Math.round(def.hp*hpS*dm),hp:Math.round(def.hp*hpS*dm),
     armour:Math.min(45,Math.round(def.armour*(1+f*0.06)*dm)),dodge:def.dodge,dmg:Math.round(def.dmg*dmS*dm),
     // they swing oftener than they used to: a foe that acts once every five seconds is scenery
@@ -4942,6 +5701,7 @@ function mkFoe(def,floor,weight){
 }
 function toBattle(node){
   const f=R.floor,P=R.party.length;
+  R.loot=null;
   const isExit=!node||node.type==='exit', boss=!!(node&&node.boss);
   B_isExit=isExit;
   // one of them for each of you: two mercenaries meet two, three meet three
@@ -4973,40 +5733,50 @@ function toBattle(node){
      foes:defs.map(d=>buildUnit(mkFoe(d,f,weight),'foe')),
      t:0,n:0,log:[],over:false,phoenix:R.bless.phoenix};
   B.heroes.forEach((h,i)=>h.slot=i); B.foes.forEach((f,i)=>f.slot=i);
-  document.getElementById('battleTitle').textContent=
-    floorLabel(f)+(boss?" — BOSS":(isExit?" — The Stair":" — Skirmish"))+
-    " — "+count+" foe"+(count>1?"s":"");
+  document.getElementById('battleTitle').textContent=floorLabel(f);
+  document.getElementById('battleSub').innerHTML=(boss?"<b>Boss</b>":(isExit?"The Stair":"Skirmish"))+
+    " &middot; "+count+" foe"+(count>1?"s":"")+" &middot; party of "+B.heroes.length;
   document.getElementById('log').innerHTML='';
   const bn=document.getElementById('battleRoom');
-  bn.innerHTML='';bn.appendChild(roomBanner(R.curNode&&R.curNode.art!==undefined?R.curNode.art:rollRoomArt(R.floor)));
+  setStageRoom(R.curNode&&R.curNode.art!==undefined?R.curNode.art:rollRoomArt(R.floor));
   UI.peek=0;renderArena();renderPeek();show('scr-battle');
   B.pending=true;                       // size them up first — the fight starts when you say so
   document.getElementById('readyBar').style.display='block';
-  document.getElementById('battleCtl').style.visibility='hidden';
+  document.getElementById('battleCtl').style.display='none';
   document.getElementById('readyText').innerHTML=
     '<span class="flavor">'+pick(boss?ROOMTALK.exit:ROOMTALK.fight)+'</span><br>'+
     (B.foes.length>1?B.foes.length+" of them.":"One of them.")+
     " Check their packs, fix yours, then step in.";
 }
+function setStageRoom(idx){
+  const bn=document.getElementById('battleRoom'); if(!bn)return;
+  bn.innerHTML=''; const c=roomCanvas(idx,3); bn.appendChild(c);
+  const t=document.getElementById('roomTag'); if(t)t.textContent=ROOMART[idx%ROOMART.length].n;
+}
 function unitEl(u,idx){
-  const d=document.createElement('div');d.className='unit'+(u.alive?'':' dead');
-  const art=document.createElement('div');
-  art.appendChild(u.side==='hero'?heroSprite(u.sprite,2):foeSprite(u.sprite,2));
-  d.appendChild(art);
-  d.insertAdjacentHTML('beforeend',
-   `<div style="font-size:11px;color:${u.boss?'#ff8577':'#fff'};margin-top:2px">${u.name}${u.ref&&u.ref.lvl?' <span class="muted">L'+u.ref.lvl+'</span>':''}</div>
-    <div class="hpbar"><i style="width:${Math.max(0,u.hp/u.maxHp*100)}%"></i></div>
-    <div class="muted hpnum" style="font-size:10px">${Math.max(0,Math.round(u.hp))}/${u.maxHp}</div>
-    <div class="stchips" style="font-size:10px;min-height:14px">${statusChips(u)}</div>
-    <div class="vsline" style="font-size:9px;color:#938478;min-height:12px"></div>
-    ${u.side==='foe'?`<div style="font-size:9px">
-      <span class="chip" style="color:${tagCol(u.weak)}">weak ${TAGS[u.weak].n}</span>
-      <span class="chip" style="color:${tagCol(u.res)}">res ${TAGS[u.res].n}</span></div>`:''}`);
+  const d=document.createElement('div');
+  if(u.armMax===undefined)u.armMax=u.armour||0;
+  const fig=document.createElement('div');fig.className='fig';
+  fig.appendChild(u.side==='hero'?heroSprite(u.sprite,2):foeSprite(u.sprite,2));
+  d.appendChild(fig);
+  const hp=Math.max(0,Math.round(u.hp));
+  d.insertAdjacentHTML('beforeend',`<div class="plate">
+    <div class="nm" style="color:${u.boss?'#ff8577':'#fff'}">${u.name}${u.ref&&u.ref.lvl?'<span class="lv">L'+u.ref.lvl+'</span>':''}</div>
+    <div class="hpbar"><i style="width:${Math.max(0,u.hp/u.maxHp*100)}%"></i><span class="hpnum">${hp} / ${u.maxHp}</span></div>
+    <div class="armbar"><i></i></div>
+    <div class="stchips" style="font-size:10px;margin-top:3px">${statusChips(u)}</div>
+    ${u.side==='hero'?'<div class="vsline"></div>':`<div class="wr">
+      <span class="chip" style="color:${tagCol(u.weak)}" title="Takes +50%">&#9660; ${TAGS[u.weak].n}</span>
+      <span class="chip" style="color:${tagCol(u.res)}" title="Takes -40%">&#9650; ${TAGS[u.res].n}</span></div>`}
+  </div>`);
   u.el=d;u.elBar=d.querySelector('.hpbar i');u.elNum=d.querySelector('.hpnum');u.elSt=d.querySelector('.stchips');
-  u.elVs=d.querySelector('.vsline');
+  u.elVs=d.querySelector('.vsline');u.elArm=d.querySelector('.armbar');
+  d.className=unitCls(u);
   if(u.side==='foe'){d.style.cursor='pointer';d.onclick=()=>{UI.peek=idx;renderPeek();};}
   return d;
 }
+function unitCls(u){return 'unit '+u.side+(u.boss?' boss':'')+(u.alive?'':' dead')+
+  (u.side==='foe'&&B&&UI.peek===B.foes.indexOf(u)?' tgt':'');}
 const STATUS_ICON={burn:["&#128293;","#ff8c3c"],bleed:["&#129656;","#ff5570"],poison:["&#9763;","#aef07c"],
   freeze:["&#10052;","#8ad4ff"],stun:["&#9889;","#ffe9a3"]};
 function statusChips(u){
@@ -5029,11 +5799,15 @@ function updateArena(){
   if(B.n%2===0)[...B.heroes,...B.foes].forEach(u=>paintRing(u));
   [...B.heroes,...B.foes].forEach(u=>{if(!u.el)return;
     u.elBar.style.width=Math.max(0,u.hp/u.maxHp*100)+'%';
-    u.elNum.textContent=Math.max(0,Math.round(u.hp))+'/'+u.maxHp+(u.armour?' · ARM '+u.armour:'');
+    u.elNum.textContent=Math.max(0,Math.round(u.hp))+' / '+u.maxHp;
+    if(u.elArm){if(u.armour>u.armMax)u.armMax=u.armour;
+      u.elArm.classList.toggle('on',u.armour>0);
+      u.elArm.firstChild.style.width=(u.armMax?Math.max(0,u.armour/u.armMax*100):0)+'%';
+      u.elArm.title='Armour '+Math.round(u.armour);}
     u.elSt.innerHTML=statusChips(u);
     if(u.elVs&&u.side==='hero'&&B.n%4===0){const t=u.alive?pickTarget(u,B.foes):null;
       u.elVs.textContent=t?('\u2192 '+t.name):'';}
-    u.el.className='unit'+(u.alive?'':' dead')+(u.side==='foe'&&UI.peek===B.foes.indexOf(u)?' tgt':'');});
+    const cl=unitCls(u); if(u.el.className!==cl&&!/hit|lunge/.test(u.el.className))u.el.className=cl;});
 }
 function castDmg(u){
   let d=0; u.casts.forEach(c=>{const k=c.it.cast||{};
@@ -5042,7 +5816,7 @@ function castDmg(u){
 }
 function packPanel(u,label){
   const p=document.createElement('div');p.className='frame';p.style.padding='8px';
-  p.innerHTML=`<div class="pix muted" style="font-size:10px;margin-bottom:5px">${label}</div>`;
+  p.innerHTML=`<div class="pix ptitle" style="color:${u.side==='hero'?'#a4f07c':'#ff8577'}">${label}</div>`;
   const head=document.createElement('div');head.className='row';head.style.cssText='gap:8px;align-items:flex-start';
   const port=document.createElement('div');
   port.style.cssText='border:2px solid #1d2435;border-radius:4px;background:#070a11;padding:2px;line-height:0';
@@ -5050,7 +5824,7 @@ function packPanel(u,label){
   head.appendChild(port);
   const info=document.createElement('div');info.style.flex='1';
   info.innerHTML=`<div style="font-size:12px;color:${u.boss?'#ff8577':'#fff'}">${u.name}</div>
-    <div class="statgrid" style="grid-template-columns:auto auto;gap:1px 10px;margin-top:3px">
+    <div class="statgrid pk" style="gap:1px 10px;margin-top:3px">
       <span class="muted">Health</span><b class="hpv"></b>
       <span class="muted">Damage</span><b style="color:#ff8577">${castDmg(u)} / lap</b>
       <span class="muted">Armour</span><b class="armv" style="color:#8ad4ff"></b>
@@ -5082,14 +5856,15 @@ function renderPeek(){
   const w=document.getElementById('packPeek');w.innerHTML='';
   const h=B.heroes.find(x=>x.alive)||B.heroes[0];
   const f=B.foes[UI.peek]||B.foes[0];
-  if(h)w.appendChild(packPanel(h,"Your mercenary — the ring casts every lap"));
-  if(f)w.appendChild(packPanel(f,"Enemy backpack — tap any foe to inspect"));
+  if(h)w.appendChild(packPanel(h,"Your pack · the ring casts every lap"));
+  if(f)w.appendChild(packPanel(f,"Enemy pack · tap a foe to inspect"));
   updateArena();
 }
 function float(u,txt,col){
   const e=u&&u.el;if(!e)return;
   const s=document.createElement('span');s.className='fnum';s.textContent=txt;s.style.color=col||'#fff';
-  s.style.left=(18+Math.random()*34)+'%';s.style.top='16px';e.appendChild(s);
+  u._fl=((u._fl||0)+1)%4;
+  s.style.left=(14+Math.random()*44)+'%';s.style.top=(4+u._fl*15)+'px';e.appendChild(s);
   setTimeout(()=>s.remove(),900);
 }
 function flash(u){if(!u.el)return;u.el.classList.add('hit');setTimeout(()=>u.el&&u.el.classList.remove('hit'),110);}
@@ -5217,7 +5992,7 @@ function beginFight(){
   B.pending=false;
   B.foes.slice(0,3).forEach((f,i)=>setTimeout(()=>foeVoice(f),i*220));   // they announce themselves
   document.getElementById('readyBar').style.display='none';
-  document.getElementById('battleCtl').style.visibility='visible';
+  document.getElementById('battleCtl').style.display='';
   log('<span class="gold">The fight begins.</span>');
   setSpeed(UI.speed);startTicks();
 }
@@ -5255,7 +6030,8 @@ function endBattle(win){
     const boss=B.foes.some(f=>f.boss);
     // four packs to fill out of one purse was never fair — the pay scales with the company
     const crew=0.55+0.45*R.party.length;
-    const gold=Math.round((B_isExit?24+R.floor*6.5:12+R.floor*3.5)*crew*(0.9+Math.random()*0.3))+(boss?90:0);
+    // enemies only sometimes drop something now, so the purse has to carry more of the load
+    const gold=Math.round((B_isExit?34+R.floor*8.8:17+R.floor*4.8)*crew*(0.9+Math.random()*0.3))+(boss?110:0);
     R.coins+=gold;
     const xp=Math.round((B_isExit?30+R.floor*7.4:16+R.floor*4.3)+(boss?70:0));
     const levelled=[];
@@ -5265,22 +6041,13 @@ function endBattle(win){
     document.getElementById('resTitle').textContent=boss?"BOSS SLAIN":(B_isExit?"FLOOR CLEARED":"ROOM CLEARED");
     document.getElementById('resTitle').style.color='var(--gold)';
     document.getElementById('resDesc').textContent=
-      "+"+gold+" coins, +"+xp+" XP each. Take "+(R.party.length>1?R.party.length+" relics — one each":"one relic")+" from the spoils.";
-    const res=document.getElementById('resBody');res.innerHTML='';
-    const row=document.createElement('div');row.className='row';row.style.cssText='justify-content:center;gap:10px;flex-wrap:wrap';
-    const n=(B_isExit?3:2)+R.bless.bounty+(R.party.length>1?R.party.length-1:0);
-    let picks=R.party.length;                   // one relic for each mercenary standing
-    for(let i=0;i<n;i++){const inst=rollItem(boss?rollLifted(R.floor):undefined);
-      const d=itemCard(inst,()=>{
-        if(picks<=0)return;
-        toStash(inst);picks--;d.classList.add('dis');
-        document.getElementById('resDesc').textContent=picks>0
-          ?picks+" more relic"+(picks===1?"":"s")+" to take.":"Taken.";
-        if(picks<=0)row.querySelectorAll('.card').forEach(c=>c.classList.add('dis'));
-        openPack();});
-      row.appendChild(d);}
-    res.appendChild(row);
+      "+"+gold+" coins, +"+xp+" XP each. They were carrying something.";
+    rollLoot(boss);
+    renderLoot();
     const btn=document.getElementById('resBtn');
+    btn.style.display='';
+    setTimeout(()=>{const go=btn.onclick;if(go&&!go._loot){const w=function(){resolveLoot(true);return go.apply(this,arguments);};
+      w._loot=1;btn.onclick=w;}},0);
     if(B_isExit&&!R.endless&&R.floor>=ACTLEN*NACTS){      // the bottom of act five. It is over.
       btn.textContent="The way back up";
       document.getElementById('resTitle').textContent="THE DARK GIVES WAY";
