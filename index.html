@@ -2129,45 +2129,52 @@ MOREFOES.forEach(f=>{
 });
 
 /* ---------- BLESSINGS ---------- */
+function freshBless(){return {atk:0,crit:0,leech:0,regen:0,aspd:0,stackBonus:0,mend:0,phoenix:0,tb:{}};}
+const MB=m=>{if(!m.bless)m.bless=freshBless();if(!m.bless.tb)m.bless.tb={};return m.bless;};
 function blessPool(){
- /* value scales hard with rarity: a common boon is a nudge, a legendary one bends the run */
+ /* Every mercenary takes their own, so a boon is written for one of them. Purse-filling boons are
+    split by the size of the party — four of you picking coin should not quadruple the floor. */
+ const P=(R&&R.party)?R.party.length:1, purse=v=>Math.max(15,Math.round(v/P/5)*5);
  const L=[
   // --- common: small, reliable ---
-  {n:"Field Rations",r:0,d:"+18 Max HP for every merc.",f:R=>R.party.forEach(p=>{p.maxHp+=18;p.hp+=18}),sh:"potion"},
-  {n:"Scrap Iron",r:0,d:"+3 Armour for every merc.",f:R=>R.party.forEach(p=>p.armour+=3),sh:"shield"},
-  {n:"Pocket Change",r:0,d:"Gain 70 coins.",f:R=>R.coins+=70,sh:"ring"},
-  {n:"Whetstone",r:0,d:"+6% damage from all items.",f:R=>R.bless.atk+=.06,sh:"dagger"},
-  {n:"Loose Laces",r:0,d:"+0.6 Speed for every merc.",f:R=>R.party.forEach(p=>p.spd+=0.6),sh:"boot"},
-  {n:"Lucky Penny",r:0,d:"+4% critical chance.",f:R=>R.bless.crit+=.04,sh:"ring"},
+  {n:"Field Rations",r:0,d:"+22 Max HP.",f:(R,m)=>{m.maxHp+=22;m.hp+=22},sh:"potion"},
+  {n:"Scrap Iron",r:0,d:"+4 Armour.",f:(R,m)=>m.armour+=4,sh:"shield"},
+  {n:"Pocket Change",r:0,d:"+"+purse(70)+" coins for the purse.",f:R=>R.coins+=purse(70),sh:"ring"},
+  {n:"Whetstone",r:0,d:"+7% damage from your items.",f:(R,m)=>MB(m).atk+=.07,sh:"dagger"},
+  {n:"Loose Laces",r:0,d:"+0.8 Speed.",f:(R,m)=>m.spd+=0.8,sh:"boot"},
+  {n:"Lucky Penny",r:0,d:"+5% critical chance.",f:(R,m)=>MB(m).crit+=.05,sh:"ring"},
   // --- uncommon ---
-  {n:"Vigor",r:1,d:"+32 Max HP for every merc.",f:R=>R.party.forEach(p=>{p.maxHp+=32;p.hp+=32}),sh:"armour"},
-  {n:"Swiftness",r:1,d:"+1.3 Speed — the ring comes round sooner.",f:R=>R.party.forEach(p=>p.spd+=1.3),sh:"boot"},
-  {n:"Keen Edge",r:1,d:"+8% critical chance.",f:R=>R.bless.crit+=.08,sh:"katar"},
-  {n:"Evasion",r:1,d:"+5% Dodge for every merc.",f:R=>R.party.forEach(p=>p.dodge+=.05),sh:"cloak"},
-  {n:"Greed",r:1,d:"+22 coins at the start of each floor.",f:R=>R.bless.greed+=22,sh:"ring"},
-  {n:"Fortune",r:1,d:"Merchant prices reduced 20%.",f:R=>R.bless.disc+=.20,sh:"belt"},
-  {n:"Ironskin",r:1,d:"+6 Armour for every merc.",f:R=>R.party.forEach(p=>p.armour+=6),sh:"bracer"},
+  {n:"Vigor",r:1,d:"+40 Max HP.",f:(R,m)=>{m.maxHp+=40;m.hp+=40},sh:"armour"},
+  {n:"Swiftness",r:1,d:"+1.6 Speed — your ring comes round sooner.",f:(R,m)=>m.spd+=1.6,sh:"boot"},
+  {n:"Keen Edge",r:1,d:"+9% critical chance.",f:(R,m)=>MB(m).crit+=.09,sh:"katar"},
+  {n:"Evasion",r:1,d:"+6% Dodge.",f:(R,m)=>m.dodge+=.06,sh:"cloak"},
+  {n:"Greed",r:1,d:"+"+purse(22)+" coins at the start of every floor.",f:R=>R.bless.greed+=purse(22),sh:"ring"},
+  {n:"Fortune",r:1,d:"Merchant prices "+Math.round(20/P)+"% lower (up to half off).",
+   f:R=>R.bless.disc=Math.min(.5,R.bless.disc+.20/P),sh:"belt"},
+  {n:"Ironskin",r:1,d:"+8 Armour.",f:(R,m)=>m.armour+=8,sh:"bracer"},
   // --- rare ---
-  {n:"Mending",r:2,d:"Heal 18% of Max HP after each battle.",f:R=>R.bless.mend+=.18,sh:"chalice"},
-  {n:"Leech Tooth",r:2,d:"+8% Lifesteal on all damage.",f:R=>R.bless.leech+=.08,sh:"claw"},
-  {n:"Regeneration",r:2,d:"+2 HP per second in battle.",f:R=>R.bless.regen+=2,sh:"amulet"},
-  {n:"Fury",r:2,d:"+15% damage from all items.",f:R=>R.bless.atk+=.15,sh:"axe"},
-  {n:"Bounty",r:2,d:"Chests and spoils offer one extra choice.",f:R=>R.bless.bounty+=1,sh:"bomb"},
-  {n:"Coin Cache",r:2,d:"Gain 260 coins right now.",f:R=>R.coins+=260,sh:"grimoire"},
+  {n:"Mending",r:2,d:"Heal 20% of your Max HP after each battle.",f:(R,m)=>MB(m).mend+=.20,sh:"chalice"},
+  {n:"Leech Tooth",r:2,d:"+9% Lifesteal.",f:(R,m)=>MB(m).leech+=.09,sh:"claw"},
+  {n:"Regeneration",r:2,d:"+3 HP per second in battle.",f:(R,m)=>MB(m).regen+=3,sh:"amulet"},
+  {n:"Fury",r:2,d:"+16% damage from your items.",f:(R,m)=>MB(m).atk+=.16,sh:"axe"},
+  {n:"Bounty",r:2,d:"Chests and spoils offer one extra choice.",f:R=>R.bless.bounty=Math.min(3,R.bless.bounty+1),sh:"bomb"},
+  {n:"Coin Cache",r:2,d:"+"+purse(260)+" coins for the purse, now.",f:R=>R.coins+=purse(260),sh:"grimoire"},
   // --- epic ---
-  {n:"Phoenix",r:3,d:"Once per battle, revive a fallen merc at 35%.",f:R=>R.bless.phoenix+=1,sh:"totem"},
-  {n:"The Forge",r:3,d:"Upgrade a random placed item one level, now.",f:R=>forgeRandom(R),sh:"hammer"},
-  {n:"Deep Pockets",r:3,d:"+20% power from every tag you carry.",f:R=>{TKEYS.forEach(k=>R.bless.tb[k]=(R.bless.tb[k]||0)+.20)},sh:"cloak"},
-  {n:"Second Wind",r:3,d:"+55 Max HP and +3 Speed for every merc.",
-   f:R=>R.party.forEach(p=>{p.maxHp+=55;p.hp+=55;p.spd+=3}),sh:"horn"},
+  {n:"Phoenix",r:3,d:"Once per battle, if you fall, rise again at 35%.",f:(R,m)=>MB(m).phoenix+=1,sh:"totem"},
+  {n:"The Forge",r:3,d:"One of your placed items goes up a level, now.",f:(R,m)=>forgeRandom(R,m),sh:"hammer"},
+  {n:"Deep Pockets",r:3,d:"+20% power from every tag you carry.",
+   f:(R,m)=>{const b=MB(m);TKEYS.forEach(k=>b.tb[k]=(b.tb[k]||0)+.20)},sh:"cloak"},
+  {n:"Second Wind",r:3,d:"+65 Max HP and +3 Speed.",f:(R,m)=>{m.maxHp+=65;m.hp+=65;m.spd+=3},sh:"horn"},
   // --- legendary ---
-  {n:"Overflow",r:4,d:"Every negative effect you apply gains +2 stacks.",f:R=>R.bless.stackBonus+=2,sh:"orb"},
-  {n:"Ninefold Pact",r:4,d:"+45% damage — but foes hit 12% harder too.",f:R=>{R.bless.atk+=.45;R.bless.foeDmg+=.12},sh:"idol"},
-  {n:"The Second Torch",r:4,d:"+2 torches. The dark gives one back.",f:R=>{R.torches=Math.min(TORCH_MAX,R.torches+2);renderTorches();},sh:"lantern"},
+  {n:"Overflow",r:4,d:"Every negative effect you apply gains +2 stacks.",f:(R,m)=>MB(m).stackBonus+=2,sh:"orb"},
+  {n:"Ninefold Pact",r:4,d:"+50% damage from your items — but every foe hits 8% harder.",
+   f:(R,m)=>{MB(m).atk+=.50;R.bless.foeDmg+=.08},sh:"idol"},
+  {n:"The Second Torch",r:4,d:"+1 torch for the party. The dark gives one back.",
+   f:R=>{R.torches=Math.min(TORCH_MAX,R.torches+1);renderTorches();},sh:"lantern"},
  ];
- /* tag masteries: rare, and worth taking */
+ /* tag masteries: rare, and worth taking — now for the one who takes it */
  TKEYS.forEach(k=>L.push({n:TAGS[k].n+" Mastery",r:2,tag:k,
-   d:"+30% power from all "+TAGS[k].n+" tags.",f:R=>R.bless.tb[k]=(R.bless.tb[k]||0)+.30,sh:"amulet"}));
+   d:"+35% power from your "+TAGS[k].n+" tags.",f:(R,m)=>{const b=MB(m);b.tb[k]=(b.tb[k]||0)+.35},sh:"amulet"}));
  return L;
 }
 function pickBlessings(n){
@@ -2182,8 +2189,61 @@ function pickBlessings(n){
   }
   return out;
 }
-function forgeRandom(R){
-  const c=[]; R.party.forEach(p=>p.grid.forEach((s,i)=>{if(s&&s.lvl<3)c.push(s)}));
+/* One relic-shaped choice per mercenary. On one device you take turns; online each of you picks
+   your own at once, and the merchant opens when the last of you has chosen. */
+function blessCard(b,onPick){
+  const d=document.createElement('div');d.className='relic';d.style.borderColor=RAR[b.r].col;
+  d.innerHTML=`<div class="muted" style="font-size:10px;color:${RAR[b.r].col}">${RAR[b.r].n.toLowerCase()}</div>`;
+  const box=document.createElement('div');box.className='relicbox';
+  box.appendChild(itemIcon(b.sh,pal(b.tag?TAGS[b.tag].fam:'blue','black'),5,'b'+b.n));
+  d.appendChild(box);
+  d.insertAdjacentHTML('beforeend',`<div class="gold" style="font-size:13px;margin-bottom:5px">${b.n}</div>
+    <div style="font-size:11px;line-height:1.5">${b.d}</div>`);
+  if(onPick)d.onclick=onPick; else d.style.cssText+=';opacity:.6;cursor:default';
+  return d;
+}
+function mySeatOnly(){return NET.on&&Object.keys(NET.names||{}).length>1;}
+function renderBlessPick(){
+  const row=document.getElementById('blessRow');row.innerHTML='';
+  document.getElementById('blessFloorTitle').textContent=floorLabel(R.floor);
+  const online=mySeatOnly();
+  let p=online?NET.seat:R.blessTaken.findIndex(x=>x===null);
+  if(p<0||p>=R.party.length){finishBless();return;}
+  const m=R.party[p];
+  const head=document.createElement('div');head.className='center';head.style.cssText='width:100%;margin-bottom:8px';
+  head.appendChild(heroSprite(m.def,1));
+  const done=R.blessTaken.filter(x=>x!==null).length;
+  head.insertAdjacentHTML('beforeend','<div class="pix" style="font-size:12px;color:#fff;margin-top:4px">'+
+    (R.party.length>1?m.name+'\u2019s blessing':'Your blessing')+'</div>'+
+    (R.party.length>1?'<div class="muted" style="font-size:10px">'+done+' of '+R.party.length+' chosen</div>':''));
+  row.appendChild(head);
+  if(R.blessTaken[p]!==null){
+    row.insertAdjacentHTML('beforeend','<div class="center muted" style="width:100%;font-size:12px">'+
+      'You took <b class="gold">'+R.blessOffers[p][R.blessTaken[p]].n+'</b>. Waiting on the others\u2026</div>');
+    return;
+  }
+  R.blessOffers[p].forEach((b,i)=>row.appendChild(blessCard(b,()=>{
+    SFX.click();
+    if(online&&!NET.host){netSend({k:'bless',i});R.blessTaken[p]=i;renderBlessPick();return;}
+    takeBless(p,i);
+  })));
+}
+function takeBless(p,i){
+  if(!R.blessOffers||!R.blessOffers[p]||R.blessTaken[p]!==null)return;
+  const b=R.blessOffers[p][i]; if(!b)return;
+  R.blessTaken[p]=i;
+  try{b.f(R,R.party[p]);}catch(e){}
+  R.blessings.push(b.n);
+  if(R.blessTaken.every(x=>x!==null)){finishBless();return;}
+  renderBlessPick();
+  netPush(true);
+}
+function finishBless(){
+  if(NET.on&&!NET.host)return;
+  toShop();
+}
+function forgeRandom(R,m){
+  const c=[]; (m?[m]:R.party).forEach(p=>anchors(p.grid).forEach(({inst})=>{if(inst.lvl<3)c.push(inst)}));
   if(c.length)c[(Math.random()*c.length)|0].lvl++;
 }
 /* ---------- CURSES (cursed shrine) ---------- */
@@ -2213,7 +2273,8 @@ const EVENTS=[
  {t:"Whispering Fountain",d:"The water speaks a number. Nobody agrees which.",
   a:[{n:"Drink deep (+25 Max HP all)",f:R=>{R.party.forEach(p=>{p.maxHp+=25;p.hp+=25});return"Cold floods your chest."}},
      {n:"Throw in coins (-40, random blessing)",f:R=>{if(R.coins<40)return"You have nothing to throw.";R.coins-=40;
-       const P=blessPool(),b=P[(Math.random()*P.length)|0];b.f(R);R.blessings.push(b.n);return"The water gives: "+b.n+" — "+b.d;}}]},
+       const P=blessPool(),b=P[(Math.random()*P.length)|0],m=R.party[(Math.random()*R.party.length)|0];
+       b.f(R,m);R.blessings.push(b.n);return"The water gives "+m.name.replace('The ','')+": "+b.n+" — "+b.d;}}]},
  {t:"Two Doors, One Torch",d:"One door breathes warm. One breathes cold.",
   a:[{n:"The warm door (upgrade an item)",f:R=>{forgeRandom(R);return"Heat welds something in your pack into a better shape."}},
      {n:"The cold door (+80 coins)",f:R=>{R.coins+=80;return"A frozen purse, still heavy."}}]},
@@ -2868,7 +2929,8 @@ function netSnapshot(){
   if(B&&!B.over&&curScreen()==='scr-battle'){
     return {lite:1,floor:R.floor,torches:R.torches,screen:'scr-battle',
       arena:{t:+B.t.toFixed(1),
-        h:B.heroes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st})),
+        h:B.heroes.map(u=>{const t=u.alive?pickTarget(u,B.foes):null;
+          return {n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st,tg:t?t.name:''};}),
         f:B.foes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st,
            id:u.foeDef?u.foeDef.id:null}))}};
   }
@@ -2876,7 +2938,7 @@ function netSnapshot(){
     blessings:R.blessings,bless:R.bless,roll:R.roll,
     store:packGrid(R.store),stash:R.stash.map(packInst),
     party:R.party.map(m=>({cid:m.cid,name:m.name,tags:m.tags,maxHp:m.maxHp,hp:m.hp,dmg:m.dmg,
-      armour:m.armour,spd:m.spd,dodge:m.dodge,lvl:m.lvl,xp:m.xp,grid:packGrid(m.grid)})),
+      armour:m.armour,spd:m.spd,dodge:m.dodge,lvl:m.lvl,xp:m.xp,grid:packGrid(m.grid),bless:m.bless||freshBless()})),
     screen:(document.querySelector('.scr.on')||{}).id||'scr-title',
     map:R.map?{cols:R.map.cols,rows:R.map.rows,pos:R.map.pos,
       grid:R.map.grid.map(col=>col.map(n=>({type:n.type,c:n.c,r:n.r,done:n.done,boss:n.boss,
@@ -2887,7 +2949,8 @@ function netSnapshot(){
     nodeTitle:(document.getElementById('nodeTitle')||{}).textContent||'',
     nodeDesc:(document.getElementById('nodeDesc')||{}).innerHTML||'',
     shop:shopStock?shopStock.map(packGrid):null,
-    bl:UI._blessOffer||null,
+    bo:R.blessOffers?R.blessOffers.map(o=>o.map(b=>({n:b.n,d:b.d,r:b.r,sh:b.sh,tag:b.tag||null}))):null,
+    bt:R.blessTaken||null,
     arena:(B&&!B.over)?{t:+B.t.toFixed(1),
       h:B.heroes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st})),
       f:B.foes.map(u=>({n:u.name,hp:Math.round(u.hp),mx:u.maxHp,ar:Math.round(u.armour),st:u.st,
@@ -2918,7 +2981,7 @@ function netApplySnap(m){
      map:d.map||null,mapFloor:d.floor,
      party:d.party.map(p=>{const def=CHARS.find(c=>c.id===p.cid)||CHARS[0];
        return {cid:p.cid,name:p.name,tags:p.tags,maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
-         spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR)};})};
+         spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR),bless:p.bless||freshBless()};})};
   shopStock=d.shop?d.shop.map(g=>unpackGrid(g,6)):null;
   document.getElementById('statsTab').style.display='block';
   renderTorches();
@@ -2928,7 +2991,9 @@ function netApplySnap(m){
     UI.shopP=NET.seat>=0?Math.min(NET.seat,R.party.length-1):0;
     if(curScreen()!=='scr-shop'){shopTalk=shopTalk||pick(ROOMTALK.shop);UI.shopMode=UI.shopMode||'buy';}
     renderShop();show('scr-shop');}
-  else if(want==='scr-bless'){netBlessView(d.bl);show('scr-bless');}
+  else if(want==='scr-bless'){
+    R.blessOffers=d.bo||R.party.map(()=>[]);R.blessTaken=d.bt||R.party.map(()=>null);
+    renderBlessPick();show('scr-bless');}
   else if(want==='scr-route'){
     if(R.map){document.getElementById('routeTitle').textContent=floorLabel(R.floor);renderMap();}
     else netRouteView();
@@ -2998,7 +3063,8 @@ function netRenderArena(a){
       '<div class="hpbar"><i style="width:'+Math.max(0,Math.round(100*u.hp/u.mx))+'%"></i></div>'+
       '<div class="muted" style="font-size:10px">'+u.hp+'/'+u.mx+(u.ar>0?' &#128737;'+u.ar:'')+'</div>'+
       '<div>'+Object.keys(u.st||{}).filter(k=>u.st[k]>0).map(k=>
-        '<span class="chip">'+k+' '+Math.round(u.st[k])+'</span>').join('')+'</div>');
+        '<span class="chip">'+k+' '+Math.round(u.st[k])+'</span>').join('')+'</div>'+
+      (u.tg?'<div style="font-size:9px;color:#938478">\u2192 '+u.tg+'</div>':''));
     return d;};
   hs.innerHTML='';fs.innerHTML='';
   a.h.forEach(u=>hs.appendChild(line(u,false)));
@@ -3087,6 +3153,8 @@ function netHostAct(m){
     if(hit&&sellsLeft()>0){R.coins+=sellPrice(hit.inst);removeCarried(hit.inst);
       R.sold=(R.sold||0)+1;R.soldHere=(R.soldHere||0)+1;}
     netPush(true);
+  } else if(m.k==='bless'){
+    takeBless(seat,m.i);
   } else if(m.k==='vote'){
     netHostVote(seat,m.c,m.r);
   } else if(m.k==='ready'){
@@ -3519,7 +3587,7 @@ function mkMerc(c){
   const v=()=>0.75+Math.random()*0.25, hp=Math.round(c.hp*v());
   const m={cid:c.id,name:c.name,tags:c.tags,maxHp:hp,hp:hp,dmg:Math.max(1,Math.round(c.dmg*v())),
     armour:Math.max(0,Math.round(c.armour*v())),spd:Math.max(2,Math.round(c.spd*v())),dodge:c.dodge,
-    grid:Array(PACKW*PACKMAXR).fill(null),def:c,lvl:1,xp:0};
+    grid:Array(PACKW*PACKMAXR).fill(null),def:c,lvl:1,xp:0,bless:freshBless()};
   placeItem(m.grid,charStartItem(c),2,5);
   return m;
 }
@@ -3564,7 +3632,7 @@ function saveRun(){
         grid:R.map.grid.map(col=>col.map(n=>({type:n.type,c:n.c,r:n.r,done:n.done,art:n.art,shrine:n.shrine})))}:null,
       mapFloor:R.mapFloor,
       party:R.party.map(m=>({cid:m.cid,name:m.name,tags:m.tags,maxHp:m.maxHp,hp:m.hp,dmg:m.dmg,
-        armour:m.armour,spd:m.spd,dodge:m.dodge,lvl:m.lvl,xp:m.xp,grid:packGrid(m.grid)}))};
+        armour:m.armour,spd:m.spd,dodge:m.dodge,lvl:m.lvl,xp:m.xp,grid:packGrid(m.grid),bless:m.bless||freshBless()}))};
     localStorage.setItem(SAVEKEY,JSON.stringify(d));
   }catch(e){}
 }
@@ -3580,7 +3648,7 @@ function loadRun(){
      party:d.party.map(p=>{
        const def=CHARS.find(c=>c.id===p.cid)||CHARS[0];
        return {cid:p.cid,name:p.name,tags:p.tags,maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
-         spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR)};})};
+         spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR),bless:p.bless||freshBless()};})};
   UI.players=R.party.length; UI.mode=R.mode; UI.endless=R.endless;
   UI.picked=R.party.map(p=>CHARS.findIndex(c=>c.id===p.cid));
   if(d.map){R.map={cols:d.map.cols,rows:d.map.rows,pos:d.map.pos,grid:d.map.grid};R.mapFloor=d.mapFloor;}
@@ -3613,19 +3681,10 @@ function startFloor(){
   if(R.floor>(META.best||0)){META.best=R.floor;saveMeta();}
   checkRunAch();
   document.getElementById('blessFloorTitle').textContent=floorLabel(R.floor);
-  const opts=pickBlessings(3), row=document.getElementById('blessRow');row.innerHTML='';
-  UI._blessOffer=opts.map(b=>({n:b.n,d:b.d,r:b.r}));
-  opts.forEach(b=>{
-    const d=document.createElement('div');d.className='relic';d.style.borderColor=RAR[b.r].col;
-    d.innerHTML=`<div class="muted" style="font-size:10px;color:${RAR[b.r].col}">${RAR[b.r].n.toLowerCase()}</div>`;
-    const box=document.createElement('div');box.className='relicbox';
-    box.appendChild(itemIcon(b.sh,pal(b.tag?TAGS[b.tag].fam:'blue','black'),5,'b'+b.n));
-    d.appendChild(box);
-    d.insertAdjacentHTML('beforeend',`<div class="gold" style="font-size:13px;margin-bottom:5px">${b.n}</div>
-      <div class="muted" style="font-size:11px;line-height:1.5">${b.d}</div>`);
-    d.onclick=()=>{b.f(R);R.blessings.push(b.n);toShop();};
-    row.appendChild(d);
-  });
+  R.blessOffers=R.party.map(()=>pickBlessings(3));
+  R.blessTaken=R.party.map(()=>null);
+  UI.blessP=0;
+  renderBlessPick();
   show('scr-bless');
 }
 /* ---- MERCHANT ---- */
@@ -4624,9 +4683,12 @@ function buildUnit(src,side){
     crit:0.1,lifesteal:0,regen:0,casts:[],timers:[],alive:src.hp>0,
     st:{burn:0,poison:0,bleed:0,freeze:0,stun:0},stunT:0,lapN:0,
     weak:src.weak,res:src.res,boss:src.boss||0};
-  if(side==='hero'){u.crit+=R.bless.crit;u.lifesteal+=R.bless.leech;u.regen+=R.bless.regen;}
-  let spd=src.spd||8, atk=(side==='hero')?R.bless.atk:0;
+  const mb=(side==='hero')?MB(src):freshBless();
+  if(side==='hero'){u.crit+=R.bless.crit+mb.crit;u.lifesteal+=R.bless.leech+mb.leech;u.regen+=R.bless.regen+mb.regen;}
+  let spd=src.spd||8, atk=(side==='hero')?R.bless.atk+mb.atk:0;
   const tb=(side==='hero')?Object.assign({},R.bless.tb):{};
+  if(side==='hero')Object.keys(mb.tb).forEach(k=>tb[k]=(tb[k]||0)+mb.tb[k]);
+  u.phoenix=(side==='hero')?mb.phoenix:0;
   const prof=src.tags||[];
   const gridRows=(side==='hero')?packRows():5;
   const placed=anchors(src.grid);
@@ -4721,7 +4783,7 @@ function buildUnit(src,side){
   // a pack loaded along the top row would otherwise dump everything in the first second
   {const n=u.casts.length;u.casts.forEach((c,k)=>{c.phase=0.5*(c.phase||0)+0.5*(k/n);});}
   // SPEED drives the ring: one lap around the backpack, then every item casts
-  u.spd=Math.max(2,spd+(side==='hero'?R.bless.aspd*8:0));
+  u.spd=Math.max(2,spd+(side==='hero'?(R.bless.aspd+mb.aspd)*8:0));
   u.lap=Math.max(1.7,Math.min(9,40/u.spd));   // a floor on the lap, or stacked Speed runs away with it
   // start the light just short of the first relic, so the opening blow doesn't wait a whole lap
   u.lapT=u.lap*(1-Math.max(0,(u.casts[0].phase||0)-0.03));
@@ -4737,6 +4799,17 @@ function applyOnHit(u,c,t){
     }
   } else c.status.forEach(st=>applyStack(t,st.tag,st.mag,u));
 }
+/* Each mercenary squares up to the enemy across from them. When that one falls they move on to
+   the next along the line; an enemy whose mercenary has fallen turns on whoever is left. */
+function pickTarget(u,foes){
+  const live=alive(foes); if(!live.length)return null;
+  const own=foes[u.slot];
+  if(own&&own.alive)return own;
+  if(u.side==='hero'){
+    for(let k=1;k<=foes.length;k++){const o=foes[(u.slot+k)%foes.length];if(o&&o.alive)return o;}
+  }
+  return live[(Math.random()*live.length)|0];
+}
 function doCast(u,c,foes,allies){
   const it=c.it, cst=it.cast, el=c.el||{bonus:0};
   flashItem(u,c.inst);
@@ -4745,10 +4818,7 @@ function doCast(u,c,foes,allies){
   let shown=0;
   if(cst.dmg){
     for(let h=0;h<(cst.hits||1);h++){
-      // your mercenaries focus their fire; the things down here just swing at whoever is nearest,
-      // which stops one unlucky merc being deleted while the rest watch
-      const live=alive(foes);
-      const t=(u.side==='foe')?live[(Math.random()*live.length)|0]:live[0];
+      const t=pickTarget(u,foes);
       if(!t)break;
       const d=hurt(t,(cst.dmg*c.mult+el.bonus)*cm,c.mainTag,u,cst.pierce||el.pierce,el.noDodge);
       if(d)applyOnHit(u,c,t);
@@ -4821,7 +4891,7 @@ function packPower(){
   return s/Math.max(1,n);
 }
 function pacing(f){
-  return Math.max(0.45,Math.min(1.45,packPower()/(280+96*(f-1))));
+  return Math.max(0.60,Math.min(1.45,packPower()/(280+96*(f-1))));
 }
 /* Every act keeps its own company of ten. The hollow is vermin and beasts; the catacombs are
    bone and wraith; the foundry is iron and burning things; the shrine is cold watchers and
@@ -4855,12 +4925,12 @@ function mkFoe(def,floor,weight){
   // full party used to delete a skirmish before the ring finished a circuit; the taper keeps the
   // first floor honest for someone who hasn't bought anything yet.
   const early=Math.min(1,0.62+0.19*fH);
-  const hpS=(1+0.34*(fH-1)+0.020*(fH-1)*(fH-1))*6.2*(1+0.7/(fH+1))*early*pacing(fH)*actM*w;
+  const hpS=(1+0.34*(fH-1)+0.020*(fH-1)*(fH-1))*7.1*(1+0.7/(fH+1))*early*pacing(fH)*actM*w;
   // w, not sqrt(w): fewer-but-bigger foes must hit as hard in total as a full line of them,
   // otherwise a small party takes far less damage per merc than a big one
   // They hit hard enough that a fight costs you something. The floor's landing gives a little
   // back (see endBattle) — the tension lives inside a floor, not across the whole run.
-  const dmS=(1+0.07*(f-1)+0.0030*(f-1)*(f-1))*3.0*Math.min(1,0.55+0.15*f)*actM*Math.pow(w,0.7)*(1+R.bless.foeDmg);
+  const dmS=(1+0.07*(f-1)+0.0030*(f-1)*(f-1))*2.75*Math.min(1,0.75+0.1*f)*actM*Math.pow(w,0.7)*(1+R.bless.foeDmg);
   const e={name:def.n,foeDef:def,maxHp:Math.round(def.hp*hpS*dm),hp:Math.round(def.hp*hpS*dm),
     armour:Math.min(45,Math.round(def.armour*(1+f*0.06)*dm)),dodge:def.dodge,dmg:Math.round(def.dmg*dmS*dm),
     // they swing oftener than they used to: a foe that acts once every five seconds is scenery
@@ -4876,7 +4946,9 @@ function toBattle(node){
   B_isExit=isExit;
   // one of them for each of you: two mercenaries meet two, three meet three
   let count=P;
-  const weight=(isExit?1:0.95);
+  // one foe each: a lone mercenary has nobody to carry them through a bad lap, so their opposite
+  // number is a little lighter. Parties of three or four meet them at full strength.
+  const weight=(isExit?1:0.95)*([0,0.82,0.94,1,1][P]||1);
   let defs=[];
   const camp=!R.endless, act=actOf(f), within=(f-1)%ACTLEN;
   const actPool=camp?actFoes(act,within):null;
@@ -4900,6 +4972,7 @@ function toBattle(node){
   B={heroes:R.party.map(m=>buildUnit(m,'hero')),
      foes:defs.map(d=>buildUnit(mkFoe(d,f,weight),'foe')),
      t:0,n:0,log:[],over:false,phoenix:R.bless.phoenix};
+  B.heroes.forEach((h,i)=>h.slot=i); B.foes.forEach((f,i)=>f.slot=i);
   document.getElementById('battleTitle').textContent=
     floorLabel(f)+(boss?" — BOSS":(isExit?" — The Stair":" — Skirmish"))+
     " — "+count+" foe"+(count>1?"s":"");
@@ -4925,10 +4998,12 @@ function unitEl(u,idx){
     <div class="hpbar"><i style="width:${Math.max(0,u.hp/u.maxHp*100)}%"></i></div>
     <div class="muted hpnum" style="font-size:10px">${Math.max(0,Math.round(u.hp))}/${u.maxHp}</div>
     <div class="stchips" style="font-size:10px;min-height:14px">${statusChips(u)}</div>
+    <div class="vsline" style="font-size:9px;color:#938478;min-height:12px"></div>
     ${u.side==='foe'?`<div style="font-size:9px">
       <span class="chip" style="color:${tagCol(u.weak)}">weak ${TAGS[u.weak].n}</span>
       <span class="chip" style="color:${tagCol(u.res)}">res ${TAGS[u.res].n}</span></div>`:''}`);
   u.el=d;u.elBar=d.querySelector('.hpbar i');u.elNum=d.querySelector('.hpnum');u.elSt=d.querySelector('.stchips');
+  u.elVs=d.querySelector('.vsline');
   if(u.side==='foe'){d.style.cursor='pointer';d.onclick=()=>{UI.peek=idx;renderPeek();};}
   return d;
 }
@@ -4956,6 +5031,8 @@ function updateArena(){
     u.elBar.style.width=Math.max(0,u.hp/u.maxHp*100)+'%';
     u.elNum.textContent=Math.max(0,Math.round(u.hp))+'/'+u.maxHp+(u.armour?' · ARM '+u.armour:'');
     u.elSt.innerHTML=statusChips(u);
+    if(u.elVs&&u.side==='hero'&&B.n%4===0){const t=u.alive?pickTarget(u,B.foes):null;
+      u.elVs.textContent=t?('\u2192 '+t.name):'';}
     u.el.className='unit'+(u.alive?'':' dead')+(u.side==='foe'&&UI.peek===B.foes.indexOf(u)?' tgt':'');});
 }
 function castDmg(u){
@@ -5064,7 +5141,7 @@ function hurt(target,amount,tag,src,pierce,noDodge){
 }
 function applyStack(target,tag,n,src){
   if(!target.alive||!n)return;
-  let v=n+(src&&src.side==='hero'?R.bless.stackBonus:0);
+  let v=n+(src&&src.side==='hero'?R.bless.stackBonus+((src.ref&&src.ref.bless&&src.ref.bless.stackBonus)||0):0);
   if(src&&src.stackBonusByTag&&src.stackBonusByTag[tag])v+=src.stackBonusByTag[tag];
   if(target.res===tag)v*=0.6; if(target.weak===tag)v*=1.4;
   target.st[tag]=(target.st[tag]||0)+v;
@@ -5121,7 +5198,8 @@ function tick(){
     run(f,B.heroes,B.foes);
     if(!f.alive)return;
     const dead=B.heroes.filter(h=>!h.alive&&!h.revived);
-    dead.forEach(h=>{ if(B.phoenix>0){B.phoenix--;h.revived=1;h.alive=true;h.hp=Math.round(h.maxHp*.35);
+    dead.forEach(h=>{ if(h.phoenix>0||B.phoenix>0){if(h.phoenix>0)h.phoenix--;else B.phoenix--;
+      h.revived=1;h.alive=true;h.hp=Math.round(h.maxHp*.35);
       log(`<b class="gold">PHOENIX</b> — ${h.name} rises again.`);}});
   });
   updateArena();
@@ -5171,7 +5249,8 @@ function endBattle(win){
       // Fights are meant to hurt. You get most of it back between rooms, and all of it on the
       // landing — so the danger is inside the fight, not a slow bleed you cannot do anything about.
       if(p.hp>0)p.hp=B_isExit?p.maxHp:Math.min(p.maxHp,p.hp+Math.round((p.maxHp-p.hp)*0.5));
-      if(R.bless.mend>0&&p.hp>0)p.hp=Math.min(p.maxHp,p.hp+Math.round(p.maxHp*R.bless.mend));
+      const mend=R.bless.mend+MB(p).mend;
+      if(mend>0&&p.hp>0)p.hp=Math.min(p.maxHp,p.hp+Math.round(p.maxHp*mend));
     });
     const boss=B.foes.some(f=>f.boss);
     // four packs to fill out of one purse was never fair — the pay scales with the company
