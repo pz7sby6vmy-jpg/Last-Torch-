@@ -13,16 +13,17 @@
 .fell{font-family:'IM Fell English',Georgia,serif;letter-spacing:.05em}
 body{-webkit-user-select:none;user-select:none;cursor:default}
 :root{
-  --bg:#06070b; --panel:#0e1018; --panel2:#141825; --line:#232a3c;
-  --ink:#cfd6e6; --dim:#78839c; --gold:#e8c27a;
-  --cm:#59606f; --un:#45a83c; --ra:#2f7fd0; --ep:#d3303a; --le:#ff7a6b;
+  --bg:#08060a; --panel:#140f14; --panel2:#1c1519; --line:#3a2c2a;
+  --ink:#e6dccf; --dim:#938478; --gold:#f0b457; --ember:#ff7a3c; --cold:#7fc9d9;
+  --cm:#6b6258; --un:#58b24a; --ra:#4a93d8; --ep:#e0434c; --le:#ff8f6b;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:
-  radial-gradient(ellipse at 50% -10%, rgba(232,160,90,.07), transparent 60%),
-  repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 2px, transparent 2px 46px),
-  repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 2px, transparent 2px 46px),
-  repeating-linear-gradient(0deg, #070810 0 3px, #05060b 3px 6px),
+  radial-gradient(ellipse at 50% -6%, rgba(255,140,60,.10), transparent 58%),
+  radial-gradient(ellipse at 50% 110%, rgba(90,40,120,.10), transparent 60%),
+  repeating-linear-gradient(90deg, rgba(255,220,180,.012) 0 2px, transparent 2px 46px),
+  repeating-linear-gradient(0deg, rgba(255,220,180,.012) 0 2px, transparent 2px 46px),
+  repeating-linear-gradient(0deg, #0b080c 0 3px, #070509 3px 6px),
   var(--bg);
   color:var(--ink);
   font-family:"Courier New",ui-monospace,monospace;font-size:14px;letter-spacing:.04em}
@@ -32,14 +33,17 @@ canvas{image-rendering:pixelated}
 .pix{text-transform:uppercase;letter-spacing:.12em}
 h1,h2,h3{margin:0;font-weight:700;text-transform:uppercase;letter-spacing:.14em}
 button{font-family:inherit;letter-spacing:.1em;cursor:pointer;color:var(--ink);
-  background:linear-gradient(#1b2133,#11151f);border:2px solid var(--line);border-radius:4px;padding:8px 14px;
-  text-transform:uppercase;font-size:12px}
-button:hover:not(:disabled){border-color:var(--gold);color:#fff;box-shadow:0 0 10px rgba(232,194,122,.25)}
+  background:linear-gradient(#241a1e,#151014);border:2px solid var(--line);border-radius:4px;padding:8px 14px;
+  text-transform:uppercase;font-size:12px;transition:border-color .12s,color .12s}
+button:hover:not(:disabled){border-color:var(--gold);color:#fff;box-shadow:0 0 12px rgba(240,180,87,.22)}
 button:disabled{opacity:.35;cursor:not-allowed}
-.btn-main{background:linear-gradient(#2a2233,#171a28);border-color:var(--gold);color:var(--gold);font-size:14px;padding:10px 22px}
+button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient(#33241c,#1d1512)}
+.btn-main{background:linear-gradient(#4a2a16,#241410);border-color:var(--gold);color:#ffdfa8;
+  font-size:14px;padding:11px 22px;box-shadow:inset 0 0 18px rgba(255,120,40,.18)}
+.btn-main:hover:not(:disabled){box-shadow:inset 0 0 22px rgba(255,140,60,.3),0 0 16px rgba(240,180,87,.3)}
 .frame{position:relative;border:2px solid var(--line);border-radius:6px;background:
-   linear-gradient(rgba(9,11,17,.92),rgba(9,11,17,.92)),
-   repeating-linear-gradient(0deg,#0d1018 0 3px,#0b0e15 3px 6px);
+   linear-gradient(rgba(14,10,14,.93),rgba(10,7,11,.95)),
+   repeating-linear-gradient(0deg,#140f14 0 3px,#100c11 3px 6px);
    box-shadow:inset 0 0 40px rgba(0,0,0,.85)}
 .topbar{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;margin-bottom:10px}
 .tag{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--line);border-radius:4px;padding:3px 8px;font-size:11px;text-transform:uppercase}
@@ -66,10 +70,10 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .lvl{position:absolute;bottom:-3px;right:1px;font-size:9px;color:var(--gold);text-shadow:0 0 3px #000}
 .tagdot{position:absolute;top:1px;left:1px;display:flex;gap:1px}
 .tagdot i{width:4px;height:4px;display:block;border-radius:1px}
-.card{border:2px solid var(--line);border-radius:5px;background:linear-gradient(#141828,#0b0e16);padding:10px;cursor:pointer}
+.card{border:2px solid var(--line);border-radius:5px;background:linear-gradient(#1a1319,#0e0a0f);padding:10px;cursor:pointer}
 .card:hover{border-color:var(--gold);transform:translateY(-2px)}
 .card.dis{opacity:.4;pointer-events:none}
-.relic{width:210px;border:2px solid var(--line);border-radius:6px;background:linear-gradient(#10141f,#0a0d14);padding:12px 10px;cursor:pointer;text-align:center}
+.relic{width:210px;border:2px solid var(--line);border-radius:6px;background:linear-gradient(#1a1218,#0d090d);padding:12px 10px;cursor:pointer;text-align:center}
 .relic:hover{transform:translateY(-3px)}
 .leg{box-shadow:0 0 16px rgba(255,133,119,.45);animation:legpulse 1.8s ease-in-out infinite}
 @keyframes legpulse{0%,100%{box-shadow:0 0 12px rgba(255,133,119,.35)}50%{box-shadow:0 0 22px rgba(255,133,119,.65)}}
@@ -129,8 +133,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
   .modal{padding:6px}
   .frame{border-width:2px}
   .gal{grid-template-columns:repeat(auto-fill,minmax(116px,1fr))}
-  #scr-title>.frame>div{grid-template-columns:1fr !important}
-  #scr-title canvas#menuTorch{max-width:140px !important}
+  #scr-title h1{font-size:34px !important}
+  #menuTorch{width:72px !important}
   .statline{grid-template-columns:54px 1fr 38px;font-size:10px}
 }
 @media (max-width:560px){
@@ -200,33 +204,34 @@ button:disabled{opacity:.35;cursor:not-allowed}
 
 <!-- TITLE -->
 <div class="scr on" id="scr-title">
-  <div class="frame" style="padding:0;overflow:hidden;margin-top:6px">
-    <div style="display:grid;grid-template-columns:minmax(200px,300px) 1fr;gap:0;align-items:stretch">
-      <div style="position:relative;background:#05060a;display:flex;align-items:center;justify-content:center;
-                  border-right:2px solid var(--line);min-height:330px">
-        <canvas id="menuTorch" width="120" height="150"
-          style="width:100%;max-width:230px;image-rendering:pixelated"></canvas>
-      </div>
-      <div style="padding:22px 22px 18px;text-align:center;position:relative;min-width:0;overflow:hidden">
-        <h1 class="creepy" id="titleWord"
-            style="font-size:42px;color:#e8a05a;text-transform:uppercase;line-height:1.1">Last Torch</h1>
-        <div class="muted fell" style="margin:10px 0 18px;font-size:13px">
-          Nine floors down, the dark is still hungry.<br>An endless backpack-merge descent · 1&ndash;4 mercenaries</div>
-        <div style="display:flex;flex-direction:column;gap:7px;max-width:290px;margin:0 auto">
-          <button class="btn-main" onclick="SFX.click();goSelect()">&#9876; Begin the Descent</button>
-          <div class="row" style="gap:7px">
-            <button style="flex:1" onclick="SFX.click();openCompendium()">&#128214; Compendium</button>
-            <button style="flex:1" onclick="SFX.click();openAch()">&#9733; Achievements</button>
-          </div>
-          <div class="row" style="gap:7px">
-            <button style="flex:1" onclick="SFX.click();openBoard()">&#9636; Leaderboard</button>
-            <button style="flex:1" onclick="SFX.click();openSettings()">&#9881; Settings</button>
-          </div>
-          <button onclick="SFX.click();showHelp()">How to Play</button>
+  <div class="frame" id="titleFrame" style="padding:0;overflow:hidden;margin-top:6px;border-color:#5a3a22">
+    <div style="position:relative;padding:26px 18px 0;text-align:center;
+         background:radial-gradient(ellipse at 50% 0%,rgba(255,130,50,.16),transparent 62%)">
+      <canvas id="menuTorch" width="120" height="150"
+        style="width:92px;height:auto;image-rendering:pixelated;display:block;margin:0 auto 6px"></canvas>
+      <h1 class="creepy" id="titleWord"
+          style="font-size:46px;color:#ff9a4a;text-transform:uppercase;line-height:1.05;
+                 text-shadow:0 0 26px rgba(255,120,40,.45),0 3px 0 #2a0f06">Last Torch</h1>
+      <div class="fell" style="margin:8px 0 2px;font-size:13px;color:#b9a597">
+        Nine floors down, the dark is still hungry.</div>
+      <div class="pix" style="font-size:10px;color:#6f6258;letter-spacing:.3em;margin-bottom:16px">
+        Backpack-merge descent &nbsp;·&nbsp; 1&ndash;4 mercenaries</div>
+    </div>
+    <div style="padding:0 18px 18px">
+      <div style="max-width:420px;margin:0 auto">
+        <button class="btn-main" style="width:100%;font-size:15px;letter-spacing:.16em"
+                onclick="SFX.click();goSelect()">&#9876;&nbsp; Begin the Descent</button>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px">
+          <button onclick="SFX.click();openCompendium()">&#128214; Compendium</button>
+          <button onclick="SFX.click();openAch()">&#9733; Achievements</button>
+          <button onclick="SFX.click();openBoard()">&#9636; Leaderboard</button>
+          <button onclick="SFX.click();openSettings()">&#9881; Settings</button>
         </div>
-        <div class="muted" style="margin-top:16px;font-size:11px" id="metaLine"></div>
-        <div id="titleArt" style="margin-top:12px;overflow:hidden"></div>
+        <button style="width:100%;margin-top:8px;border-style:dashed"
+                onclick="SFX.click();showHelp()">How to Play</button>
       </div>
+      <div class="muted center" style="margin-top:14px;font-size:11px" id="metaLine"></div>
+      <div id="titleArt" style="margin-top:10px;overflow:hidden"></div>
     </div>
   </div>
 </div>
@@ -1318,7 +1323,164 @@ const ROOMART=[
      for(let k=0;k<5;k++)rect(g,x+2,14+k*9,8,3,10);}
    for(let i=0;i<36;i++)g.s((r()*RW)|0,(r()*34)|0,4);
    floorDebris(g,r,72,5,2,14);}},
+
+ /* ======== ACT I · THE FOREST HOLLOW — wet roots, green light, things growing wrong ======== */
+ {n:"Sunken Grove",act:1,mat:{1:["#5e6a4a","#3a4430","#1c2016"],2:["#36402c","#222a1a","#0e1209"],
+   3:["#7aa84c","#49702a","#22380e","#000"],4:["#d4f08a","#8ac44a","#3e6a18"],10:["#8a7a5c","#5c5038","#2e281a"],
+   5:["#4a5438","#2e3624","#161a10"],15:["#101409","#080a05","#030402"]},
+  draw(g,r){wall(g,r,1,2,26,13);
+   roots(g,r,3,26,16);
+   for(let i=0;i<4;i++){const x=24+i*58;rect(g,x,12,9,52,10);ell(g,x+4,10,10,6,3);}
+   for(let i=0;i<30;i++)ell(g,(r()*RW)|0,30+((r()*34)|0),2+((r()*3)|0),2,3);
+   crystals(g,r,4,4,6);
+   floorDebris(g,r,68,5,2,24);}},
+ {n:"Beast Warren",act:1,mat:{1:["#6a5a42","#42382a","#201a12"],2:["#473a2a","#2a2218","#100c08"],
+   3:["#8a7a4a","#5c5030","#2c2614"],4:["#ffd166","#c08a2a","#6a4a0c"],10:["#d8d0b8","#9a9078","#54503e"],
+   5:["#564636","#342a20","#181210"],15:["#120e08","#090705","#040302"]},
+  draw(g,r){wall(g,r,1,2,18,9);
+   for(let i=0;i<5;i++){const x=12+i*48;archway(g,x+18,38,15,26,2);}
+   for(let i=0;i<24;i++){const x=(r()*RW)|0,y=58+((r()*20)|0);rect(g,x,y,5+((r()*4)|0),2,10);g.s(x+2,y-1,10);}
+   roots(g,r,2,10,8); web(g,r,10,5);
+   floorDebris(g,r,66,5,2,30);}},
+
+ /* ======== ACT II · THE CATACOMBS — shelves of the dead, standing water, cold ======== */
+ {n:"Ossuary Shelves",act:2,mat:{1:["#60594a","#3c372c","#1c1a14"],2:["#2e2a22","#1c1a14","#0b0a07"],
+   3:["#cfc6ae","#9a9178","#56503e"],4:["#8ad4ff","#4a90c0","#1e4660"],10:["#efe8d4","#b8b09a","#625c4c"],
+   5:["#4e483c","#302c24","#141210"],15:["#0f0d0a","#080705","#030302"]},
+  draw(g,r){wall(g,r,1,2,20,10);
+   for(let i=0;i<4;i++)shelf(g,6+i*60,10,52,60,10,2,5,r);
+   for(let i=0;i<10;i++){const x=(r()*RW)|0;ell(g,x,66+((r()*8)|0),3,3,10);g.s(x-1,65,2);g.s(x+1,65,2);}
+   for(let i=0;i<8;i++)ell(g,(r()*RW)|0,(r()*30)|0,1,1,4);
+   floorDebris(g,r,74,10,2,16);}},
+ {n:"Grave Tiers",act:2,mat:{1:["#5a6470","#38404a","#1a1e24"],2:["#2c343e","#1a1e26","#0a0c10"],
+   3:["#aab4c0","#78828e","#424a54"],4:["#b4e8ff","#64b4e0","#2a6a90"],10:["#d8dee6","#9aa2ac","#545a64"],
+   5:["#464e58","#2a3038","#121418"],15:["#0c0e12","#060709","#020303"]},
+  draw(g,r){wall(g,r,1,2,22,11);
+   steps(g,70,16,9,100,10,2);
+   for(let i=0;i<6;i++){const x=10+i*40;rect(g,x,54+((r()*6)|0),13,18,3);ell(g,x+6,54,7,5,3);g.s(x+6,58,2);}
+   chains(g,r,10,5,22);
+   for(let i=0;i<10;i++)g.s((r()*RW)|0,(r()*40)|0,4);
+   floorDebris(g,r,76,3,2,12);}},
+
+ /* ======== ACT III · THE FOUNDRY — iron, heat, machinery still running ======== */
+ {n:"Bellows Row",act:3,mat:{1:["#6e6052","#443a30","#201a16"],2:["#383028","#221c18","#0e0b09"],
+   3:["#b4682c","#7a3e14","#3c1c06"],4:["#ffd166","#ff7a1a","#a83c04"],10:["#c4ccd8","#848e9c","#464e58"],
+   5:["#564c42","#342c26","#181410"],15:["#120d09","#090605","#030202"]},
+  draw(g,r){wall(g,r,1,2,24,12);
+   pipes(g,r,10,5,4);
+   for(let i=0;i<4;i++){const x=16+i*58;rect(g,x,30,36,30,10);rect(g,x+4,34,28,22,15);
+     for(let k=0;k<18;k++)g.s(x+5+((r()*26)|0),35+((r()*20)|0),4);
+     rect(g,x+12,60,12,8,10);}
+   vents(g,r,3,4,10);
+   floorDebris(g,r,70,10,2,18);}},
+ {n:"Slag Pit",act:3,mat:{1:["#5e4a3a","#3a2c22","#1a1210"],2:["#3a2a22","#221814","#0e0808"],
+   3:["#d3303a","#8a1a20","#44080c"],4:["#ffd166","#ff8c1a","#b44a04"],10:["#a89a88","#6e6456","#383228"],
+   5:["#4a382c","#2c211a","#140e0c"],15:["#140b08","#0a0504","#040202"]},
+  draw(g,r){wall(g,r,1,2,20,10);
+   for(let i=0;i<3;i++)archway(g,40+i*80,34,20,26,5);
+   water(g,r,60,3,4);
+   chains(g,r,10,7,26);
+   for(let i=0;i<14;i++){const x=(r()*RW)|0;rect(g,x,54+((r()*4)|0),4+((r()*5)|0),3,10);}
+   for(let i=0;i<40;i++)g.s((r()*RW)|0,54+((r()*28)|0),4);}},
+ {n:"Chain Works",act:3,mat:{1:["#66605a","#3e3a34","#1c1a18"],2:["#343030","#1e1c1c","#0c0b0b"],
+   3:["#8a94a0","#5a646e","#2c3238"],4:["#ffd166","#ff9a2a","#a85a04"],10:["#cfd8e4","#8a98aa","#4a5464"],
+   5:["#504a46","#302c2a","#161414"],15:["#0f0d0c","#070606","#030202"]},
+  draw(g,r){wall(g,r,1,2,16,8);
+   chains(g,r,10,26,40);
+   for(let i=0;i<5;i++){const x=14+i*48;rect(g,x,22,26,8,10);rect(g,x+10,30,6,22,10);
+     ell(g,x+13,56,9,7,3);}
+   pipes(g,r,5,2,2);
+   for(let i=0;i<12;i++)g.s((r()*RW)|0,(r()*24)|0,4);
+   floorDebris(g,r,72,10,2,20);}},
+
+ /* ======== ACT IV · THE HOLLOW SHRINE — prayer, cold gold, a god that stopped answering ==== */
+ {n:"Prayer Stacks",act:4,mat:{1:["#5e5870","#3c3848","#1c1a24"],2:["#302c3c","#1e1c28","#0c0b12"],
+   3:["#b4a06a","#7a6a38","#3c3416"],4:["#ffe9a3","#ffc44a","#c4820f"],10:["#e0d8e8","#a8a0b8","#5c5668"],
+   5:["#4a4458","#2e2a38","#141219"],15:["#13111a","#0a090e","#040306"]},
+  draw(g,r){wall(g,r,1,2,18,9);
+   for(let i=0;i<6;i++){const x=10+i*40;
+     for(let k=0;k<6;k++)rect(g,x+((r()*3)|0),58-k*8,20,7,10);}
+   banners(g,r,3,4,5);
+   for(let i=0;i<24;i++)g.s((r()*RW)|0,(r()*40)|0,4);
+   floorDebris(g,r,74,10,2,12);}},
+ {n:"Hanging Censers",act:4,mat:{1:["#56506a","#363244","#191622"],2:["#2c2838","#1a1824","#0a0910"],
+   3:["#c0a86a","#86703a","#423414"],4:["#ffe9a3","#ffd166","#c49a1a"],10:["#d4cce0","#9a92ac","#524c60"],
+   5:["#443e54","#2a2634","#121016"],15:["#110f18","#09080c","#030305"]},
+  draw(g,r){wall(g,r,1,2,22,11);
+   chains(g,r,10,9,18);
+   for(let i=0;i<9;i++){const x=12+i*26,y=18+((r()*14)|0);
+     ell(g,x,y,5,5,3);rect(g,x-2,y-6,5,3,10);
+     for(let k=0;k<5;k++)g.s(x+((r()*5)|0)-2,y+6+k,4);}
+   archway(g,120,44,30,28,5);
+   idolFig(g,120,40,30,10,3);
+   floorDebris(g,r,74,5,2,14);}},
+ {n:"Drowned Chapel",act:4,mat:{1:["#4e5a6a","#303a46","#161c22"],2:["#2a3240","#181e28","#080b10"],
+   3:["#6aa8c8","#3a7294","#17364d"],4:["#b4e8ff","#64b4e0","#2a6a90"],10:["#ddd4c0","#a39a86","#56503e"],
+   5:["#3e4858","#262e3a","#101418"],15:["#0b0e13","#060709","#020303"]},
+  draw(g,r){wall(g,r,1,2,20,10);
+   archway(g,60,36,18,24,5); archway(g,180,36,18,24,5);
+   for(let i=0;i<4;i++)pillar(g,36+i*54,6,56,5,2);
+   idolFig(g,120,26,34,10,3);
+   water(g,r,56,3,4);
+   for(let i=0;i<10;i++)g.s((r()*RW)|0,(r()*30)|0,4);}},
+
+ /* ======== ACT V · THE NINEFOLD CORE — black glass, heat under everything, the bottom ===== */
+ {n:"The Ninefold Gate",act:5,mat:{1:["#2e2a3a","#1c1a26","#0c0b12"],2:["#201c2c","#131019","#07060a"],
+   3:["#d3303a","#8a1420","#44060c"],4:["#ffd166","#ff6a3a","#a81a0c"],10:["#9aa0b4","#646a80","#32364a"],
+   5:["#272232","#17141e","#0a080e"],15:["#0a0810","#050408","#020104"]},
+  draw(g,r){wall(g,r,1,2,30,15);
+   for(let k=0;k<9;k++){const a=k/9*Math.PI*2;
+     const x=120+Math.round(Math.cos(a)*44),y=42+Math.round(Math.sin(a)*30);
+     rect(g,x-3,y-3,7,7,10);g.s(x,y,4);}
+   ell(g,120,42,30,22,15); ell(g,120,42,22,16,3); ell(g,120,42,12,9,4);
+   crystals(g,r,3,4,10);
+   for(let i=0;i<40;i++)g.s((r()*RW)|0,(r()*RH)|0,4);}},
+ {n:"Vein of Light",act:5,mat:{1:["#262232","#16141e","#09080d"],2:["#1a1824","#100e16","#060509"],
+   3:["#ff8577","#d3303a","#6d111c"],4:["#ffe9a3","#ffb13c","#c45a0c"],10:["#8a90a4","#585e72","#2c3040"],
+   5:["#201d2a","#131018","#080609"],15:["#080610","#040308","#010103"]},
+  draw(g,r){wall(g,r,1,2,26,13);
+   for(let i=0;i<7;i++){let x=(r()*RW)|0,y=0;
+     while(y<RH){g.s(x,y,4);g.s(x+1,y,3);y++;if(r()<0.45)x+=r()<0.5?1:-1;}}
+   for(let i=0;i<4;i++)pillar(g,20+i*62,8,66,5,2);
+   crystals(g,r,4,3,14);
+   floorDebris(g,r,72,5,2,18);}},
+ {n:"Obsidian Steps",act:5,mat:{1:["#2a2832","#1a1820","#0b0a0e"],2:["#1e1c26","#121018","#06050a"],
+   3:["#6a7a9a","#44526e","#1e2638"],4:["#ffd166","#ff8c3c","#a84a0c"],10:["#b4bccc","#767e92","#3a4050"],
+   5:["#242230","#15131c","#09080c"],15:["#09080e","#040407","#010102"]},
+  draw(g,r){wall(g,r,1,2,24,12);
+   steps(g,50,10,11,140,10,2);
+   for(let i=0;i<5;i++){const x=16+i*50;rect(g,x,60,8,22,10);g.s(x+3,58,4);g.s(x+4,57,4);}
+   chains(g,r,5,6,16);
+   for(let i=0;i<26;i++)g.s((r()*RW)|0,(r()*RH)|0,4);}},
+ {n:"The Long Throat",act:5,mat:{1:["#322630","#1e171d","#0d0a0c"],2:["#241a22","#150f14","#070508"],
+   3:["#d3303a","#8a1a24","#440a10"],4:["#ff8577","#ff4a3a","#a01008"],10:["#a89a9a","#6e6464","#383232"],
+   5:["#2a1f26","#191216","#0a070a"],15:["#0a0608","#050304","#020102"]},
+  draw(g,r){wall(g,r,1,2,14,7);
+   for(let i=0;i<14;i++){const y=4+i*6,w=Math.round(110-Math.abs(i-7)*9);
+     rect(g,120-w,y,3,5,10); rect(g,117+w,y,3,5,10);}
+   ell(g,120,44,46,30,2); ell(g,120,44,34,22,15);
+   for(let i=0;i<30;i++)g.s(120+((r()*60)|0)-30,30+((r()*28)|0),4);
+   vents(g,r,3,4,8);}},
+ {n:"Core Chamber",act:5,mat:{1:["#2c2a38","#1a1924","#0c0b11"],2:["#1e1d28","#121118","#06060a"],
+   3:["#ffb13c","#d3651a","#6d2a08"],4:["#fff4c8","#ffd166","#c4820f"],10:["#9aa4bc","#626a84","#323850"],
+   5:["#262433","#16151e","#09080d"],15:["#08070f","#040307","#010102"]},
+  draw(g,r){wall(g,r,1,2,28,14);
+   for(let i=0;i<5;i++)pillar(g,14+i*54,0,RH,5,2);
+   ell(g,120,46,38,26,10); ell(g,120,46,30,20,3); ell(g,120,46,18,12,4);
+   for(let k=0;k<24;k++){const a=k/24*Math.PI*2;
+     g.s(120+Math.round(Math.cos(a)*44),46+Math.round(Math.sin(a)*32),4);}
+   crystals(g,r,3,4,8);
+   for(let i=0;i<50;i++)g.s((r()*RW)|0,(r()*RH)|0,4);}},
 ];
+/* the ten older rooms belong to acts too, so every act has five that look like they belong */
+[1,2,3,1,2,3,4,1,2,4].forEach((a,i)=>{if(ROOMART[i])ROOMART[i].act=a;});
+function roomsOfAct(a){const out=[];ROOMART.forEach((x,i)=>{if(x.act===a)out.push(i);});
+  return out.length?out:ROOMART.map((_,i)=>i);}
+function rollRoomArt(floor){
+  // campaign: the act's own five. endless: anything down there, all twenty-five of them.
+  if(R&&!R.endless)return pick(roomsOfAct(actOf(floor)));
+  return (Math.random()*ROOMART.length)|0;
+}
 function roomCanvas(idx,scale){
   return cached('r'+idx+'_'+(scale||3),()=>roomCanvasBuild(idx,scale));
 }
@@ -1960,7 +2122,7 @@ function blessPool(){
  return L;
 }
 function pickBlessings(n){
-  const pool=blessPool(), t=Math.min(1,((R?R.floor:1)-1)/20);
+  const pool=blessPool(), t=Math.min(1,((R?R.floor:1)-1)/14);
   const W=[55-18*t, 25+3*t, 13+8*t, 5.5+5*t, 1.5+2*t], out=[];
   while(out.length<n&&pool.length){
     const cnt=[0,0,0,0,0]; pool.forEach(b=>cnt[b.r]++);     // share the band's weight across its entries
@@ -2290,7 +2452,7 @@ function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remov
 /* rarity odds improve with depth */
 // floor 1 is almost all commons; legendaries only start appearing in the deep floors
 function rarityWeights(f){
-  const t=Math.min(1,((f||1)-1)/22);
+  const t=Math.min(1,((f||1)-1)/14);
   return [72-48*t, 24+8*t, 4+24*t, 0.3+12*t, 0+4*t];
 }
 function rollRarity(floor,bias){
@@ -3040,7 +3202,7 @@ function drawMapLines(){
 function enterNode(c,r){
   const M=R.map, node=M.grid[c].find(n=>n.r===r);
   M.pos={c,r}; node.done=true; R.curNode=node;
-  if(node.art===undefined)node.art=(Math.random()*ROOMART.length)|0;   // each room gets its own look
+  if(node.art===undefined)node.art=rollRoomArt(R.floor);   // each room gets its own look, fitting the act
   if(node.type==='shrine'&&!node.shrine)node.shrine=rollShrine();
   UI.forgePick=[];UI.shopSel=null;
   walkTo(node,()=>{
@@ -3710,7 +3872,11 @@ function doCast(u,c,foes,allies){
   let shown=0;
   if(cst.dmg){
     for(let h=0;h<(cst.hits||1);h++){
-      const t=alive(foes)[0]; if(!t)break;
+      // your mercenaries focus their fire; the things down here just swing at whoever is nearest,
+      // which stops one unlucky merc being deleted while the rest watch
+      const live=alive(foes);
+      const t=(u.side==='foe')?live[(Math.random()*live.length)|0]:live[0];
+      if(!t)break;
       const d=hurt(t,(cst.dmg*c.mult+el.bonus)*cm,c.mainTag,u,cst.pierce||el.pierce,el.noDodge);
       if(d)applyOnHit(u,c,t);
       if(d&&c.gold&&u.side==='hero'){R.coins+=c.gold;float(u,'+'+c.gold+'c','#e8c27a');SFX.coin();}
@@ -3784,26 +3950,48 @@ function packPower(){
 function pacing(f){
   return Math.max(0.45,Math.min(1.45,packPower()/(280+96*(f-1))));
 }
+/* Every act keeps its own company of ten. The hollow is vermin and beasts; the catacombs are
+   bone and wraith; the foundry is iron and burning things; the shrine is cold watchers and
+   serpents; the core keeps what is left. Endless still draws from all fifty by tier. */
+const FOEACT={
+ rat:1,bat:1,weaver:1,pud:1,mite:1,hound:1,slugger:1,fly:1,scorp:1,green:1,
+ skel:2,wraith:2,revn:2,gravewarden:2,marrow:2,husk:2,ghoul:2,shrieker:2,tombspider:2,choir:2,
+ golem:3,ogre:3,brute:3,ember:3,cinder:3,ashhound:3,beetle:3,drone:3,stonewarden:3,furnace:3,
+ ice:4,shard:4,frostmoth:4,veil:4,palewatcher:4,eye:4,basilisk:4,adder:4,serp:4,hollowcrown:4,
+ tunneler:5,gravemoth:5,rotogre:5,blight:5,plague:5,lurker:5,sporewasp:5,mother:5,war:5,nine:5};
+FOES.forEach(f=>{f.act=FOEACT[f.id]||Math.max(1,Math.min(5,Math.ceil(f.lo/1.6)));});
+function actFoes(act,within){
+  let pool=FOES.filter(x=>!x.boss&&x.act===act).sort((a,b)=>a.lo-b.lo);
+  if(!pool.length)return null;
+  const t=within/(ACTLEN-1);                       // the act's gentler residents come first
+  const span=Math.max(3,Math.round(pool.length*(0.5+0.5*t)));
+  return pool.slice(0,span);
+}
 function mkFoe(def,floor,weight){
   // CAMPAIGN: 75 floors is a long road, so it climbs more gently than the endless stair —
   // but every act lands a step up on top of it, so act five hits harder than anything above.
   const camp=R&&!R.endless;
   const actM=camp?1+0.15*(actOf(floor)-1):1;
-  const dm=DEPTHS[R.depth].m, f=camp?1+(floor-1)*0.42:floor;
+  const dm=DEPTHS[R.depth].m, f=camp?1+(floor-1)*0.34:floor;
+  // health climbs faster than damage over a 75-floor campaign, or the fights at the bottom
+  // would be over before the ring finishes a lap
+  const fH=camp?1+(floor-1)*0.82:floor;
   // never more than one foe per merc, so each foe carries the slack when there are fewer
   const w=weight||1;
   // fights should last many laps, not one. The 0.7/(f+1) term thickens the early floors, where a
   // full party used to delete a skirmish before the ring finished a circuit; the taper keeps the
   // first floor honest for someone who hasn't bought anything yet.
-  const early=Math.min(1,0.62+0.19*f);
-  const hpS=(1+0.34*(f-1)+0.020*(f-1)*(f-1))*5.8*(1+0.7/(f+1))*early*pacing(f)*actM*w;
+  const early=Math.min(1,0.62+0.19*fH);
+  const hpS=(1+0.34*(fH-1)+0.020*(fH-1)*(fH-1))*6.2*(1+0.7/(fH+1))*early*pacing(fH)*actM*w;
   // w, not sqrt(w): fewer-but-bigger foes must hit as hard in total as a full line of them,
   // otherwise a small party takes far less damage per merc than a big one
-  const dmS=(1+0.10*(f-1)+0.0045*(f-1)*(f-1))*0.80*actM*w*(1+R.bless.foeDmg);
+  // They hit hard enough that a fight costs you something. The floor's landing gives a little
+  // back (see endBattle) — the tension lives inside a floor, not across the whole run.
+  const dmS=(1+0.07*(f-1)+0.0030*(f-1)*(f-1))*3.0*Math.min(1,0.55+0.15*f)*actM*Math.pow(w,0.7)*(1+R.bless.foeDmg);
   const e={name:def.n,foeDef:def,maxHp:Math.round(def.hp*hpS*dm),hp:Math.round(def.hp*hpS*dm),
     armour:Math.min(45,Math.round(def.armour*(1+f*0.06)*dm)),dodge:def.dodge,dmg:Math.round(def.dmg*dmS*dm),
     // they swing oftener than they used to: a foe that acts once every five seconds is scenery
-    tags:[def.res],grid:foeLoadout(def,floor),weak:def.weak,res:def.res,boss:def.boss||0,spd:11,
+    tags:[def.res],grid:foeLoadout(def,camp?Math.max(1,Math.round(f)):floor),weak:def.weak,res:def.res,boss:def.boss||0,spd:11,
     // THEIR gear has to scale too: a foe's damage comes from its pack, and without this
     // the things on floor 40 hit no harder than the things on floor 8
     pow:dmS*dm};
@@ -3818,10 +4006,17 @@ function toBattle(node){
   if(!isExit)count=Math.max(1,count-1);                 // skirmishes on the way are lighter
   const weight=(P/count)*(isExit?1:0.95);
   let defs=[];
-  if(boss){ const BS=FOES.filter(x=>x.boss), bi=((f/5)|0)-1;
-    defs.push(BS[bi<BS.length?bi:(bi%BS.length)]||BS[BS.length-1]);
+  const camp=!R.endless, act=actOf(f), within=(f-1)%ACTLEN;
+  const actPool=camp?actFoes(act,within):null;
+  if(boss){
+    let BS=FOES.filter(x=>x.boss&&(!camp||x.act===act));
+    if(!BS.length)BS=FOES.filter(x=>x.boss);
+    if(camp)defs.push(pick(BS));
+    else {const bi=((f/5)|0)-1;defs.push(BS[bi<BS.length?bi:(bi%BS.length)]||BS[BS.length-1]);}
     const adds=Math.min(count-1,P-1);   // a lone merc faces the boss alone
-    for(let i=0;i<adds;i++)defs.push(pick(FOES.filter(x=>!x.boss&&x.lo<=Math.max(2,f/4))));}
+    const addPool=actPool||FOES.filter(x=>!x.boss&&x.lo<=Math.max(2,f/4));
+    for(let i=0;i<adds;i++)defs.push(pick(addPool.length?addPool:FOES.slice(0,4)));}
+  else if(actPool){ for(let i=0;i<count;i++)defs.push(pick(actPool)); }
   else { const tier=Math.max(1,Math.ceil(f/3.5));
     let pool=FOES.filter(x=>!x.boss&&x.lo<=tier&&x.lo>=tier-3);
     if(pool.length<3)pool=FOES.filter(x=>!x.boss&&x.lo<=tier);
@@ -3834,7 +4029,7 @@ function toBattle(node){
     " — "+count+" foe"+(count>1?"s":"");
   document.getElementById('log').innerHTML='';
   const bn=document.getElementById('battleRoom');
-  bn.innerHTML='';bn.appendChild(roomBanner(R.curNode?(R.curNode.art||0):((R.floor*3)%10)));
+  bn.innerHTML='';bn.appendChild(roomBanner(R.curNode&&R.curNode.art!==undefined?R.curNode.art:rollRoomArt(R.floor)));
   UI.peek=0;renderArena();renderPeek();show('scr-battle');
   B.pending=true;                       // size them up first — the fight starts when you say so
   document.getElementById('readyBar').style.display='block';
@@ -4094,6 +4289,10 @@ function endBattle(win){
         if(it.hpPerBattle&&p.hp>0){inst.grown=inst.grown||{};
           inst.grown.hp=Math.min(GROWCAP.hp,(inst.grown.hp||0)+it.hpPerBattle);}});
       if(p.cid==='paladin'&&p.hp>0){p.maxHp+=12;p.hp+=12;}
+      // the landing at the bottom of a floor is the only rest anyone gets down here
+      // Fights are meant to hurt. You get most of it back between rooms, and all of it on the
+      // landing — so the danger is inside the fight, not a slow bleed you cannot do anything about.
+      if(p.hp>0)p.hp=B_isExit?p.maxHp:Math.min(p.maxHp,p.hp+Math.round((p.maxHp-p.hp)*0.5));
       if(R.bless.mend>0&&p.hp>0)p.hp=Math.min(p.maxHp,p.hp+Math.round(p.maxHp*R.bless.mend));
     });
     const boss=B.foes.some(f=>f.boss);
@@ -4101,7 +4300,7 @@ function endBattle(win){
     const crew=0.55+0.45*R.party.length;
     const gold=Math.round((B_isExit?24+R.floor*6.5:12+R.floor*3.5)*crew*(0.9+Math.random()*0.3))+(boss?90:0);
     R.coins+=gold;
-    const xp=Math.round((B_isExit?17+R.floor*4.1:9+R.floor*2.4)+(boss?40:0));
+    const xp=Math.round((B_isExit?30+R.floor*7.4:16+R.floor*4.3)+(boss?70:0));
     const levelled=[];
     R.party.forEach(p=>{ if(p.hp>0&&grantXP(p,xp)>0)levelled.push(p); });
     if(levelled.length)SFX.level();
