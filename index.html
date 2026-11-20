@@ -186,7 +186,7 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 .stage{position:relative;border:2px solid #2e2533;border-radius:8px;overflow:hidden;background:#05060a;
   box-shadow:inset 0 0 0 1px #000,0 6px 18px rgba(0,0,0,.5)}
 .stage .sbg{position:absolute;inset:0;line-height:0}
-.stage .sbg canvas{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;filter:brightness(.62) saturate(.9)}
+.stage .sbg canvas{width:100% !important;height:100% !important;object-fit:cover;image-rendering:pixelated;filter:brightness(.62) saturate(.9)}
 .stage .shade{position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(rgba(5,6,10,.15),rgba(5,6,10,0) 30%,rgba(5,6,10,.55) 62%,rgba(5,6,10,.92)),
   radial-gradient(ellipse at 50% 40%,transparent 50%,rgba(0,0,0,.55))}
@@ -198,9 +198,9 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
   font-size:13px;color:#ffd166;letter-spacing:.05em;background:radial-gradient(#2a1510,#0d0709);border:2px solid #5a3a22;
   box-shadow:0 0 14px rgba(255,140,60,.35);text-shadow:0 0 6px #ff8c3c}
 .unit{width:138px;padding:0;border:0}
-.unit .fig{position:relative;height:112px;display:flex;align-items:flex-end;justify-content:center;line-height:0}
+.unit .fig{position:relative;height:124px;display:flex;align-items:flex-end;justify-content:center;line-height:0}
 .unit .fig::after{content:'';position:absolute;bottom:-3px;left:22%;right:22%;height:9px;border-radius:50%;background:rgba(0,0,0,.55);filter:blur(1px);z-index:-1}
-.unit .fig canvas{max-height:112px;width:auto}
+.unit .fig canvas{height:100% !important;width:auto !important}
 .plate{margin-top:6px;background:rgba(9,8,13,.86);border:2px solid #2e2533;border-radius:5px;padding:5px 6px 4px;text-align:center}
 .unit.foe .plate{border-color:#3d2229}
 .unit.boss .plate{border-color:#8d2f2f;box-shadow:0 0 10px rgba(255,90,90,.3)}
@@ -703,8 +703,10 @@ function cached(key,build){
   if(!c){c=build();_sprCache[key]=c;}
   const o=document.createElement('canvas');o.width=c.width;o.height=c.height;
   o.getContext('2d').drawImage(c,0,0);
-  o.style.imageRendering=c.dataset.smooth?'auto':'pixelated';
-  if(c.dataset.css){o.style.width=c.dataset.css+'px';o.style.height=c.dataset.css+'px';}
+  if(c.dataset.cssw){o.style.width=c.dataset.cssw+'px';o.style.height=c.dataset.cssh+'px';}
+  // a canvas finer than the screen can show is shrunk smoothly; one coarser stays crisp
+  const dpr=(typeof window!=='undefined'&&window.devicePixelRatio)||1;
+  o.style.imageRendering=(c.dataset.smooth||(c.dataset.cssw&&c.width>=c.dataset.cssw*dpr))?'auto':'pixelated';
   return o;
 }
 /* ---- colour helpers ---- */
@@ -731,19 +733,23 @@ function renderMat(mask,M,scale,opt){
     x.fillStyle='rgba(0,0,0,.38)';
     for(let y=0;y<h;y++)for(let i=0;i<w;i++)if(mask.g(i,y))x.fillRect((i+1)*scale,(y+1)*scale,scale,scale);
   }
-  if(opt.glow){                                     // legendary aura, two pixels out
-    x.fillStyle=opt.glow;
+  if(opt.glow){                                     // legendary aura, a couple of pixels out
+    x.fillStyle=opt.glow; const gr=opt.glowR||2;
     for(let y=0;y<h;y++)for(let i=0;i<w;i++){
       if(mask.g(i,y))continue;
       let near=false;
-      for(let dy=-2;dy<=2&&!near;dy++)for(let dx=-2;dx<=2;dx++)if(mask.g(i+dx,y+dy)){near=true;break;}
+      for(let dy=-gr;dy<=gr&&!near;dy++)for(let dx=-gr;dx<=gr;dx++)if(dx*dx+dy*dy<=gr*gr+1&&mask.g(i+dx,y+dy)){near=true;break;}
       if(near)x.fillRect(i*scale,y*scale,scale,scale);
     }
   }
   x.fillStyle="#08080d";
+  const ol=opt.ol||1;
   for(let y=0;y<h;y++)for(let i=0;i<w;i++){
     if(mask.g(i,y))continue;
-    if(mask.g(i-1,y)||mask.g(i+1,y)||mask.g(i,y-1)||mask.g(i,y+1))x.fillRect(i*scale,y*scale,scale,scale);
+    let hit=mask.g(i-1,y)||mask.g(i+1,y)||mask.g(i,y-1)||mask.g(i,y+1);
+    if(!hit&&ol>1)hit=mask.g(i-2,y)||mask.g(i+2,y)||mask.g(i,y-2)||mask.g(i,y+2)||
+      mask.g(i-1,y-1)||mask.g(i+1,y-1)||mask.g(i-1,y+1)||mask.g(i+1,y+1);
+    if(hit)x.fillRect(i*scale,y*scale,scale,scale);
   }
   for(let y=0;y<h;y++)for(let i=0;i<w;i++){
     const m=mask.g(i,y); if(!m)continue;
@@ -764,8 +770,8 @@ function renderMat(mask,M,scale,opt){
     // grain
     if(grain){
       const hsh=((i*73856093)^(y*19349663)^seed)>>>0, r=hsh%100;
-      if(r<9)col=mixRgb(col,D,.17);
-      else if(r>94)col=mixRgb(col,L,.14);
+      if(r<5*grain)col=mixRgb(col,D,.10);
+      else if(r>100-3*grain)col=mixRgb(col,L,.08);
     }
     // gleam on the very brightest corners
     if(!up&&!lf&&opt.gleam!==0)col=mixRgb(col,WHITE,.28);
@@ -779,6 +785,14 @@ function renderMat(mask,M,scale,opt){
       if(edge&&hsh%100<opt.sparkle){x.fillStyle='#fff6d0';x.fillRect(i*scale,y*scale,scale,scale);}
     }
   }
+  return c;
+}
+/* Supersampled sprite: the mask is smoothed up by EPX, drawn at that finer grid, and the canvas is
+   told to display at the size the old one did — rounder curves, thinner seams, the same footprint. */
+function renderSS(mask,M,scale,opt){
+  const m2=scale2x(mask), k=Math.max(1,Math.ceil(scale/2));
+  const c=renderMat(m2,M,k,Object.assign({ol:2,glowR:4},opt||{}));
+  if(m2.w*k!==mask.w*scale){c.dataset.cssw=mask.w*scale;c.dataset.cssh=mask.h*scale;}
   return c;
 }
 /* Pixel-art upscale (EPX / Scale2x): doubles a mask's resolution and rounds off its staircases,
@@ -1125,37 +1139,46 @@ function boxBlur(src,w,h,r){
 }
 function renderChar(mask0,M,scale,opt){
   opt=opt||{};
-  const m=scale2x(mask0),w=m.w,h=m.h,N=w*h;
-  const k=Math.max(1,Math.ceil(scale/2));
+  // forms are worked out on a 128 grid, then painted on a 256 grid smoothed twice by EPX
+  const m1=scale2x(mask0),w1=m1.w,h1=m1.h,N1=w1*h1;
+  const m=scale2x(m1),w=m.w,h=m.h,N=w*h;
+  const k=Math.max(1,Math.ceil(scale/4));
   const c=document.createElement('canvas');c.width=w*k;c.height=h*k;
-  if(w*k!==mask0.w*scale){c.dataset.css=mask0.w*scale;if(scale<2)c.dataset.smooth=1;}
+  if(w*k!==mask0.w*scale){c.dataset.cssw=c.dataset.cssh=mask0.w*scale;c.dataset.smooth=1;}
   const x=c.getContext('2d'),img=x.createImageData(w,h),px=img.data;
-  const any=new Float32Array(N),mats={};
-  for(let i=0;i<N;i++){const v=m.d[i];if(v){any[i]=1;(mats[v]=mats[v]||[]).push(i);}}
-  const anyB=boxBlur(any,w,h,6),anyB2=boxBlur(any,w,h,2);
-  const height=new Float32Array(N),cls={},emis={};
-  for(const v in mats){
-    const ind=new Float32Array(N);for(const i of mats[v])ind[i]=1;
-    const b=boxBlur(ind,w,h,3);
-    for(const i of mats[v])height[i]=0.55*b[i]+0.45*anyB[i];
+  const any=new Float32Array(N1),mats1={},cnt={};
+  for(let i=0;i<N1;i++){const v=m1.d[i];if(v){any[i]=1;(mats1[v]=mats1[v]||[]).push(i);}}
+  const anyB=boxBlur(any,w1,h1,7);
+  const H1=new Float32Array(N1),cls={},emis={};
+  for(const v in mats1){
+    const ind=new Float32Array(N1);for(const i of mats1[v])ind[i]=1;
+    const b=boxBlur(boxBlur(ind,w1,h1,2),w1,h1,2);              // two passes: a rounder dome
+    for(const i of mats1[v])H1[i]=0.42*b[i]+0.58*anyB[i];
     const sh=M[v]||M[1]||["#eee","#999","#444"];
     cls[v]=matClass(sh,opt.cls&&opt.cls[v]);
-    if(cls[v]==='glow'&&mats[v].length>220&&!(opt.cls&&opt.cls[v]))cls[v]='cloth';      // only small bright bits glow
+    if(cls[v]==='glow'&&mats1[v].length>220&&!(opt.cls&&opt.cls[v]))cls[v]='cloth';
     if(cls[v]==='glow')emis[v]=1;
   }
-  const H=(i,j)=>(i<0||j<0||i>=w||j>=h)?0:height[j*w+i];
+  // smooth the height field across material borders a touch so seams don't step
+  const Hs=boxBlur(H1,w1,h1,2);
+  const Hb=(fx,fy)=>{fx=fx/2-0.25;fy=fy/2-0.25;const x0=Math.max(0,Math.min(w1-1,Math.floor(fx))),y0=Math.max(0,Math.min(h1-1,Math.floor(fy)));
+    const x1=Math.min(w1-1,x0+1),y1=Math.min(h1-1,y0+1),tx=Math.max(0,Math.min(1,fx-x0)),ty=Math.max(0,Math.min(1,fy-y0));
+    const a=Hs[y0*w1+x0]*(1-tx)+Hs[y0*w1+x1]*tx,b=Hs[y1*w1+x0]*(1-tx)+Hs[y1*w1+x1]*tx;return a*(1-ty)+b*ty;};
   const at=(i,j)=>m.g(i,j);
   const seed=opt.seed||7;
-  const put=(i,col,a)=>{px[i*4]=col[0];px[i*4+1]=col[1];px[i*4+2]=col[2];px[i*4+3]=a===undefined?255:a;};
+  const put=(i,col,al)=>{px[i*4]=col[0];px[i*4+1]=col[1];px[i*4+2]=col[2];px[i*4+3]=al===undefined?255:al;};
   const rim=rgbOf(opt.rim||'#8fa6e0');
-  // outline first (sel-out: lit side takes the neighbour's darkest tone, shadow side is ink)
+  // a clean two-pixel outline (one pixel at the old size), softened on its outer corners
   for(let j=0;j<h;j++)for(let i=0;i<w;i++){
     if(at(i,j))continue;
-    const nb=at(i+1,j)||at(i,j+1)||at(i-1,j)||at(i,j-1);
-    if(!nb){const d=at(i+1,j+1)||at(i-1,j-1)||at(i+1,j-1)||at(i-1,j+1);if(d)put(j*w+i,INK,140);continue;}
-    const sh=M[nb]||M[1]||["#eee","#999","#444"];
-    const litSide=at(i+1,j)||at(i,j+1);
-    put(j*w+i,litSide?mixRgb(rgbOf(sh[2]),INK,.55):INK);
+    const n1=at(i+1,j)||at(i,j+1)||at(i-1,j)||at(i,j-1);
+    const n2=n1||at(i+2,j)||at(i,j+2)||at(i-2,j)||at(i,j-2)||at(i+1,j+1)||at(i-1,j-1)||at(i+1,j-1)||at(i-1,j+1);
+    if(n2){const nb=n1||at(i+2,j)||at(i,j+2)||at(i-2,j)||at(i,j-2)||at(i+1,j+1)||at(i-1,j-1)||at(i+1,j-1)||at(i-1,j+1);
+      const sh=M[nb]||M[1]||["#eee","#999","#444"];
+      const lit=!(at(i-1,j)||at(i,j-1)||at(i-2,j)||at(i,j-2));
+      put(j*w+i,lit?mixRgb(rgbOf(sh[2]),INK,.6):INK,n1?255:235);continue;}
+    const d=at(i+2,j+1)||at(i+1,j+2)||at(i-2,j-1)||at(i-1,j-2)||at(i+2,j-1)||at(i-1,j+2)||at(i-2,j+1)||at(i+1,j-2);
+    if(d)put(j*w+i,INK,110);
   }
   for(let j=0;j<h;j++)for(let i=0;i<w;i++){
     const v=at(i,j);if(!v)continue;const idx=j*w+i;
@@ -1163,53 +1186,44 @@ function renderChar(mask0,M,scale,opt){
     const L=rgbOf(sh[0]),Md=rgbOf(sh[1]),D=rgbOf(sh[2]),cl=cls[v];
     let col;
     if(cl==='glow'){
-      col=at(i,j-1)!==v||at(i-1,j)!==v?mixRgb(L,WHITE,.55):L;
+      const e=at(i,j-1)!==v||at(i-1,j)!==v||at(i,j-2)!==v||at(i-2,j)!==v;
+      col=e?mixRgb(L,WHITE,.5):L;
     } else {
-      const nx=H(i-1,j)-H(i+1,j), ny=H(i,j-1)-H(i,j+1);
-      const gain=cl==='metal'?5.2:cl==='skin'?3.2:cl==='gold'?4.6:3.8;
-      let t=0.56+(nx*-0.62+ny*-0.78)*gain;                    // light from the upper left
-      t+=(height[idx]-0.6)*0.35;                                 // the core of a form sits brighter
-      if(cl==='cloth'){                                          // soft folds running down the cloth
-        const f=Math.sin(i*0.55+Math.sin(j*0.11+seed)*2.2+((seed*7)%5));
-        t+=f*0.07;}
-      if(cl==='fur'||opt.fur===+v){const hh=((i*73856093)^(Math.floor(j/3)*19349663)^seed)>>>0;
-        if(hh%7===0)t-=0.22; else if(hh%11===0)t+=0.12;}
+      const nx=Hb(i-2,j)-Hb(i+2,j), ny=Hb(i,j-2)-Hb(i,j+2);
+      const gain=cl==='metal'?5.6:cl==='skin'?3.4:cl==='gold'?5.0:4.2;
+      let t=0.56+(nx*-0.62+ny*-0.78)*gain+(Hb(i,j)-0.6)*0.35;
+      if(cl==='cloth'){t+=Math.sin(i*0.26+Math.sin(j*0.055+seed)*2.2+(seed%5))*0.045;}
+      if(opt.fur===+v){const hh=((Math.floor(i/2)*73856093)^(Math.floor(j/7)*19349663)^seed)>>>0;
+        if(hh%9===0)t-=0.13;}
       t=Math.max(0,Math.min(1,t));
-      // quantise into 7 tones with ordered dither, so it still reads as pixel art
-      const q=t*6+(BAYER4[(j&3)*4+(i&3)]/16-0.5)*0.9;
-      const lv=Math.max(0,Math.min(6,Math.round(q)))/6;
+      const lv=Math.round(t*10)/10;                                 // eleven clean steps, no dither
       col=lv<0.5?mixRgb(D,Md,lv*2):mixRgb(Md,L,(lv-0.5)*2);
-      if(cl==='metal'&&t>0.80)col=mixRgb(col,WHITE,.45);          // specular
-      if(cl==='gold'&&t>0.84)col=mixRgb(col,[255,247,214],.5);
-      if(cl==='dark')col=mixRgb(Md,lv>0.6?L:D,.5);
-      // thin ink line where one part meets another below/right of it
+      if(cl==='metal'&&t>0.80)col=mixRgb(col,WHITE,.42);
+      if(cl==='gold'&&t>0.84)col=mixRgb(col,[255,247,214],.45);
+      if(cl==='dark')col=mixRgb(Md,lv>0.6?L:D,.45);
+      // a crisp one-pixel line where one part tucks under another
       const dn=at(i,j+1),rt=at(i+1,j);
-      if((dn&&dn!==v&&!emis[dn])||(rt&&rt!==v&&!emis[rt]))col=mixRgb(col,INK,.5);
-      // the lit rim, upper-left edge
-      if(!at(i,j-1)||!at(i-1,j))col=mixRgb(col,cl==='metal'?WHITE:L,cl==='metal'?.55:.35);
-      // cool back-light on the right-hand edge
-      else if(!at(i+1,j)||!at(i+2,j))col=mixRgb(col,rim,.32);
-      // ambient occlusion: deep in the silhouette and low down gets darker
-      const ao=Math.max(0,(j/h-0.6)/0.4)*0.22+(1-anyB2[idx])*0;
-      col=mixRgb(col,INK,ao);
-      if(cl!=='skin'&&cl!=='metal'){const hs=((i*2654435761)^(j*40503)^seed)>>>0;
-        if(hs%100<6)col=mixRgb(col,D,.25);}
+      if((dn&&dn!==v&&!emis[dn])||(rt&&rt!==v&&!emis[rt]))col=mixRgb(col,INK,.55);
+      else {const dn2=at(i,j+2),rt2=at(i+1,j+1);if((dn2&&dn2!==v&&!emis[dn2])||(rt2&&rt2!==v&&!emis[rt2]))col=mixRgb(col,INK,.18);}
+      if(!at(i,j-1)||!at(i-1,j))col=mixRgb(col,cl==='metal'?WHITE:L,cl==='metal'?.5:.32);
+      else if(!at(i,j-2)||!at(i-2,j))col=mixRgb(col,cl==='metal'?WHITE:L,.14);
+      else if(!at(i+1,j)||!at(i+2,j)||!at(i+3,j))col=mixRgb(col,rim,.28);
+      col=mixRgb(col,INK,Math.max(0,(j/h-0.6)/0.4)*0.2);
     }
     put(idx,col);
   }
-  // glowing bits bleed a little light onto what is around them
   for(const v in emis){const L=rgbOf((M[v]||M[1])[0]);
-    for(const i0 of mats[v]){const i=i0%w,j=(i0/w)|0;
-      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const ii=i+dx,jj=j+dy;
+    for(let j=0;j<h;j++)for(let i=0;i<w;i++){if(at(i,j)!=+v)continue;
+      for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const ii=i+dx,jj=j+dy;
         if(ii<0||jj<0||ii>=w||jj>=h)continue;const q=jj*w+ii;const vv=m.d[q];
-        if(vv&&!emis[vv]){const f=0.10;px[q*4]+= (L[0]-px[q*4])*f;px[q*4+1]+=(L[1]-px[q*4+1])*f;px[q*4+2]+=(L[2]-px[q*4+2])*f;}}}}
+        if(vv&&!emis[vv]){const f=0.035;px[q*4]+=(L[0]-px[q*4])*f;px[q*4+1]+=(L[1]-px[q*4+1])*f;px[q*4+2]+=(L[2]-px[q*4+2])*f;}}}}
   if(k===1){x.putImageData(img,0,0);return c;}
   const t=document.createElement('canvas');t.width=w;t.height=h;t.getContext('2d').putImageData(img,0,0);
   x.imageSmoothingEnabled=false;x.drawImage(t,0,0,w*k,h*k);return c;
 }
 function heroMask(c){const g=G(64,64);(HEROART[c.id]||body64)(g,RNG(c.seed));return g;}
 function heroSprite(c,scale){
-  return cached('h2'+c.id+'_'+(scale||3),()=>renderChar(heroMask(c),HEROMAT[c.id]||HEROMAT.fighter,scale||3,{seed:(c.seed||3)%97}));}
+  return cached('h3'+c.id+'_'+(scale||3),()=>renderChar(heroMask(c),HEROMAT[c.id]||HEROMAT.fighter,scale||3,{seed:(c.seed||3)%97}));}
 /* ---------- FOE SPRITES (64x64, full colour) ---------- */
 function speck(g,r,x,y,w,h,mat,n){for(let i=0;i<n;i++){const px=x+((r()*w)|0),py=y+((r()*h)|0);if(g.g(px,py))g.s(px,py,mat);}}
 function legs(g,x,y,dx,dy,n,mat,spread){
@@ -1542,7 +1556,7 @@ function foeMask(f){
   return g;
 }
 function foeSprite(f,scale){
-  return cached('f2'+f.id+'_'+(scale||2),()=>renderChar(foeMask(f),foeMats(f),scale||2,
+  return cached('f3'+f.id+'_'+(scale||2),()=>renderChar(foeMask(f),foeMats(f),scale||2,
     {seed:(f.seed||7)%97,fur:FOEFUR[f.kind]||0,cls:Object.assign({},FOECLS[f.kind],ACTDRESSCLS[(f.act||1)-1])}));}
 const FOEFUR={beast:1};
 const FOECLS={};
@@ -1560,7 +1574,7 @@ function wall(g,r,L,D,bw,bh){
     if(r()<0.22){const cx2=bx+1+((r()*(bw-2))|0),cy=by+1+((r()*(bh-2))|0);
       g.s(cx2,cy,D);g.s(cx2+1,cy,D);g.s(cx2,cy+1,D);}
   }
-  for(let i=0;i<90;i++)g.s((r()*RW)|0,(r()*RH)|0,D);
+  for(let i=0;i<30;i++)g.s((r()*RW)|0,(r()*RH)|0,D);
 }
 function pillar(g,x,top,bot,M,Mc){
   rect(g,x,top,10,bot-top,M); rect(g,x-2,top,14,4,Mc); rect(g,x-2,bot-4,14,4,Mc);
@@ -1878,7 +1892,7 @@ function roomCanvas(idx,scale){
 function roomCanvasBuild(idx,scale){
   const R2=ROOMART[idx%ROOMART.length], g=G(RW,RH);
   R2.draw(g,RNG(1000+idx*77));
-  const c=renderMat(g,R2.mat,scale||3), x=c.getContext('2d');
+  const c=renderSS(g,R2.mat,scale||3,{ol:1,grain:.6}), x=c.getContext('2d');
   const gr=x.createRadialGradient(c.width*0.5,c.height*0.55,c.height*0.15,
                                   c.width*0.5,c.height*0.5,c.width*0.72);
   gr.addColorStop(0,'rgba(255,214,150,0.10)');
@@ -1897,7 +1911,7 @@ function torchBuild(lit,scale){
   rect(g,4,6,2,10,lit?1:4); rect(g,3,5,4,2,lit?1:4);
   if(lit){ell(g,4,3,2,3,2); g.s(4,0,2); g.s(3,1,3); g.s(6,2,3); g.s(2,3,3); g.s(4,1,2);}
   else {g.s(4,4,15); g.s(5,3,15);}
-  return renderMat(g,TORCHMAT,scale||2);
+  return renderSS(g,TORCHMAT,scale||2,{ol:2});
 }
 /* ---- the chest in a chest room: shut until you put a hand on it ---- */
 const CHESTMAT={1:["#9a6f3a","#6b4a22","#3a2712"],     // boards
@@ -1920,7 +1934,7 @@ function chestBuild(open,scale){
     rect(g,7,4,2,17,2); rect(g,17,4,2,17,2);
     rect(g,12,9,3,4,2); g.s(13,11,4);                  // lock
   }
-  return renderMat(g,CHESTMAT,scale||5);
+  return renderSS(g,CHESTMAT,scale||5,{ol:2,grain:.5});
 }
 function chestCanvas(open,scale){return cached('ch'+(open?1:0)+'_'+(scale||5),()=>chestBuild(open,scale));}
 function renderTorches(){
@@ -2173,18 +2187,20 @@ function itemIcon(shape,palette,scale,key,inst){
   const tierOf=inst?ITEMS[inst.bid].r:-1;
   const key2=shape+'|'+tierOf;
   const mT=tierOf<0?m2:(_mask32[key2]||(_mask32[key2]=tierMask(m2,shape,tierOf)));
-  const k=Math.max(1,Math.ceil(scale/2));            // drawn at double resolution...
+  const k=Math.max(1,Math.ceil(scale/4));            // drawn at four times the resolution...
   let c;
   if(inst){
     const tA=inst.tags[0]?tagCol(inst.tags[0]):null, tB=inst.tags[1]?tagCol(inst.tags[1]):null;
     const r=ITEMS[inst.bid].r;
-    c=cached('i5'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
-      ()=>renderMat(mT,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13,
-        sparkle:r>=4?7:(r>=3?4:0), glow:r>=4?'rgba(255,133,107,.22)':null}));
+    const key4=key2+'|64'; const m4=_mask32[key4]||(_mask32[key4]=scale2x(mT));
+    c=cached('i6'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
+      ()=>renderMat(m4,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13,ol:2,glowR:4,grain:.5,
+        sparkle:r>=4?3:(r>=3?2:0), glow:r>=4?'rgba(255,133,107,.22)':null}));
   } else {
-    c=cached('p2'+shape+'_'+k+'_'+(key||''),()=>render(m2,palette,k,null));
+    c=cached('p2'+shape+'_'+k+'_'+(key||''),()=>render(m2,palette,Math.max(1,Math.ceil(scale/2)),null));
   }
   c.style.width=(16*scale)+'px';c.style.height=(16*scale)+'px';   // ...shown at the usual size
+  if(c.width>=16*scale*((window.devicePixelRatio)||1))c.style.imageRendering='auto';
   return c;
 }
 
@@ -3252,9 +3268,9 @@ function menuTorchLoop(){
         }
       }
       for(let i=0;i<5;i++)g.s(10+((r()*12)|0),2+((r()*9)|0),2);       // embers
-      menuFrames.push(renderMat(g,{1:["#ffd98a","#ff9130","#c4500c"],2:["#ff8577","#d3303a","#6d111c"],
+      menuFrames.push(renderSS(g,{1:["#ffd98a","#ff9130","#c4500c"],2:["#ff8577","#d3303a","#6d111c"],
         3:["#8a2a1c","#5a1410","#280806"],4:["#2a2620","#171410","#0a0806"],
-        8:["#a8824e","#6e5230","#3a2a18"],9:["#fffbe8","#ffe9a3","#ffbe5a"]},4));
+        8:["#a8824e","#6e5230","#3a2a18"],9:["#fffbe8","#ffe9a3","#ffbe5a"]},4,{ol:2,grain:.4}));
     }
   }
   const idx=Math.floor(Date.now()/90)%menuFrames.length;   // |0 overflows on timestamps
