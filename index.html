@@ -303,6 +303,16 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 @media (max-width:560px){#roster{grid-template-columns:repeat(4,1fr);gap:4px}.rtile .rart canvas{width:52px !important;height:52px !important}.rtile .rname{font-size:8px}}
 
 @media (max-width:560px){#scr-select .arrowbtn{display:none}#charArt canvas{width:150px !important;height:150px !important}}
+
+.setline{margin:3px 0;display:flex;flex-wrap:wrap;gap:3px}
+.setchip{font-size:9px;padding:1px 5px;border-radius:9px;border:1px solid var(--c);color:var(--c);opacity:.55;white-space:nowrap}
+.setchip.on{opacity:1;background:rgba(255,255,255,.06);box-shadow:0 0 6px -2px var(--c)}
+
+.isec{margin:6px 0 0;padding-top:5px;border-top:1px solid rgba(255,255,255,.08)}
+.isec .ish{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#b9a597;margin-bottom:2px}
+.isec .iln{font-size:11.5px;color:#f0e8d8;line-height:1.45}
+.ifacts{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08);font-size:10.5px}
+.ifacts span{color:#8a7a6a}.ifacts b{font-weight:normal;color:#e8e0d0}
 </style>
 </head>
 <body>
@@ -3092,37 +3102,85 @@ function itemIcon(shape,palette,scale,key,inst){
 /* ===================================================================
    2. TAGS, RARITY, ITEMS (100), CHARACTERS, FOES (20), BLESSINGS
    =================================================================== */
+/* ===== THE SIXTEEN SET TAGS =====
+   Every item carries one or two. What a tag does is built from the engine's effects underneath
+   (fx: [effect, share]), and carrying 2 / 4 / 6 items of one tag on a merc unlocks its set bonus. */
 const TAGS={
- dodge: {n:"Dodge", fam:"blue",  d:"Chance to avoid a hit completely."},
- armour:{n:"Armour",fam:"blue",  d:"Flat damage reduction (25% always gets through)."},
- speed: {n:"Speed", fam:"green", d:"All of this merc's items trigger faster."},
- health:{n:"Health",fam:"green", d:"Bonus maximum HP."},
- burn:  {n:"Burn",  fam:"red",   d:"Fire damage each second. Decays."},
- poison:{n:"Poison",fam:"green", d:"Damage each second. Never decays."},
- freeze:{n:"Freeze",fam:"blue",  d:"Slows the target's cooldowns."},
- stun:  {n:"Stun",  fam:"black", d:"At 10 stacks the target loses 1.5s."},
- bleed: {n:"Bleed", fam:"red",   d:"Heavy damage each second. Decays fast."},
- /* --- elemental tags --- */
- holy:  {n:"Holy",  fam:"gold", el:1,d:"Smites, and mends the wielder on every trigger."},
- metal: {n:"Metal", fam:"blue", el:1,d:"Extra damage that pierces Armour."},
- neutral:{n:"Neutral",fam:"black",el:1,d:"Plain extra damage. Nothing resists it."},
- punch: {n:"Punch", fam:"red",  el:1,d:"Unarmed force — extra damage that cannot be dodged."},
- earth: {n:"Earth", fam:"green",el:1,d:"Extra damage, and builds Armour as you fight."},
- fire:  {n:"Fire",  fam:"red",  el:1,d:"Extra damage that sets Burn stacks."},
- ice:   {n:"Ice",   fam:"blue", el:1,d:"Extra damage that sets Freeze stacks."},
- wind:  {n:"Wind",  fam:"green",el:1,d:"Lighter in the hand — everything triggers faster."},
- /* --- the deeper tags --- */
- lightning:{n:"Lightning",fam:"blue",el:1,d:"Extra damage that arcs to a second foe."},
- shadow:{n:"Shadow",fam:"black",el:1,d:"Crits from this item hit far harder."},
- thorns:{n:"Thorns",fam:"green",d:"Attackers take damage back when they hit you."},
- vampire:{n:"Vampire",fam:"red",d:"Heals you for a share of this item's damage."},
- lucky: {n:"Lucky", fam:"gold",d:"Raises your critical chance."},
- heavy: {n:"Heavy", fam:"black",el:1,d:"Hits like a falling door — but slows your ring."},
- echo:  {n:"Echo",  fam:"blue", d:"Chance for this item to cast a second time."},
- ward:  {n:"Ward",  fam:"blue", d:"Soaks a flat part of every hit you take."},
+ neutral:  {n:"Neutral",  fam:"black",col:"#d0cadb",fx:[["neutral",1]],                         d:"Plain extra damage that nothing resists."},
+ fire:     {n:"Fire",     fam:"red",  col:"#ff7a3a",fx:[["fire",.6],["burn",.5]],               d:"Extra damage that sets Burn."},
+ frost:    {n:"Frost",    fam:"blue", col:"#7ac8ff",fx:[["ice",.6],["freeze",.5]],              d:"Extra damage that Freezes, slowing the foe."},
+ lightning:{n:"Lightning",fam:"gold", col:"#ffe14a",fx:[["lightning",.7],["stun",.4]],          d:"Extra damage that arcs to another foe and builds Stun."},
+ poison:   {n:"Poison",   fam:"green",col:"#b07ae8",fx:[["poison",1]],                          d:"Poison stacks that never wear off."},
+ holy:     {n:"Holy",     fam:"gold", col:"#ffe9a3",fx:[["holy",.8],["ward",.4]],               d:"Smites, mends the wielder, and wards off part of every hit."},
+ vampiric: {n:"Vampiric", fam:"red",  col:"#e8384a",fx:[["vampire",.8],["bleed",.4]],           d:"Heals you for part of the damage, and makes foes Bleed."},
+ arcane:   {n:"Arcane",   fam:"blue", col:"#9a7af0",fx:[["echo",.7],["lucky",.5]],              d:"A chance to cast twice, and more critical hits."},
+ earth:    {n:"Earth",    fam:"green",col:"#9ac44a",fx:[["earth",.7],["thorns",.5]],            d:"Extra damage, builds Armour, and Thorns bite back."},
+ wind:     {n:"Wind",     fam:"green",col:"#8fe0cc",fx:[["wind",.6],["dodge",.6]],              d:"Everything triggers faster, and you dodge more."},
+ dragon:   {n:"Dragon",   fam:"red",  col:"#ff5a3a",fx:[["fire",.5],["armour",.5],["heavy",.3]],d:"Huge burning blows behind dragon-scale Armour."},
+ demon:    {n:"Demon",    fam:"red",  col:"#d0303a",fx:[["shadow",.6],["punch",.4],["burn",.4]],d:"Crits that tear, hits that can't be dodged, and Burn."},
+ undead:   {n:"Undead",   fam:"black",col:"#c8d4c0",fx:[["health",.7],["poison",.4]],           d:"Extra health that refuses to stay down, and Poison."},
+ beast:    {n:"Beast",    fam:"green",col:"#7cbc4a",fx:[["punch",.6],["speed",.4],["vampire",.3]],d:"Brutal force, speed, and a taste for blood."},
+ metal:    {n:"Metal",    fam:"blue", col:"#b8c6d8",fx:[["metal",.6],["armour",.6]],            d:"Damage that pierces Armour, and plate of your own."},
+ haunted:  {n:"Haunted",  fam:"gold", col:"#f0a040",fx:[["stun",.4],["dodge",.4],["echo",.3]],  d:"Unnerving: builds Stun, slips hits, and sometimes casts twice."},
+ /* statuses — not tags you can roll, but named and coloured the same way */
+ burn:  {n:"Burn",  fam:"red",  col:"#ff8a3a",hidden:1,d:"Fire damage each second. Decays."},
+ freeze:{n:"Freeze",fam:"blue", col:"#9ad8ff",hidden:1,d:"Slows the target's cooldowns."},
+ stun:  {n:"Stun",  fam:"gold", col:"#ffe68a",hidden:1,d:"At 10 stacks the target loses 1.5s."},
+ bleed: {n:"Bleed", fam:"red",  col:"#ff5a6a",hidden:1,d:"Heavy damage each second. Decays fast."},
 };
-const TKEYS=Object.keys(TAGS);
-const tagCol=t=>FAM[TAGS[t].fam][0];
+/* the effects underneath, and which of them add damage to a cast */
+const ELFX={holy:1,metal:1,neutral:1,punch:1,earth:1,fire:1,ice:1,wind:1,lightning:1,shadow:1,heavy:1};
+/* statuses and effects map back to the tag a foe is weak to or resists */
+const TAGOF={burn:'fire',freeze:'frost',ice:'frost',stun:'lightning',bleed:'vampiric',vampire:'vampiric',shadow:'demon',
+  punch:'beast',armour:'metal',thorns:'earth',ward:'holy',echo:'arcane',lucky:'arcane',heavy:'dragon',health:'undead',
+  speed:'wind',dodge:'wind'};
+const tagOf=t=>TAGS[t]&&!TAGS[t].hidden?t:(TAGOF[t]||t);
+/* old saves carried the 25 old tags; each maps onto one of the new sixteen */
+const MIGRATE={dodge:'wind',armour:'metal',speed:'wind',health:'undead',burn:'fire',poison:'poison',freeze:'frost',
+  stun:'lightning',bleed:'vampiric',holy:'holy',metal:'metal',neutral:'neutral',punch:'beast',earth:'earth',fire:'fire',
+  ice:'frost',wind:'wind',lightning:'lightning',shadow:'demon',thorns:'earth',vampire:'vampiric',lucky:'arcane',
+  heavy:'dragon',echo:'arcane',ward:'holy'};
+const ALT2={metal:'holy',holy:'metal',fire:'demon',frost:'arcane',wind:'beast',earth:'beast',vampiric:'demon',arcane:'haunted',
+  lightning:'arcane',poison:'undead',undead:'haunted',beast:'wind',neutral:'metal',demon:'fire',dragon:'fire',haunted:'undead'};
+function migTags(arr,keep2){
+  const out=[];(arr||[]).forEach(t=>{const n=TAGS[t]&&!TAGS[t].hidden?t:MIGRATE[t];if(n&&!out.includes(n))out.push(n);});
+  if(keep2&&(arr||[]).length>=2&&out.length===1)out.push(ALT2[out[0]]||'neutral');
+  return out.sort();
+}
+/* ---- set bonuses: 2 / 4 / 6 items of one tag on the same merc ---- */
+const SETS={
+ neutral:  {b:["+6% damage","+12% damage","+20% damage"],                     f:(S,k)=>S.atk+=[.06,.12,.20][k]},
+ fire:     {b:["Fire +20%","Fire +45%, +8% damage","Fire +80%, +15% damage"],  f:(S,k)=>S.atk+=[0,.08,.15][k]},
+ frost:    {b:["Frost +20%","Frost +45%, +6% dodge","Frost +80%, +10% dodge"], f:(S,k)=>S.dodge+=[0,.06,.10][k]},
+ lightning:{b:["Lightning +20%","Lightning +45%, +6% crit","Lightning +80%, +12% crit"],f:(S,k)=>S.crit+=[0,.06,.12][k]},
+ poison:   {b:["Poison +20%","Poison +45%, +2 regen","Poison +80%, +4 regen"], f:(S,k)=>S.regen+=[0,2,4][k]},
+ holy:     {b:["Holy +20%","Holy +45%, +10% health","Holy +80%, +18% health"], f:(S,k)=>S.hp+=[0,.10,.18][k]},
+ vampiric: {b:["+3% lifesteal","+6% lifesteal","+10% lifesteal"],              f:(S,k)=>S.leech+=[.03,.06,.10][k]},
+ arcane:   {b:["+5% echo","+10% echo","+16% echo"],                           f:(S,k)=>S.echo+=[.05,.10,.16][k]},
+ earth:    {b:["+10% armour","+20% armour","+35% armour"],                     f:(S,k)=>S.arm+=[.10,.20,.35][k]},
+ wind:     {b:["+6% speed","+12% speed","+20% speed"],                         f:(S,k)=>S.spd+=[.06,.12,.20][k]},
+ dragon:   {b:["+6% damage","+12% damage, +10% armour","+20% damage, +20% armour"],f:(S,k)=>{S.atk+=[.06,.12,.20][k];S.arm+=[0,.10,.20][k];}},
+ demon:    {b:["+5% crit","+10% crit","+16% crit"],                            f:(S,k)=>S.crit+=[.05,.10,.16][k]},
+ undead:   {b:["+8% health","+16% health","+26% health"],                      f:(S,k)=>S.hp+=[.08,.16,.26][k]},
+ beast:    {b:["+4% speed, +3% crit","+8% speed, +6% crit","+14% speed, +10% crit"],f:(S,k)=>{S.spd+=[.04,.08,.14][k];S.crit+=[.03,.06,.10][k];}},
+ metal:    {b:["+12% armour","+25% armour","+40% armour"],                     f:(S,k)=>S.arm+=[.12,.25,.40][k]},
+ haunted:  {b:["+4% dodge","+8% dodge","+13% dodge"],                          f:(S,k)=>S.dodge+=[.04,.08,.13][k]},
+};
+const SETPOW=[.20,.45,.80];
+// every set also powers up its own tag; say so in each tier's text
+Object.keys(SETS).forEach(t=>{const nm=TAGS[t].n;SETS[t].b=SETS[t].b.map((b,i)=>b.indexOf(nm+' +')===0?b:nm+' +'+Math.round(SETPOW[i]*100)+'%, '+b);});
+function setCounts(grid){const c={};anchors(grid).forEach(({inst})=>(inst.tags||[]).forEach(t=>c[t]=(c[t]||0)+1));return c;}
+const setTier=n=>n>=6?2:n>=4?1:n>=2?0:-1;
+function setLine(grid){                              // "Fire 3/4 · Metal 2 ✓" with tooltips of what each tier gives
+  const c=setCounts(grid), ks=Object.keys(c).filter(t=>SETS[t]).sort((a,b)=>c[b]-c[a]);
+  if(!ks.length)return '<span class="muted">no sets yet</span>';
+  return ks.map(t=>{const n=c[t],k=setTier(n),next=n>=6?null:(n<2?2:n<4?4:6);
+    const tip=SETS[t].b.map((b,i)=>[2,4,6][i]+': '+b).join(' | ');
+    return `<span class="setchip${k>=0?' on':''}" title="${TAGS[t].n} set — ${tip}" style="--c:${tagCol(t)}">${TAGS[t].n} ${n}${next?'/'+next:''}${k>=0?' · '+SETS[t].b[k]:''}</span>`;
+  }).join('');
+}
+const TKEYS=Object.keys(TAGS).filter(k=>!TAGS[k].hidden);
+const tagCol=t=>{const T=TAGS[t]||TAGS[TAGOF[t]];return T?(T.col||FAM[T.fam][0]):'#e8e0d0';};
 const RAR=[{n:"Common",c:"var(--cm)",col:"#5f6778",p:1.0,cost:1.0},
            {n:"Uncommon",c:"var(--un)",col:"#45a83c",p:1.4,cost:2.1},
            {n:"Rare",c:"var(--ra)",col:"#2f7fd0",p:1.9,cost:3.6},
@@ -3322,7 +3380,7 @@ const PREFER={dagger:["bleed","metal"],sword:["metal","holy"],axe:["bleed","neut
     lantern:["holy","ward"],horn:["armour","health"],mask:["lucky","shadow"],cloak:["dodge","ward"],
     belt:["health","speed"],bracer:["armour","thorns"],idol:["poison","earth"],chalice:["holy","health"],
     mirror:["thorns","ward"],censer:["holy","burn"],caltrops:["bleed","thorns"],banner:["lucky","holy"]};
-const DEEPTAGS=["lightning","shadow","thorns","vampire","lucky","heavy","echo","ward"];
+const DEEPTAGS=["dragon","demon","haunted","arcane","undead","beast"];
 /* ===== THE SECOND ARMOURY — 25 more kinds of relic, 125 more items =====
    Added after the specials so every item that existed before keeps its number (saves rely on it). */
 const SHAPES2=["rapier","greatsword","sickle","mace","halberd","sling","javelin","tome","scepter",
@@ -3405,6 +3463,20 @@ SHAPES2.forEach(sh=>{ for(let r=0;r<5;r++){
     cost:Math.round(itemPower(st)*0.55*RAR[r].cost)},st));
 }});
 SHAPES.push(...SHAPES2);
+/* LOCKED ITEMS. The newer kinds of gear are kept back until you have beaten the act that holds
+   them; the relics wait behind the last act of all. Locked kinds never roll, in shops, chests or
+   foes' packs, until then. */
+const ITEMLOCK={};
+[["rapier","greatsword","sickle","mace","halberd","sling"],
+ ["javelin","tome","scepter","gauntlet","pauldron","greaves"],
+ ["towershield","talisman","charm","skull","bell","hourglass"],
+ ["lute","flask","net","key","heart","anvil","darts"]].forEach((g,i)=>g.forEach(sh=>ITEMLOCK[sh]=i+1));
+const RELICLOCK=5;
+function shapeOpen(sh){const a=ITEMLOCK[sh];return !a||hasAch('act'+a);}
+function itemOpen(bid){const it=ITEMS[bid];if(!it)return true;
+  if(it.special)return hasAch('act'+RELICLOCK);return shapeOpen(it.shape);}
+function lockAct(bid){const it=ITEMS[bid];return it.special?RELICLOCK:(ITEMLOCK[it.shape]||0);}
+const openShapes=()=>SHAPES.filter(shapeOpen);
 
 /* A shape's two tags are what the thing is FOR. Rolling them together most of the time means
    two daggers off the same floor usually match — which is the only way a merge ever happens. */
@@ -3440,20 +3512,13 @@ const lvlMul=l=>[0,1,2.4,5.5][l];
    its tags dress it: the first tag (alphabetically) gives a word in front, the second an "of …"
    behind. So no two items of the same kind and rarity share a name unless their tags match too. */
 const TAGWORD={
- armour:["Plated","the Bulwark"], bleed:["Bloodied","Wounds"], burn:["Smouldering","Embers"],
- dodge:["Fleet","Evasion"], earth:["Earthen","Stone"], echo:["Echoing","Echoes"],
- fire:["Blazing","Flame"], freeze:["Frostbitten","the Freeze"], health:["Hearty","Vigour"],
- heavy:["Weighty","Ruin"], holy:["Hallowed","Dawn"], ice:["Glacial","Winter"],
- lightning:["Crackling","Storms"], lucky:["Fortunate","Fortune"], metal:["Tempered","Iron"],
- neutral:["Honest","Balance"], poison:["Venomous","Blight"], punch:["Brawling","the Pit"],
- shadow:["Shadowed","Night"], speed:["Swift","Haste"], stun:["Thundering","the Daze"],
- thorns:["Thorned","Brambles"], vampire:["Vampiric","Thirst"], ward:["Warded","Wards"],
- wind:["Windswept","Gales"]};
-// a second adjective for each tag, for names that already have an "of" in them
-const TAGADJ2={armour:"Ironclad",bleed:"Cruel",burn:"Scorched",dodge:"Nimble",earth:"Mossy",echo:"Resonant",
- fire:"Molten",freeze:"Rimed",health:"Vital",heavy:"Massive",holy:"Sacred",ice:"Frosted",lightning:"Charged",
- lucky:"Charmed",metal:"Riveted",neutral:"Plain",poison:"Toxic",punch:"Knuckled",shadow:"Dusk-dark",speed:"Quick",
- stun:"Jarring",thorns:"Barbed",vampire:"Thirsting",ward:"Sealed",wind:"Gusting"};
+ neutral:["Honest","Balance"], fire:["Blazing","Flame"], frost:["Glacial","Winter"], lightning:["Crackling","Storms"],
+ poison:["Venomous","Blight"], holy:["Hallowed","Dawn"], vampiric:["Vampiric","Thirst"], arcane:["Runed","the Arcane"],
+ earth:["Earthen","Stone"], wind:["Windswept","Gales"], dragon:["Draconic","the Wyrm"], demon:["Infernal","the Pit"],
+ undead:["Deathless","the Grave"], beast:["Feral","the Wild"], metal:["Tempered","Iron"], haunted:["Haunted","Whispers"]};
+const TAGADJ2={neutral:"Plain",fire:"Molten",frost:"Rimed",lightning:"Charged",poison:"Toxic",holy:"Sacred",vampiric:"Thirsting",
+ arcane:"Gleaming",earth:"Mossy",wind:"Gusting",dragon:"Scaled",demon:"Hellforged",undead:"Bone-white",beast:"Savage",
+ metal:"Riveted",haunted:"Spectral"};
 function itemName(bid,tags){
   let base=ITEMS[bid].n; const t=(tags||[]).slice().sort();
   if(!t.length)return base;
@@ -3589,10 +3654,18 @@ const LOCKED=[
   flavor:"Gave her eyes to the Shrine. It showed her everything else."},
  {id:"voidborn",name:"The Voidborn",tags:["shadow","echo"],hp:470,dmg:21,armour:6,spd:11,dodge:.09,gold:110,
   seed:85,pal:0,startShape:"orb",startR:0,relicTags:["echo"],
-  rdesc:"Every cast has a 15% chance to go off a second time.",ach:"act5",
+  rdesc:"Every cast has a 10% chance to go off a second time.",ach:"act5",
   flavor:"Came up out of the Ninefold Core. Nobody went down to get it."},
 ];
+const CHARTAGS={paladin:["holy","metal"],fighter:["beast","neutral"],witchdoctor:["poison","haunted"],bloodelf:["vampiric","metal"],
+  druid:["earth","beast"],wizard:["fire","frost"],ranger:["wind","neutral"],berserker:["beast","vampiric"],alchemist:["poison","fire"],
+  templar:["holy","neutral"],stormcaller:["lightning","wind"],revenantc:["undead","haunted"],warden:["metal","earth"],
+  nightblade:["demon","wind"],thornwitch:["earth","poison"],gravekeeper:["undead","earth"],forgewright:["dragon","metal"],
+  oracle:["holy","frost"],voidborn:["arcane","demon"]};
 LOCKED.forEach(c=>{c.pal=HEROMAT[c.id]?pal("red","black"):pal("red","black");CHARS.push(c);});
+CHARS.forEach(c=>{if(CHARTAGS[c.id]){c.tags=CHARTAGS[c.id].slice();c.relicTags=[c.tags[0]];}});
+/* re-tag the old tables onto the sixteen set tags */
+Object.keys(PREFER).forEach(k=>{PREFER[k]=migTags(PREFER[k]);if(PREFER[k].length<2)PREFER[k].push(ALT2[PREFER[k][0]]||'neutral');});
 function charStartItem(c){
   const bid=ITEMS.findIndex(i=>i.shape===c.startShape&&i.r===0);   // always the common, scuffed version
   return mkItem(bid, c.relicTags.slice(0,1).concat(c.relicTags[1]?[c.relicTags[1]]:[]).sort(), 1);
@@ -3660,6 +3733,8 @@ MOREFOES.forEach(f=>{
   FOEMAT[id]=foeMat(body,accent,eye);
   FOEOPT[id]=opt;
 });
+FOES.forEach(f=>{f.weak=migTags([f.weak])[0]||'neutral';f.res=migTags([f.res])[0]||'metal';
+  if(f.res===f.weak)f.res=ALT2[f.weak]||'neutral';});
 
 /* ---------- BLESSINGS ---------- */
 function freshBless(){return {atk:0,crit:0,leech:0,regen:0,aspd:0,stackBonus:0,mend:0,phoenix:0,tb:{}};}
@@ -3935,11 +4010,11 @@ window.addEventListener('touchstart',()=>{if(AUDIO.music)startMusic();},{once:tr
 let R=null, UI={players:1,start:0,depth:0,ci:0,picked:[],sel:null,speed:2,peek:0,shopP:0,shrineP:0};
 let META={wins:{},best:0,starts:1,ach:{},board:[]};
 const ACH=[
- {id:"act1",n:"Out of the Hollow",d:"Beat Act I — The Forest Hollow.",unlocks:"thornwitch"},
- {id:"act2",n:"Past the Dead",d:"Beat Act II — The Catacombs.",unlocks:"gravekeeper"},
- {id:"act3",n:"Furnace Cold",d:"Beat Act III — The Foundry.",unlocks:"forgewright"},
- {id:"act4",n:"Unseen",d:"Beat Act IV — The Hollow Shrine.",unlocks:"oracle"},
- {id:"act5",n:"The Bottom",d:"Beat Act V — The Ninefold Core.",unlocks:"voidborn"},
+ {id:"act1",n:"Out of the Hollow",d:"Beat Act I — The Forest Hollow. Unlocks new items: rapier, greatsword, sickle, mace, halberd, sling.",unlocks:"thornwitch"},
+ {id:"act2",n:"Past the Dead",d:"Beat Act II — The Catacombs. Unlocks new items: javelin, tome, scepter, gauntlet, pauldron, greaves.",unlocks:"gravekeeper"},
+ {id:"act3",n:"Furnace Cold",d:"Beat Act III — The Foundry. Unlocks new items: tower shield, talisman, charm, skull, bell, hourglass.",unlocks:"forgewright"},
+ {id:"act4",n:"Unseen",d:"Beat Act IV — The Hollow Shrine. Unlocks new items: lute, flask, net, key, heart, anvil, darts.",unlocks:"oracle"},
+ {id:"act5",n:"The Bottom",d:"Beat Act V — The Ninefold Core. Unlocks new items: the four relics.",unlocks:"voidborn"},
  {id:"firstBlood",n:"First Blood",d:"Win your first fight."},
  {id:"floor5",n:"Five Down",d:"Reach floor 5."},
  {id:"floor10",n:"Ten Down",d:"Reach floor 10.",unlocks:"ranger"},
@@ -4133,12 +4208,12 @@ function toStash(inst){                     // into storage if it fits, else the
   R.stash.push(inst);return false;
 }
 function rollItem(bias,favour){
-  if(bias===undefined&&R&&R.floor>=3&&Math.random()<0.035){      // a relic, now and then
+  if(bias===undefined&&R&&R.floor>=3&&Math.random()<0.035&&hasAch('act'+RELICLOCK)){      // a relic, now and then
     const sp=pick(SPECIALS);
     return mkItem(sp.id, rollTags(sp,favour), 1);
   }
   const r=rollRarity(R?R.floor:1,bias);
-  let sh=pick(SHAPES);
+  let sh=pick(openShapes());
   // a third of what the dark offers echoes something the company already carries, so that a
   // second one of a thing — and therefore a merge — is something you can actually hope for
   if(R&&R.party&&Math.random()<0.32){
@@ -4268,7 +4343,7 @@ function backToTitle(){document.getElementById('statsTab').style.display='none';
 function showHelp(){
   document.getElementById('helpBody').innerHTML=`
   <b class="gold">Players.</b> 1&ndash;4 &mdash; that is how many mercenaries descend.<br>
-  <b class="gold">Tags.</b> Every item carries 1&ndash;2 of nine tags: ${TKEYS.map(t=>`<span style="color:${tagCol(t)}">${TAGS[t].n}</span>`).join(', ')}.
+  <b class="gold">Tags.</b> Every item carries 1&ndash;2 of sixteen set tags (2, 4 and 6 of one tag on a merc unlock its set bonus): ${TKEYS.map(t=>`<span style="color:${tagCol(t)}">${TAGS[t].n}</span>`).join(', ')}.
   Each merc is attuned to two of them. The tag gives nothing by itself — it makes any item carrying that tag
   <b>15% better</b> for that merc, and they start with a relic that matches.<br>
   <b class="gold">Merging.</b> Two items merge only if they are the <b>same item</b>, with the <b>same tags</b>, at the <b>same level</b>. Max level 3.<br>
@@ -4529,7 +4604,7 @@ function netApplySnap(m){
      stash:(d.stash||[]).map(unpackInst),store:unpackGrid(d.store,STORER),
      map:d.map||null,mapFloor:d.floor,
      party:d.party.map(p=>{const def=CHARS.find(c=>c.id===p.cid)||CHARS[0];
-       return {cid:p.cid,name:p.name,tags:p.tags,maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
+       return {cid:p.cid,name:p.name,tags:def.tags.slice(),maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
          spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR),bless:p.bless||freshBless()};})};
   shopStock=d.shop?d.shop.map(g=>unpackGrid(g,6)):null;
   document.getElementById('statsTab').style.display='block';
@@ -4904,9 +4979,9 @@ const TUT_STEPS=[
   hint:"Drag these around if you like. Nothing here can go wrong.",
   build(stage){
     TUT.rows=3; TUT.grid=Array(PACKW*PACKMAXR).fill(null);
-    autoPlace(TUT.grid,tutItem('sword',1,['metal','holy']),TUT.rows);
-    autoPlace(TUT.grid,tutItem('shield',0,['armour','metal']),TUT.rows);
-    autoPlace(TUT.grid,tutItem('ring',1,['health','neutral']),TUT.rows);
+    autoPlace(TUT.grid,tutItem('sword',1,['holy','metal']),TUT.rows);
+    autoPlace(TUT.grid,tutItem('shield',0,['metal','earth']),TUT.rows);
+    autoPlace(TUT.grid,tutItem('ring',1,['neutral','undead']),TUT.rows);
     stage.appendChild(gridView(TUT.grid,TUT.rows,34,{gid:'tut',drag:true}));
   }},
  {t:"The light goes round, and your relics go off",
@@ -4920,8 +4995,8 @@ const TUT_STEPS=[
     const inner=document.createElement('div');
     inner.style.cssText='background:#0a070b;border-radius:4px;padding:6px';
     const g=Array(PACKW*PACKMAXR).fill(null);
-    autoPlace(g,tutItem('dagger',1,['bleed','metal']),2);
-    autoPlace(g,tutItem('wand',1,['fire','ice']),2);
+    autoPlace(g,tutItem('dagger',1,['metal','vampiric']),2);
+    autoPlace(g,tutItem('wand',1,['fire','frost']),2);
     inner.appendChild(gridView(g,2,24,{}));
     wrap.appendChild(inner);stage.appendChild(wrap);
     let t=0;clearInterval(TUT._ring);
@@ -4943,7 +5018,7 @@ const TUT_STEPS=[
   hold:"Merge the two daggers first \u2014 drag one onto the other.",
   build(stage){
     TUT.rows=3; TUT.grid=Array(PACKW*PACKMAXR).fill(null);
-    const a=tutItem('dagger',1,['bleed','metal']), b=tutItem('dagger',1,['bleed','metal']);
+    const a=tutItem('dagger',1,['metal','vampiric']), b=tutItem('dagger',1,['metal','vampiric']);
     placeItem(TUT.grid,a,0,TUT.rows); placeItem(TUT.grid,b,5,TUT.rows);
     const holder=document.createElement('div');
     holder.style.cssText='position:relative';
@@ -4979,7 +5054,7 @@ const TUT_STEPS=[
       '<div>'+be.tags.map(t=>'<span class="chip" style="color:'+tagCol(t)+';border-color:'+tagCol(t)+'">'+
       TAGS[t].n+'</span>').join('')+'</div>');
     row.appendChild(col);
-    const inst=tutItem('dagger',2,['bleed','metal']);
+    const inst=tutItem('dagger',2,['metal','vampiric']);
     row.appendChild(itemCard(inst,null));
     stage.appendChild(row);
   }},
@@ -5188,7 +5263,7 @@ function packInst(x){
   return o;
 }
 function unpackInst(o){
-  const x=mkItem(o.b,o.t,o.l);
+  const x=mkItem(o.b,migTags(o.t,true),o.l);
   x.at=o.a; if(o.r)x.rot=1; if(o.g)x.grown=o.g; if(o.o!=null)x.owner=o.o;
   if(o.gr>=0&&GRANTS[o.gr])x.grant=GRANTS[o.gr];
   if(o.cu>=0&&CURSES[o.cu])x.curse=CURSES[o.cu];
@@ -5233,7 +5308,7 @@ function loadRun(){
      stash:(d.stash||[]).map(unpackInst),store:unpackGrid(d.store,STORER),
      party:d.party.map(p=>{
        const def=CHARS.find(c=>c.id===p.cid)||CHARS[0];
-       return {cid:p.cid,name:p.name,tags:p.tags,maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
+       return {cid:p.cid,name:p.name,tags:def.tags.slice(),maxHp:p.maxHp,hp:p.hp,dmg:p.dmg,armour:p.armour,
          spd:p.spd,dodge:p.dodge,lvl:p.lvl,xp:p.xp,def,grid:unpackGrid(p.grid,PACKMAXR),bless:p.bless||freshBless()};})};
   UI.players=R.party.length; UI.mode=R.mode; UI.endless=R.endless;
   UI.picked=R.party.map(p=>CHARS.findIndex(c=>c.id===p.cid));
@@ -5462,6 +5537,92 @@ function statBlock(inst){
     ${L.map(([i,k,v])=>`<span style="opacity:.8">${i}</span><span class="muted">${k}</span><b>${v}</b>`).join('')}
   </div>`;
 }
+/* ITEM CARD — what an item does, written out in sections: what it gives just by being worn,
+   what happens each time it triggers on your ring, and what it does on its own clock. */
+const WEAPONSH=new Set("dagger sword axe hammer spear claw bow staff orb wand crossbow scythe flail katar whip trident chakram grimoire rapier greatsword sickle mace halberd sling javelin tome scepter darts lute bomb".split(' '));
+function itemEffects(inst){
+  const it=ITEMS[inst.bid], F=inst.forged, G=inst.grown, lv=inst.lvl||1, L=lvlMul(lv);
+  const add=(o,k)=>((o&&o[k])||0), r1=v=>Math.round(v*10)/10, pc=v=>Math.round(v*100)+'%';
+  const E=[],A=[],T=[];
+  const ar=(it.armour||0)+add(F&&F.flat,'armour')+add(G,'armour'); if(ar)E.push('+'+Math.round(ar*L)+' Armour');
+  const hp=(it.hp||0)+add(F&&F.flat,'hp')+add(G,'hp'); if(hp)E.push('+'+Math.round(hp*L)+' Max HP');
+  const sp=(it.spd||0)+add(F&&F.flat,'spd'); if(sp)E.push('+'+r1(sp*L)+' Speed');
+  const dg=(it.dodge||0)+add(F&&F.flat,'dodge'); if(dg)E.push('+'+pc(dg*L)+' Dodge');
+  const cr=(it.crit||0)+add(F&&F.flat,'crit'); if(cr)E.push('+'+pc(cr*L)+' Crit');
+  const ls=(it.lifesteal||0)+add(F&&F.flat,'lifesteal'); if(ls)E.push('+'+pc(ls*L)+' Lifesteal');
+  const rg=(it.regen||0)+add(F&&F.flat,'regen'); if(rg)E.push('+'+r1(rg*L)+' Regen');
+  if(it.goldOnHit)A.push('+'+it.goldOnHit+' gold');
+  // the tags, broken into what they actually do
+  let bonus=0; const notes=[], status={};
+  (inst.tags||[]).forEach(t0=>{(TAGS[t0]&&TAGS[t0].fx||[]).forEach(([e,w])=>{
+    const m=tagMag(e,it,lv)*w;
+    if(e==='armour')E.push('+'+Math.round(m)+' Armour');
+    else if(e==='health')E.push('+'+Math.round(m)+' Max HP');
+    else if(e==='dodge')E.push('+'+pc(m)+' Dodge');
+    else if(e==='speed'||e==='wind')E.push('+'+r1(m)+' Speed');
+    else if(e==='lucky')E.push('+'+pc(m)+' Crit');
+    else if(e==='vampire')E.push('+'+pc(m)+' Lifesteal');
+    else if(e==='ward')E.push('Block '+r1(m)+' damage from every hit');
+    else if(e==='thorns')E.push(Math.round(m)+' Thorns');
+    else if(e==='echo')E.push('+'+pc(m)+' Multi Trigger');
+    else if(e==='heavy'){bonus+=m;E.push('−'+r1(m*0.12)+' Speed');}
+    else if(ELFX[e]){bonus+=m;
+      if(e==='metal')notes.push('Pierces Armour');
+      if(e==='punch')notes.push("Can't be dodged");
+      if(e==='holy')notes.push('Heal '+Math.round(m));
+      if(e==='earth'){E.push('+'+Math.round(m*0.4)+' Armour');notes.push('+'+r1(m*0.5)+' Armour this battle');}
+      if(e==='fire')status.burn=(status.burn||0)+m*0.9;
+      if(e==='ice')status.freeze=(status.freeze||0)+m*0.9;
+      if(e==='lightning')notes.push(Math.round(m*0.6)+' damage chains to another foe');
+      if(e==='shadow')notes.push('+'+pc(m)+' crit damage');}
+    else if(STATUS_OF[e]){const st=STATUS_OF[e];status[st]=(status[st]||0)+m;}
+  });});
+  const cast=it.cast, dmg=(cast&&cast.dmg||0)+add(F&&F.flat,'dmg')+add(G,'dmg'), all=(cast&&cast.dmgAll||0)+add(F&&F.flat,'dmgAll');
+  const pr=it.proc||(F&&F.proc);
+  const stTxt=Object.keys(status).map(k=>Math.round(status[k]*10)/10+' '+TAGS[k].n);
+  if(cast||dmg||all){
+    if(dmg)A.push('Deal '+Math.round(dmg*L+bonus)+' damage'+(cast&&cast.hits>1?' ×'+cast.hits:''));
+    if(all)A.push('Deal '+Math.round(all*L+bonus*0.6)+' damage to every foe');
+    notes.forEach(n=>A.push(n));
+    if(pr){const what=pr.force?Math.round(pr.n)+' '+TAGS[pr.force].n:(stTxt.length?stTxt.join(', '):Math.round(pr.n)+' Bleed');
+      A.push(Math.round(pr.chance*100)+'% chance to inflict '+what);}
+    else if(stTxt.length)A.push('Inflict '+stTxt.join(', '));
+  }
+  const ev=it.every||(F&&F.every);
+  if(ev){const n=ev.n||0;T.push({t:ev.t,txt:
+     ev.kind==='statusAll'?'Inflict '+(stTxt.length?stTxt.join(', '):'its tags')+' on every foe':
+     ev.kind==='armourPerm'?'+'+n+' Armour this run':
+     ev.kind==='armourPermItem'?'+'+n+' Armour, kept between fights':
+     ev.kind==='dmgPerm'?'+'+n+' Dmg, kept between fights':
+     ev.kind==='healSelf'?'Heal '+Math.round(n*L):
+     ev.kind==='healAlly'?'Heal your weakest ally '+Math.round(n*L):
+     ev.kind==='armourTemp'?'+'+n+' Armour this battle':
+     ev.kind.replace(/([A-Z])/g,' $1').toLowerCase()+(n?' '+n:'')});}
+  // fold duplicate stat lines (two tags that both give Armour, say) into one
+  const fold=L0=>{const m=new Map();L0.forEach(x=>{const k=x.replace(/^[+−-]?[\d.]+%?/,'#');const v=parseFloat(x.replace(/^[+−]/,''));
+      if(/^[+−]?[\d.]+%?/.test(x)&&m.has(k)){m.get(k).v+=v;}else m.set(k+(m.has(k)?Math.random():''),{x,v,k});});
+    return [...m.values()].map(o=>o.k.indexOf('#')===0&&/^[+−]?[\d.]+%?/.test(o.x)?o.x.replace(/[\d.]+/,String(Math.round(o.v*10)/10).replace(/\.0$/,'')):o.x);};
+  return {equip:fold(E),attack:A,every:T};
+}
+function itemSections(inst){
+  const X=itemEffects(inst), sec=(h,L,col)=>L.length?`<div class="isec"><div class="ish"${col?` style="color:${col}"`:''}>${h}</div>${L.map(x=>`<div class="iln">${x}</div>`).join('')}</div>`:'';
+  let h=sec('When equipped',X.equip)+sec('On attack',X.attack,'#ffd166');
+  X.every.forEach(e=>{h+=sec('Every '+e.t+'s',[e.txt],'#8ad4ff');});
+  if(!h)h='<div class="isec"><div class="iln muted">Always on — no trigger.</div></div>';
+  return h;
+}
+function itemKind(inst){const it=ITEMS[inst.bid];const nm=it.shape.replace(/^./,c=>c.toUpperCase());
+  return (it.special?'Relic':WEAPONSH.has(it.shape)?'Weapon':'Gear')+': '+nm;}
+function itemFacts(inst){
+  const it=ITEMS[inst.bid],[w,h]=sizeOf(inst),la=lockAct(inst.bid);
+  const rows=[["Kind",itemKind(inst)],["Rarity",`<span style="color:${RAR[it.r].col==='#5f6778'?'#c8c0b4':RAR[it.r].col}">${RAR[it.r].n}</span>`],
+    ["Tags",inst.tags.map(t=>`<span class="chip" style="color:${tagCol(t)};border-color:${tagCol(t)}">${TAGS[t].n}</span>`).join('')],
+    ["Board size",`${w*h} cells (${w} wide, ${h} tall)`]];
+  if(R){rows.push(["Sell value",`<span class="gold">${sellPrice(inst)}</span> c`]);rows.push(["Shop value",`<span class="gold">${price(inst)}</span> c`]);}
+  if(la)rows.push(["Unlocks",`Beat Act ${la}`+(itemOpen(inst.bid)?' <span style="color:#aef07c">✓</span>':'')]);
+  rows.push(["Leveling","Merge 2 copies of the same level into 1 copy a level higher"]);
+  return '<div class="ifacts">'+rows.map(([k,v])=>`<span>${k}</span><b>${v}</b>`).join('')+'</div>';
+}
 function skillLine(inst){
   const it=ITEMS[inst.bid], F=inst.forged;
   const ev=it.every||(F&&F.every), pr=it.proc||(F&&F.proc);
@@ -5482,7 +5643,7 @@ function skillLine(inst){
 function itemDetail(inst,cost,onBuy,onCancel,sell){
   const it=ITEMS[inst.bid], F=inst.forged;
   const d=document.createElement('div');d.className='frame';
-  d.style.cssText='padding:12px;width:238px;border-color:'+RAR[it.r].col;
+  d.style.cssText='padding:12px;width:268px;border-color:'+RAR[it.r].col;
   const ic=document.createElement('div');ic.style.cssText='display:flex;justify-content:center;margin-bottom:6px';
   ic.appendChild(itemIcon(it.shape,null,6,null,inst));d.appendChild(ic);
   d.insertAdjacentHTML('beforeend',
@@ -5492,8 +5653,8 @@ function itemDetail(inst,cost,onBuy,onCancel,sell){
      <div style="text-align:center;margin-bottom:4px">${inst.tags.map(t=>
         `<span class="chip" style="color:${tagCol(t)};border-color:${tagCol(t)}">${TAGS[t].n}</span>`).join('')}</div>
      <div class="muted" style="text-align:center;font-size:10px">${sizeStr(inst)} tiles · takes ${sizeOf(inst)[0]*sizeOf(inst)[1]} squares</div>
-     ${statBlock(inst)}
-     ${skillLine(inst)}
+     ${itemSections(inst)}
+     ${itemFacts(inst)}
      ${F?'<div class="granted" style="font-size:10px;margin-top:4px">forged</div>':''}
      ${inst.grown?'<div class="gold" style="font-size:10px;margin-top:4px">this relic has grown</div>':''}`);
   const bar=document.createElement('div');bar.className='row';bar.style.cssText='margin-top:10px;gap:6px';
@@ -5992,7 +6153,7 @@ function showTip(e,inst){
       ${RAR[it.r].n}${inst.lvl>1?' · Level '+inst.lvl:''} · ${sizeStr(inst)}</div>
     <b style="color:#fff">${iname(inst)}</b><br>
     ${inst.tags.map(t=>`<span class="chip" style="color:${tagCol(t)};border-color:${tagCol(t)}">${TAGS[t].n}</span>`).join('')}
-    ${statBlock(inst)}${skillLine(inst)}
+    ${itemSections(inst)}
     ${inst.grant?`<div class="granted" style="font-size:10px">Granted: ${inst.grant.d}</div>`:''}
     ${inst.curse?`<div class="cursed" style="font-size:10px">Cursed item</div>`:''}`;
   tip.style.display='block';
@@ -6401,6 +6562,7 @@ function renderPack(){
         <span class="gold">L${m.lvl}</span></div>
       <div>${m.tags.map(t=>`<span class="chip" style="color:${tagCol(t)};border-color:${tagCol(t)}">${TAGS[t].n}</span>`).join('')}
         <span class="muted" style="font-size:10px">items with these tags: +15%</span></div>
+      <div class="setline">${setLine(m.grid)}</div>
       <div class="muted" style="font-size:10px">${STAT.hp} ${m.hp}/${m.maxHp} · ${STAT.armour} ${Math.round(m.armour)} ·
         ${STAT.speed} ${Math.round(m.spd*10)/10} · ${STAT.dodge} ${Math.round(m.dodge*100)}%</div></div>`);
     p.appendChild(head);
@@ -6471,8 +6633,9 @@ function selInst(){return UI.sel?UI.sel.inst:null;}
    8. COMBAT
    =================================================================== */
 let B=null,timer=null,B_isExit=true;
+const ACTFEEL=[1.7,1.45,0.8,0.85,0.95], EASE0=0.3, EASEH=0.45;
 const ARM_REBUILD_WAIT=2, ARM_REBUILD_TIME=7;   // a breath, then a slow refill
-const FIGHT_HP=1.9, FIGHT_HP_HERO=1.9, ARM_POOL=1, FOE_HIT=1.6, BOSS_HIT=0.65, BOSS_HP=0.75;
+const FIGHT_HP=2.2, FIGHT_HP_HERO=2.2, ARM_POOL=1, FOE_HIT=2.7, BOSS_HIT=0.65, BOSS_HP=0.75;
 function buildUnit(src,side){
   const u={side,name:src.name,ref:src,grid:src.grid,sprite:src.def||src.foeDef,
     maxHp:src.maxHp,hp:src.hp,armour:src.armour,baseArmour:src.armour,dodge:src.dodge||0,
@@ -6488,6 +6651,12 @@ function buildUnit(src,side){
   const prof=src.tags||[];
   const gridRows=(side==='hero')?packRows():5;
   const placed=anchors(src.grid);
+  // SET BONUSES — counted per merc before anything else, so their damage share reaches every cast
+  const SB={atk:0,dodge:0,crit:0,regen:0,hp:0,leech:0,echo:0,arm:0,spd:0}, setPow={};
+  u.sets={};
+  {const cnt=setCounts(src.grid);Object.keys(cnt).forEach(t=>{const k=setTier(cnt[t]);
+    if(k>=0&&SETS[t]){SETS[t].f(SB,k);setPow[t]=SETPOW[k];u.sets[t]=cnt[t];}});}
+  atk+=SB.atk;
   placed.forEach(({inst,i})=>{
     const it0=ITEMS[inst.bid], L=lvlMul(inst.lvl);
     const F=inst.forged, GR=inst.grown;
@@ -6516,8 +6685,10 @@ function buildUnit(src,side){
     if(it.crit)u.crit+=it.crit*L*pm;
     const el={bonus:0,pierce:0,noDodge:0,heal:0,armourGain:0,arc:0,critMul:0}, status=[];
     let el0heavy=0;
-    inst.tags.forEach(t=>{
-      const mag=tagMag(t,it,inst.lvl)*pm*(1+(tb[t]||0));
+    const fxList=[];inst.tags.forEach(t0=>{const T=TAGS[t0];
+      (T&&T.fx?T.fx:[[t0,1]]).forEach(([e,w])=>fxList.push([e,w,t0]));});
+    fxList.forEach(([t,w,t0])=>{
+      const mag=tagMag(t,it,inst.lvl)*w*pm*(1+(tb[t0]||0)+(tb[t]||0)+(setPow[t0]||0));
       if(t==='armour')u.armour+=Math.round(mag);
       else if(t==='health'){u.maxHp+=Math.round(mag);u.hp+=Math.round(mag);}
       else if(t==='dodge')u.dodge+=mag;
@@ -6528,7 +6699,7 @@ function buildUnit(src,side){
       else if(t==='thorns')u.thorns=(u.thorns||0)+mag;
       else if(t==='echo')u.echo=Math.min(.6,(u.echo||0)+mag);
       else if(t==='heavy'){el0heavy+=mag;spd-=mag*0.12;}
-      else if(TAGS[t].el){
+      else if(ELFX[t]){
         el.bonus+=mag;
         if(t==='metal')el.pierce=1;
         if(t==='punch')el.noDodge=1;
@@ -6566,6 +6737,12 @@ function buildUnit(src,side){
     if(S&&n>0){ if(S.f)S.f(u,n); if(S.stack)u.stackBonusByTag=
       Object.fromEntries(Object.entries(S.stack).map(([k,v])=>[k,v*n])); }
   }
+  // the stat half of each set bonus
+  if(SB.hp){const h=Math.round(u.maxHp*SB.hp);u.maxHp+=h;u.hp+=h;}
+  if(SB.arm)u.armour=Math.round(u.armour*(1+SB.arm));
+  u.dodge+=SB.dodge;u.crit+=SB.crit;u.regen+=SB.regen;u.lifesteal+=SB.leech;
+  if(SB.echo)u.echo=Math.min(.6,(u.echo||0)+SB.echo);
+  if(SB.spd)u.setSpd=SB.spd;
   u.baseArmour=u.armour; u.dodge=Math.min(.6,u.dodge);
   u.ward=u.ward||0; u.thorns=u.thorns||0; u.echo=u.echo||0;
   // ceilings: stacked without them, lifesteal and thorns alone decide the run
@@ -6579,7 +6756,7 @@ function buildUnit(src,side){
   // a pack loaded along the top row would otherwise dump everything in the first second
   {const n=u.casts.length;u.casts.forEach((c,k)=>{c.phase=0.5*(c.phase||0)+0.5*(k/n);});}
   // SPEED drives the ring: one lap around the backpack, then every item casts
-  u.spd=Math.max(2,spd+(side==='hero'?(R.bless.aspd+mb.aspd)*8:0));
+  u.spd=Math.max(2,(spd+(side==='hero'?(R.bless.aspd+mb.aspd)*8:0))*(1+(u.setSpd||0)));
   u.lap=Math.max(1.7,Math.min(9,40/u.spd));   // a floor on the lap, or stacked Speed runs away with it
   // start the light just short of the first relic, so the opening blow doesn't wait a whole lap
   u.lapT=u.lap*(1-Math.max(0,(u.casts[0].phase||0)-0.03));
@@ -6681,7 +6858,8 @@ function foeLoadout(def,floor){
   const grid=Array(PACKW*PACKMAXR).fill(null);
   const n=Math.min(6,def.lo+Math.floor(floor/6));
   for(let i=0;i<n;i++){
-    const sh=def.pack[i%def.pack.length];
+    let sh=def.pack[i%def.pack.length];
+    if(!shapeOpen(sh))sh=pick(openShapes());
     // what they carry rolls like anything else you would find at this depth; the first item
     // is their best, a step up — that is the one worth hoping for when they fall
     const r=i<1?rollLifted(floor,4):rollRarity(floor);
@@ -6728,6 +6906,8 @@ function mkFoe(def,floor,weight){
   // but every act lands a step up on top of it, so act five hits harder than anything above.
   const camp=R&&!R.endless;
   const actM=camp?1+0.15*(actOf(floor)-1):1;
+  // how hard each act hits, so the danger climbs evenly instead of a soft start and a wall at Act III
+  const feel0=ACTFEEL[Math.min(4,Math.floor((floor-1)/15))], feel=feel0*(EASE0+(1-EASE0)*Math.min(1,(floor-1)/5));   // the first floors ease in: your starting gear has to win the first room
   const dm=DEPTHS[R.depth].m, f=camp?1+(floor-1)*0.34:floor;
   // health climbs faster than damage over a 75-floor campaign, or the fights at the bottom
   // would be over before the ring finishes a lap
@@ -6746,8 +6926,8 @@ function mkFoe(def,floor,weight){
   // Rank-and-file foes hit hard enough to matter in every room; bosses are tougher, not a wall —
   // their stat lines already run several times a normal foe's, so they are trimmed back here.
   const big=(def.boss||def.hp>=300);
-  const dmS=(1+0.07*(f-1)+0.0030*(f-1)*(f-1))*2.95*FOE_HIT*(big?BOSS_HIT:1)*Math.min(1,0.75+0.1*f)*actM*Math.pow(w,0.7)*(1+R.bless.foeDmg);
-  const hpB=big?BOSS_HP:1;
+  const dmS=(1+0.07*(f-1)+0.0030*(f-1)*(f-1))*2.95*FOE_HIT*feel*(big?BOSS_HIT:1)*Math.min(1,0.75+0.1*f)*actM*Math.pow(w,0.7)*(1+R.bless.foeDmg);
+  const hpB=(big?BOSS_HP:1)*(EASEH+(1-EASEH)*Math.min(1,(floor-1)/5));
   const e={name:def.n,foeDef:def,maxHp:Math.round(def.hp*hpS*dm*hpB),hp:Math.round(def.hp*hpS*dm*hpB),
     armour:Math.min(45,Math.round(def.armour*(1+f*0.06)*dm)),dodge:def.dodge,dmg:Math.round(def.dmg*dmS*dm),
     // they swing oftener than they used to: a foe that acts once every five seconds is scenery
@@ -6974,7 +7154,10 @@ const CSFX={
   win:()=>{[392,494,587,784].forEach((f,i)=>tone(f,0.22,'triangle',0.11,null,i*0.09));},
   lose:()=>{[294,262,220,147].forEach((f,i)=>tone(f,0.32,'triangle',0.11,null,i*0.13));},
 };
+const MAGICALIAS={frost:'ice',vampiric:'bleed',demon:'fire',dragon:'fire',undead:'shadow',haunted:'shadow',
+  arcane:'holy',earth:'_',wind:'_',beast:'bleed',metal:'_',neutral:'_'};
 function playKind(kind,tag){
+  if(tag&&!CSFX.magic[tag]&&MAGICALIAS[tag])tag=MAGICALIAS[tag];
   if(kind==='magic'){const m=CSFX.magic[tag]||CSFX.magic._;if(sfxGate('m'+tag,70))m();}
   else if(sfxGate(kind,55))CSFX[kind]();
 }
@@ -7136,8 +7319,9 @@ function hurt(target,amount,tag,src,pierce,noDodge){
     if(target.ref&&target.ref.cid==='nightblade')target.nextCrit=1;          // Nightblade: a dodge sets up a crit
     return 0;}
   let m=1;
-  if(tag&&target.weak===tag)m*=1.5;
-  if(tag&&target.res===tag)m*=0.6;
+  const tg=tag?tagOf(tag):null;
+  if(tg&&target.weak===tg)m*=1.5;
+  if(tg&&target.res===tg)m*=0.6;
   if(src&&src.ref&&src.ref.cid==='wizard'&&target.st.freeze>0&&target.st.burn>0)m*=1.25;
   if(src&&src.side==='hero'&&target.st.freeze>0&&B&&B.heroes.some(h=>h.alive&&h.ref&&h.ref.cid==='oracle'))m*=1.2;   // Oracle
   let d=amount*m;
@@ -7177,7 +7361,7 @@ function applyStack(target,tag,n,src){
   if(!target.alive||!n)return;
   let v=n+(src&&src.side==='hero'?R.bless.stackBonus+((src.ref&&src.ref.bless&&src.ref.bless.stackBonus)||0):0);
   if(src&&src.stackBonusByTag&&src.stackBonusByTag[tag])v+=src.stackBonusByTag[tag];
-  if(target.res===tag)v*=0.6; if(target.weak===tag)v*=1.4;
+  {const tg=tagOf(tag);if(target.res===tg)v*=0.6; if(target.weak===tg)v*=1.4;}
   if(target.ref&&target.ref.cid==='templar'&&target.ward>0)v*=0.65;           // Templar: the ward holds off sickness too
   target.st[tag]=(target.st[tag]||0)+v;
   const sc=src&&src.ref&&src.ref.cid;
@@ -7231,7 +7415,7 @@ function tick(){
       for(let k=0;k<n;k++){
         doCast(u,c,foes,allies);
         if(c.echo&&Math.random()<c.echo)doCast(u,c,foes,allies); // Echo: a second casting
-        if(u.ref&&u.ref.cid==='voidborn'&&Math.random()<0.15)doCast(u,c,foes,allies);   // Voidborn
+        if(u.ref&&u.ref.cid==='voidborn'&&Math.random()<0.10)doCast(u,c,foes,allies);   // Voidborn
         if(!alive(foes).length)break;
       }
     });
@@ -7479,6 +7663,7 @@ function statsMercs(body){
         ["Thorns",u.thorns?`${Math.round(u.thorns)} back at attackers`:'—'],
         ["Echo",u.echo?`${Math.round(u.echo*100)}% chance to cast twice`:'—'],
         ["Items",`${items} carried · ${u.casts.length} cast · ${u.timers.length} timed`]])+
+      sec('Sets')+`<div class="setline">${setLine(m.grid)}</div>`+
       sec('This run')+statRows([
         ["Damage dealt",fmtN(rs.dealt),'#ff8577'],["Kills",fmtN(rs.kills)],["Crits",fmtN(rs.crits)],
         ["Biggest hit",fmtN(rs.biggest)],["Damage taken",fmtN(rs.taken)],["Blocked by armour",fmtN(rs.blocked),'#8ad4ff'],
