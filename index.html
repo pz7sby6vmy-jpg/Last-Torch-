@@ -313,6 +313,32 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 .isec .iln{font-size:11.5px;color:#f0e8d8;line-height:1.45}
 .ifacts{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08);font-size:10.5px}
 .ifacts span{color:#8a7a6a}.ifacts b{font-weight:normal;color:#e8e0d0}
+
+/* Character achievement reveal — accessible and mobile-friendly */
+#character-unlock-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(3,5,12,.91);padding:20px;animation:unlockFade .35s ease-out}
+#character-unlock-overlay .unlock-panel{position:relative;width:min(440px,100%);padding:32px 22px;text-align:center;border:2px solid var(--gold,#e8c27a);border-radius:12px;background:radial-gradient(ellipse at 50% 25%,#2a3049,#0b0e17 75%);box-shadow:0 0 65px rgba(232,194,122,.28);overflow:hidden}
+#character-unlock-overlay .unlock-sigil{font-size:60px;line-height:1.3;filter:drop-shadow(0 0 14px currentColor);animation:unlockRise .9s cubic-bezier(.2,1.4,.4,1) both,unlockPulse 2s 1s ease-in-out infinite}
+#character-unlock-overlay .unlock-sparks{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#character-unlock-overlay .unlock-sparks i{position:absolute;left:50%;top:45%;width:5px;height:5px;border-radius:50%;background:var(--gold,#e8c27a);animation:unlockSpark 1.25s ease-out both;transform:rotate(var(--a)) translateY(0)}
+#character-unlock-overlay .unlock-heading{color:var(--gold,#e8c27a);letter-spacing:3px;font-size:13px;margin:14px 0 8px;animation:unlockRise .65s .25s both}
+#character-unlock-overlay .unlock-name{font-size:clamp(23px,6vw,34px);font-weight:bold;color:#fff;animation:unlockRise .7s .45s both}
+#character-unlock-overlay .unlock-desc{color:#c7cbd8;font-size:13px;line-height:1.6;margin:12px 0 23px;animation:unlockRise .7s .6s both}
+#character-unlock-overlay .unlock-continue{cursor:pointer;border:1px solid var(--gold,#e8c27a);border-radius:6px;padding:11px 22px;background:#342a19;color:#ffe9b3;font:inherit;min-height:44px;animation:unlockRise .6s .75s both}
+#character-unlock-overlay .unlock-continue:focus-visible{outline:3px solid white;outline-offset:3px}
+@keyframes unlockFade{from{opacity:0}to{opacity:1}}
+@keyframes unlockRise{from{opacity:0;transform:translateY(22px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes unlockPulse{50%{filter:drop-shadow(0 0 28px currentColor);transform:scale(1.08)}}
+@keyframes unlockSpark{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(1.4)}100%{opacity:0;transform:rotate(var(--a)) translateY(var(--dist)) scale(.1)}}
+@media(prefers-reduced-motion:reduce){#character-unlock-overlay,#character-unlock-overlay *{animation:none!important;transition:none!important}}
+
+/* Expanded atmosphere and interactive polish */
+.frame{box-shadow:inset 0 0 45px rgba(0,0,0,.9),0 10px 34px rgba(0,0,0,.28)}
+.card,.relic,.slot,button{transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,filter .16s ease}
+.card:hover,.relic:hover{box-shadow:0 9px 22px rgba(0,0,0,.35),inset 0 0 14px rgba(240,180,87,.06)}
+.slot:hover{box-shadow:inset 0 0 12px rgba(240,180,87,.12),0 0 7px rgba(240,180,87,.12)}
+button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.14)}
+.relicbox{box-shadow:inset 0 0 20px rgba(0,0,0,.6),0 0 12px rgba(240,180,87,.08)}
+@media(prefers-reduced-motion:reduce){.card,.relic,.slot,button{transition:none!important}}
 </style>
 </head>
 <body>
@@ -577,7 +603,7 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
     <div id="nodeBody"></div>
     <div class="center" style="margin-top:16px">
       <button onclick="openPack()">Backpacks</button>
-      <button class="btn-main" onclick="toRoute()">Back to the Map &#8594;</button>
+      <button class="btn-main" id="nodeExitBtn" onclick="leaveNodeRoom()">Back to the Map &#8594;</button>
     </div>
   </div>
 </div>
@@ -3074,6 +3100,36 @@ function tierMask(base,shape,r){
   return m;
 }
 const _mask32={};
+/* Item-specific enamel, scratches, gemstones and maker marks. A stable UID
+   means the same item keeps its appearance in the shop, backpack and saves. */
+function finishUniqueItem(canvas,mask,inst,scale){
+  if(!inst||!Number.isSafeInteger(inst.uid))return;
+  const ctx=canvas.getContext('2d'), unit=Math.max(1,Math.round(canvas.width/mask.w));
+  let seed=((inst.uid*2654435761)^(inst.bid*2246822519)^(inst.lvl*3266489917))>>>0;
+  function rand(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;}
+  const tag=inst.tags&&inst.tags[0], accent=tag&&TAGS[tag]?TAGS[tag].col:'#e9bd7a';
+  const inside=[];
+  for(let y=3;y<mask.h-3;y++)for(let x=3;x<mask.w-3;x++){
+    if(mask.g(x,y)&&mask.g(x-1,y)&&mask.g(x+1,y)&&mask.g(x,y-1)&&mask.g(x,y+1))inside.push([x,y]);
+  }
+  if(!inside.length)return;
+  ctx.save();
+  // Individual metalwork: tiny etched lines and scratches, never detached pixels.
+  for(let i=0;i<Math.min(18,5+inst.lvl*3+ITEMS[inst.bid].r*2);i++){
+    const pt=inside[(rand()*inside.length)|0];
+    ctx.fillStyle=i%3===0?'rgba(255,244,210,.72)':'rgba(12,9,20,.42)';
+    ctx.fillRect(pt[0]*unit,pt[1]*unit,unit*(rand()>.65?2:1),Math.max(1,unit*.55));
+  }
+  // Distinctive jewel / rune constellation tied to the item's identity.
+  ctx.fillStyle=accent;
+  const count=1+(inst.uid%3)+(ITEMS[inst.bid].r>=3?2:0);
+  for(let i=0;i<count;i++){
+    const pt=inside[(rand()*inside.length)|0];
+    ctx.fillRect(pt[0]*unit,pt[1]*unit,unit,unit);
+    ctx.fillStyle=i%2?'#fff4d2':accent;
+  }
+  ctx.restore();
+}
 function itemIcon(shape,palette,scale,key,inst){
   // NOTE: canvases must be re-rendered, never cloneNode'd — a cloned canvas is blank.
   const m=_maskCache[shape]||(_maskCache[shape]=itemMask(shape));
@@ -3083,17 +3139,18 @@ function itemIcon(shape,palette,scale,key,inst){
   const key2=shape+'|'+tierOf;
   const mT=tierOf<0?m2:(_mask32[key2]||(_mask32[key2]=tierMask(m2,shape,tierOf)));
   const k=Math.max(1,Math.ceil(scale/4));            // drawn at four times the resolution...
-  let c;
+  let c, m4;
   if(inst){
     const tA=inst.tags[0]?tagCol(inst.tags[0]):null, tB=inst.tags[1]?tagCol(inst.tags[1]):null;
     const r=ITEMS[inst.bid].r;
-    const key4=key2+'|64'; const m4=_mask32[key4]||(_mask32[key4]=scale2x(mT));
+    const key4=key2+'|64'; m4=_mask32[key4]||(_mask32[key4]=scale2x(mT));
     c=cached('i6'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
       ()=>renderMat(m4,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13,ol:2,glowR:4,grain:.5,
         sparkle:r>=4?3:(r>=3?2:0), glow:r>=4?'rgba(255,133,107,.22)':null}));
   } else {
     c=cached('p2'+shape+'_'+k+'_'+(key||''),()=>render(m2,palette,Math.max(1,Math.ceil(scale/2)),null));
   }
+  if(inst)finishUniqueItem(c,m4,inst,k);
   c.style.width=(16*scale)+'px';c.style.height=(16*scale)+'px';   // ...shown at the usual size
   if(c.width>=16*scale*((window.devicePixelRatio)||1))c.style.imageRendering='auto';
   return c;
@@ -3529,7 +3586,19 @@ function itemName(bid,tags){
   if(/ of /.test(base))return lead+pre+(TAGADJ2[t[1]]||'')+' '+base;  // never "of … of …"
   return lead+pre+base+' of '+TAGWORD[t[1]][1];
 }
-const iname=inst=>inst.name||(inst.bid!==undefined&&ITEMS[inst.bid]?itemName(inst.bid,inst.tags):'');
+/* Every physical item has its own permanent, readable name, even when two
+   drops share a template, rarity, and tags. The serial guarantees uniqueness. */
+const ITEM_EPITHETS=["Ashen Oath","Dusk Whisper","Iron Promise","Fallen Star","Moon Veil",
+ "Ember Song","Grim Fortune","Silver Thorn","Night Bloom","Storm Vow",
+ "Hollow Crown","Winter Echo","Golden Fang","Black Lantern","Dawn Shard",
+ "Ghost Flame","Raven Mark","Crimson Tide","Stone Dream","Last Spark"];
+function uniqueItemName(inst){
+  if(!inst||inst.bid===undefined||!ITEMS[inst.bid])return '';
+  const base=inst.name||itemName(inst.bid,inst.tags);
+  const id=Number.isSafeInteger(inst.uid)&&inst.uid>0?inst.uid:0;
+  return base+' — '+ITEM_EPITHETS[(id+inst.bid*7)%ITEM_EPITHETS.length]+' #'+id;
+}
+const iname=inst=>uniqueItemName(inst);
 function itemHasSkill(inst){const it=ITEMS[inst.bid];return !!(it.every||it.proc||inst.forged&&(inst.forged.every||inst.forged.proc));}
 /* the forge: the left item keeps its shape; the others pour their flat stats into it.
    A skill only transfers if the left item has none of its own. */
@@ -3593,11 +3662,11 @@ const CHARS=[
  {id:"bloodelf",name:"The Blood Elf",tags:["bleed","metal"],hp:440,dmg:18,armour:7,spd:13,dodge:.10,gold:105,
   seed:44,helm:"hood",weap:"dagger",cape:1,pal:pal("red","blue"),startShape:"dagger",startR:0,
   relicTags:["bleed"],rdesc:"Bleed you apply heals you as it is applied.",
-  flavor:"She was paid in coin once. Now she is paid in time."},
+  flavor:"She was paid in coin once. Now she is paid in time.",ach:"floor20"},
  {id:"druid",name:"The Druid",tags:["earth","poison"],hp:580,dmg:14,armour:11,spd:7,dodge:.04,gold:85,
   seed:55,helm:"horn",weap:"staff",cape:1,pal:pal("green","red"),startShape:"staff",startR:0,
   relicTags:["earth"],rdesc:"Gains +1 Armour every second of every fight.",
-  flavor:"Sat in the dark so long the dark made room."},
+  flavor:"Sat in the dark so long the dark made room.",ach:"floor30"},
  {id:"wizard",name:"The Lonely Wizard",tags:["fire","ice"],hp:425,dmg:20,armour:5,spd:10,dodge:.06,gold:130,
   seed:66,helm:"tall",weap:"orb",cape:1,pal:pal("blue","red",0),startShape:"wand",startR:0,
   relicTags:["fire"],rdesc:"Foes that are Burning AND Frozen take +25% damage.",
@@ -3870,25 +3939,44 @@ const GRANTS=[
  {d:"+8% Lifesteal",k:"lifesteal",v:.08},
  {d:"Triggers 25% faster",k:"haste",v:.25},
 ];
-/* ---------- EVENTS ---------- */
+/* ---------- EVENTS: permanent rewards, gear, coins and gambles (no room HP costs/heals) ---------- */
 const EVENTS=[
- {t:"A Cracked Reliquary",d:"Something hums behind the stone. Opening it will cost you.",
-  a:[{n:"Pry it open (-15% HP all)",f:R=>{R.party.forEach(p=>p.hp=Math.max(1,Math.round(p.hp*.85)));toStash(rollItem(3));return"The seal breaks. An Epic relic falls into your hands."}},
-     {n:"Scrape the gold leaf (+60 coins)",f:R=>{R.coins+=60;return"You take the dust and go. +60 coins."}}]},
- {t:"The Hanged Merchant",d:"He is still warm. His pack is still full.",
-  a:[{n:"Cut him down (heal party 35%)",f:R=>{R.party.forEach(p=>p.hp=Math.min(p.maxHp,p.hp+Math.round(p.maxHp*.35)));return"Decency has its own reward."}},
-     {n:"Take the pack (2 items)",f:R=>{toStash(rollItem());toStash(rollItem());return"Two items join your stash. You do not look up."}}]},
- {t:"Whispering Fountain",d:"The water speaks a number. Nobody agrees which.",
-  a:[{n:"Drink deep (+25 Max HP all)",f:R=>{R.party.forEach(p=>{p.maxHp+=25;p.hp+=25});return"Cold floods your chest."}},
-     {n:"Throw in coins (-40, random blessing)",f:R=>{if(R.coins<40)return"You have nothing to throw.";R.coins-=40;
-       const P=blessPool(),b=P[(Math.random()*P.length)|0],m=R.party[(Math.random()*R.party.length)|0];
-       b.f(R,m);R.blessings.push(b.n);return"The water gives "+m.name.replace('The ','')+": "+b.n+" — "+b.d;}}]},
- {t:"Two Doors, One Torch",d:"One door breathes warm. One breathes cold.",
-  a:[{n:"The warm door (upgrade an item)",f:R=>{forgeRandom(R);return"Heat welds something in your pack into a better shape."}},
-     {n:"The cold door (+80 coins)",f:R=>{R.coins+=80;return"A frozen purse, still heavy."}}]},
- {t:"The Ninefold Mirror",d:"Nine reflections. Only one of them moves correctly.",
-  a:[{n:"Touch the glass (random tag +45%)",f:R=>{const k=TKEYS[(Math.random()*9)|0];R.bless.tb[k]=(R.bless.tb[k]||0)+.45;return"The mirror chooses "+TAGS[k].n+".";}},
-     {n:"Break it (all -12 HP, +2 items)",f:R=>{R.party.forEach(p=>p.hp=Math.max(1,p.hp-12));toStash(rollItem());toStash(rollItem());return"Seven years, two relics. Fair trade."}}]},
+ {t:"The Crimson Altar",d:"A crimson altar offers a choice between raw power and buried treasure.",
+  a:[{n:"Claim the crimson relic (1 epic item)",f:R=>{toStash(rollItem(3));return"The altar reveals an epic treasure."}},
+     {n:"Break its seals (+75 coins)",f:R=>{R.coins+=75;return"The seals crack, revealing 75 coins."}}]},
+ {t:"The Sleeping Caravan",d:"An abandoned caravan holds forgotten supplies and a locked strongbox.",
+  a:[{n:"Search the wagons (2 items)",f:R=>{toStash(rollItem());toStash(rollItem());return"You recover two forgotten supplies."}},
+     {n:"Crack the strongbox (+90 coins)",f:R=>{R.coins+=90;return"You recover 90 coins from the strongbox."}}]},
+ {t:"The Starless Well",d:"A silver coin falls forever. Something below is listening.",
+  a:[{n:"Make a wish (40 coins for a blessing)",f:R=>{if(R.coins<40)return"The well rejects your empty purse.";R.coins-=40;const b=pick(blessPool()),m=pick(R.party);b.f(R,m);R.blessings.push(b.n);return m.name+" receives "+b.n+"."}},
+     {n:"Retrieve an ancient charm (+15 max HP each)",f:R=>{R.party.forEach(p=>{p.maxHp+=15;p.hp+=15});return"The charm permanently strengthens your party."}}]},
+ {t:"The Clockwork Forge",d:"A mechanical smith waits for one final command.",
+  a:[{n:"Reforge equipment (upgrade a random item)",f:R=>{forgeRandom(R);return"The forge strengthens your gear."}},
+     {n:"Strip its gears (+95 coins)",f:R=>{R.coins+=95;return"You sell the clockwork for 95 coins."}}]},
+ {t:"The Hall of False Faces",d:"Your reflections move a heartbeat before you do.",
+  a:[{n:"Embrace the reflection (random tag +35%)",f:R=>{const k=pick(TKEYS);R.bless.tb[k]=(R.bless.tb[k]||0)+.35;return"Your "+TAGS[k].n+" power grows."}},
+     {n:"Shatter the mirrors (2 random items)",f:R=>{toStash(rollItem());toStash(rollItem());return"Two treasures emerge from the broken glass."}}]},
+ {t:"The Mushroom Court",d:"Luminous mushrooms encircle a throne of tangled roots.",
+  a:[{n:"Accept the spore crown (random blessing)",f:R=>{const b=pick(blessPool()),m=pick(R.party);b.f(R,m);R.blessings.push(b.n);return"The spore crown grants "+b.n+" to "+m.name+"."}},
+     {n:"Harvest spores (1 item and 55 coins)",f:R=>{toStash(rollItem());R.coins+=55;return"You collect an item and 55 coins."}}]},
+ {t:"The Gambler's Bones",d:"A skeleton offers a game of chance with dice made of teeth.",
+  a:[{n:"Roll the bones (risk 50 coins for 150)",f:R=>{if(R.coins<50)return"You need 50 coins to wager.";R.coins-=50;if(Math.random()<.55){R.coins+=150;return"The bones favor you! You win 150 coins."}return"The dice turn to ash. Your wager is lost."}},
+     {n:"Take the safe purse (+35 coins)",f:R=>{R.coins+=35;return"You walk away with 35 coins."}}]},
+ {t:"The Lantern Keeper",d:"A hooded stranger carries a lantern full of trapped starlight.",
+  a:[{n:"Trade stories (1 random item)",f:R=>{toStash(rollItem());return"The keeper gives you a forgotten relic."}},
+     {n:"Sell him your map fragment (+70 coins)",f:R=>{R.coins+=70;return"The keeper pays 70 coins for the fragment."}}]},
+ {t:"The Forgotten Treasury",d:"Two sealed vaults stand before you: one gilded, one covered in thorns.",
+  a:[{n:"Open the gilded vault (+110 coins)",f:R=>{R.coins+=110;return"A shower of coins spills out. +110 coins."}},
+     {n:"Open the thorn vault (2 random items)",f:R=>{toStash(rollItem());toStash(rollItem());return"Two treasures lie behind the thorny door."}}]},
+ {t:"The Ancient Training Ground",d:"Ghostly warriors offer a lesson for the living.",
+  a:[{n:"Train endurance (+12 max HP each)",f:R=>{R.party.forEach(p=>{p.maxHp+=12;p.hp+=12});return"Your party's maximum health permanently increases."}},
+     {n:"Scavenge old weapons (2 items)",f:R=>{toStash(rollItem());toStash(rollItem());return"You salvage two weapons from the dust."}}]},
+ {t:"The Wishing Tree",d:"Silver leaves whisper promises, and the roots hold forgotten offerings.",
+  a:[{n:"Pray beneath the branches (random blessing)",f:R=>{const b=pick(blessPool()),m=pick(R.party);b.f(R,m);R.blessings.push(b.n);return"The tree grants "+m.name+" the blessing "+b.n+"."}},
+     {n:"Collect fallen offerings (+65 coins)",f:R=>{R.coins+=65;return"You find 65 coins among the roots."}}]},
+ {t:"The Broken Apothecary",d:"A ruined laboratory smells of herbs and dangerous alchemy.",
+  a:[{n:"Study the strengthening elixir (+20 max HP each)",f:R=>{R.party.forEach(p=>{p.maxHp+=20;p.hp+=20});return"The elixir permanently increases your party's maximum health."}},
+     {n:"Sell the ingredients (+85 coins)",f:R=>{R.coins+=85;return"The ingredients fetch 85 coins."}}]},
 ];
 
 /* ===================================================================
@@ -4018,8 +4106,8 @@ const ACH=[
  {id:"firstBlood",n:"First Blood",d:"Win your first fight."},
  {id:"floor5",n:"Five Down",d:"Reach floor 5."},
  {id:"floor10",n:"Ten Down",d:"Reach floor 10.",unlocks:"ranger"},
- {id:"floor20",n:"Twenty Down",d:"Reach floor 20."},
- {id:"floor30",n:"Thirty Down",d:"Reach floor 30."},
+ {id:"floor20",n:"Twenty Down",d:"Reach floor 20.",unlocks:"bloodelf"},
+ {id:"floor30",n:"Thirty Down",d:"Reach floor 30.",unlocks:"druid"},
  {id:"bossSlayer",n:"Bigger Things",d:"Kill a boss.",unlocks:"berserker"},
  {id:"merger",n:"Smith",d:"Merge an item up to level 3.",unlocks:"alchemist"},
  {id:"legendary",n:"Legend",d:"Carry a legendary item.",unlocks:"nightblade"},
@@ -4046,8 +4134,55 @@ function unlock(id){
   META.ach=META.ach||{};META.ach[id]=1;saveMeta();
   const a=ACHBY[id];if(!a)return;
   const cls=a.unlocks?CHARS.find(c=>c.id===a.unlocks):null;
-  toast(a.n, a.d + (cls?"  —  unlocked "+cls.name+"!":""));
+  if(cls && (cls.id==='bloodelf'||cls.id==='druid'))showCharacterUnlock(cls);
+  else toast(a.n, a.d + (cls?"  —  unlocked "+cls.name+"!":""));
 }
+
+const characterUnlockQueue=[];
+let characterUnlockActive=false;
+function showCharacterUnlock(cls){
+  characterUnlockQueue.push(cls);
+  if(characterUnlockActive)return;
+  nextCharacterUnlock();
+}
+function nextCharacterUnlock(){
+  const cls=characterUnlockQueue.shift();
+  if(!cls){characterUnlockActive=false;return;}
+  characterUnlockActive=true;
+  const isBlood=cls.id==='bloodelf';
+  const overlay=document.createElement('div');
+  overlay.id='character-unlock-overlay';
+  overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
+  overlay.setAttribute('aria-label',cls.name+' unlocked');
+  const panel=document.createElement('div');panel.className='unlock-panel';
+  const sparks=document.createElement('div');sparks.className='unlock-sparks';
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    for(let i=0;i<20;i++){
+      const spark=document.createElement('i');
+      spark.style.setProperty('--a',(i*18)+'deg');
+      spark.style.setProperty('--dist',(-105-i%4*20)+'px');
+      spark.style.animationDelay=(i%5*.08)+'s';
+      spark.style.background=isBlood?'#fa526c':'#8fdf7a';
+      sparks.appendChild(spark);
+    }
+  }
+  const sigil=document.createElement('div');sigil.className='unlock-sigil';
+  sigil.style.color=isBlood?'#f16a80':'#91db7b';
+  sigil.textContent=isBlood?'✦':'❧';
+  const heading=document.createElement('div');heading.className='unlock-heading';heading.textContent='NEW MERCENARY UNLOCKED';
+  const name=document.createElement('div');name.className='unlock-name';name.textContent=cls.name;
+  const desc=document.createElement('div');desc.className='unlock-desc';
+  desc.textContent=isBlood?'Floor 20 conquered. The Blood Elf joins your roster.':'Floor 30 conquered. The Druid joins your roster.';
+  const btn=document.createElement('button');btn.className='unlock-continue';btn.type='button';btn.textContent='CONTINUE';
+  let done=false;
+  function close(){if(done)return;done=true;document.removeEventListener('keydown',onKey);overlay.remove();nextCharacterUnlock();}
+  function onKey(e){if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();close();}else if(e.key==='Tab'){e.preventDefault();btn.focus();}}
+  btn.addEventListener('click',close);
+  document.addEventListener('keydown',onKey);
+  panel.append(sparks,sigil,heading,name,desc,btn);overlay.appendChild(panel);
+  document.body.appendChild(overlay);btn.focus();
+}
+
 function toast(title,body){
   const t=document.createElement('div');
   t.style.cssText=`position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:300;
@@ -4129,7 +4264,8 @@ const ROLES={
 };
 const CLASSROLE={paladin:"tank",fighter:"bruiser",witchdoctor:"support",bloodelf:"dps",
   druid:"tank",wizard:"dps",ranger:"dps",berserker:"bruiser",alchemist:"support",
-  templar:"tank",stormcaller:"dps",revenantc:"bruiser",warden:"tank",nightblade:"dps"};
+  templar:"tank",stormcaller:"dps",revenantc:"bruiser",warden:"tank",nightblade:"dps",
+  thornwitch:"support",gravekeeper:"support",forgewright:"bruiser",oracle:"support",voidborn:"dps"};
 /* each class also sharpens one thing as it levels */
 const SIGNATURE={
   paladin:    {every:2, d:"+1 Armour",            f:(u,n)=>u.armour+=n},
@@ -4146,6 +4282,11 @@ const SIGNATURE={
   revenantc:  {every:2, d:"+1 Thorns",            f:(u,n)=>u.thorns=(u.thorns||0)+n},
   warden:     {every:2, d:"+2 Armour",            f:(u,n)=>u.armour+=2*n},
   nightblade: {every:5, d:"+1 Bleed stack",       stack:{bleed:1}},
+  thornwitch: {every:3, d:"+1 Thorns",             f:(u,n)=>u.thorns=(u.thorns||0)+n},
+  gravekeeper:{every:4, d:"+1 Ward",               f:(u,n)=>u.ward=(u.ward||0)+n},
+  forgewright:{every:4, d:"+1 Burn stack",         stack:{burn:1}},
+  oracle:     {every:4, d:"+1 Freeze stack",        stack:{freeze:1}},
+  voidborn:   {every:4, d:"+1% Echo",              f:(u,n)=>u.echo=Math.min(.6,(u.echo||0)+.01*n)},
 };
 const xpNeeded=l=>Math.round(12+l*9+l*l*0.6);
 function sigSteps(m){const S=SIGNATURE[m.cid];return S?Math.floor((m.lvl-1)/S.every):0;}
@@ -4160,7 +4301,9 @@ function grantXP(m,amount){
   if(m.lvl>=MAXLVL)m.xp=0;
   return gained;
 }
-const DEPTHS=[{n:"NORMAL",m:1},{n:"HARD",m:1.35},{n:"NIGHTMARE",m:1.8}];
+// Difficulty tuning: Hard and Nightmare remain meaningful jumps without multiplying both
+// enemy health and damage so sharply that a small stat swing becomes a run-ending wall.
+const DEPTHS=[{n:"NORMAL",m:1},{n:"HARD",m:1.25},{n:"NIGHTMARE",m:1.55}];
 /* ---------- MODE: who is going down, and how far ---------- */
 const ACTLEN=15, NACTS=5;
 const actOf=f=>Math.min(NACTS,1+Math.floor((f-1)/ACTLEN));
@@ -5252,7 +5395,7 @@ function mkMerc(c){
    kept as its index in the table and looked up again on the way back in. */
 const SAVEKEY="lt_save1";
 function packInst(x){
-  const o={b:x.bid,t:x.tags,l:x.lvl,a:x.at};
+  const o={b:x.bid,t:x.tags,l:x.lvl,a:x.at,u:x.uid};
   if(x.owner!=null)o.o=x.owner;
   if(x.rot)o.r=1;
   if(x.grown)o.g=x.grown;
@@ -5264,6 +5407,7 @@ function packInst(x){
 }
 function unpackInst(o){
   const x=mkItem(o.b,migTags(o.t,true),o.l);
+  if(Number.isSafeInteger(o.u)&&o.u>0){x.uid=o.u;_uid=Math.max(_uid,o.u+1);}
   x.at=o.a; if(o.r)x.rot=1; if(o.g)x.grown=o.g; if(o.o!=null)x.owner=o.o;
   if(o.gr>=0&&GRANTS[o.gr])x.grant=GRANTS[o.gr];
   if(o.cu>=0&&CURSES[o.cu])x.curse=CURSES[o.cu];
@@ -5739,6 +5883,21 @@ function reachable(M,c,r){
   if(M.lanes)return r===M.pos.r;                       // ...and you follow the lane you chose
   return Math.abs(r-M.pos.r)<=1;                       // (maps from older saves still branch)
 }
+function leaveNodeRoom(){
+  if(R&&R.curNode&&R.curNode.type==='chest'&&!R.curNode.chestOpen){
+    const note=document.getElementById('chestExitWarning');
+    if(note)note.textContent='Open the chest before leaving this room.';
+    return;
+  }
+  toRoute();
+}
+function updateChestExit(){
+  const btn=document.getElementById('nodeExitBtn');
+  if(!btn)return;
+  const locked=!!(R&&R.curNode&&R.curNode.type==='chest'&&!R.curNode.chestOpen);
+  btn.disabled=locked;
+  btn.textContent=locked?'Open the chest to leave':'Back to the Map →';
+}
 function toRoute(){
   saveRun();
   if(NET.host)NET.votes={};
@@ -5869,6 +6028,7 @@ function openNode(kind){
   if(kind==='chest')renderChest(body);
   if(kind==='event')renderEvent(body);
   if(kind==='shrine')renderShrine(body);
+  updateChestExit();
   show('scr-node');
 }
 function itemCard(inst,onclick,extra){
@@ -5903,12 +6063,13 @@ function renderChest(body){
       '<div class="gold pix" style="font-size:12px;margin-top:10px">Click the chest</div>'+
       '<div class="flavor" style="font-size:11px;margin-top:3px">The lock is old and nobody is coming.</div>');
     w.onclick=()=>{
-      node.chestOpen=true;SFX.merge&&SFX.merge();
+      node.chestOpen=true;SFX.merge&&SFX.merge();updateChestExit();saveRun();
       const bd=document.getElementById('nodeBody');bd.innerHTML='';
       if(R.curNode)bd.appendChild(roomBanner(R.curNode.art||0));
       renderChest(bd);
     };
     body.appendChild(w);
+    const warning=document.createElement('div');warning.id='chestExitWarning';warning.className='center gold';warning.style.cssText='font-size:11px;margin:8px';warning.textContent='The chest must be opened before you can leave.';body.appendChild(warning);
     return;
   }
   const lid=document.createElement('div');
@@ -5936,18 +6097,31 @@ function renderChest(body){
   body.appendChild(row);
 }
 function renderEvent(body){
-  const ev=pick(EVENTS);
-  body.innerHTML=`<div class="center"><h3 class="gold" style="font-size:14px">${ev.t}</h3>
-    <div class="flavor" style="margin:8px 0 14px">${ev.d}</div></div>`;
-  const row=document.createElement('div');row.className='row';row.style.cssText='justify-content:center;gap:10px;flex-wrap:wrap';
-  ev.a.forEach(o=>{const d=document.createElement('div');d.className='card center';d.style.width='210px';
-    d.innerHTML=`<div style="font-size:12px">${o.n}</div>`;
-    d.onclick=()=>{const m=o.f(R);
-      body.innerHTML=`<div class="center"><h3 class="gold" style="font-size:14px">${ev.t}</h3>
-        <div style="margin:12px 0;font-size:12px;line-height:1.6">${m}</div>
-        <button onclick="openPack()">Open Backpacks</button></div>`;
-      document.getElementById('nodeCoins').textContent=R.coins;};
-    row.appendChild(d);});
+  const node=R.curNode||{};
+  if(node.eventIndex===undefined)node.eventIndex=Math.floor(Math.random()*EVENTS.length);
+  const ev=EVENTS[node.eventIndex];
+  const heading=()=>`<div class="center"><h3 class="gold" style="font-size:16px">✦ ${ev.t} ✦</h3><div class="flavor" style="margin:10px 0 16px;line-height:1.7">${ev.d}</div></div>`;
+  body.innerHTML=heading();
+  if(node.eventResolved){
+    body.insertAdjacentHTML('beforeend',`<div class="center" style="line-height:1.7;margin:12px">${node.eventResult||'The encounter is finished.'}</div>`);
+    return;
+  }
+  const row=document.createElement('div');row.className='row';row.style.cssText='justify-content:center;gap:12px;flex-wrap:wrap';
+  ev.a.forEach((o,i)=>{
+    const d=document.createElement('button');d.className='card center';d.style.cssText='width:235px;min-height:72px;cursor:pointer;color:var(--gold);font-size:12px;line-height:1.5';
+    d.textContent=o.n;
+    d.onclick=()=>{
+      if(node.eventResolved)return;
+      const msg=o.f(R);
+      // An unaffordable choice does not consume the encounter.
+      if(msg.includes('need 50 coins')||msg.includes('empty purse')){const warn=document.createElement('div');warn.className='center gold';warn.textContent=msg;body.appendChild(warn);return;}
+      node.eventResolved=true;node.eventResult=msg;
+      body.innerHTML=heading()+`<div class="center" style="margin:12px;line-height:1.7">${msg}</div><div class="center"><button onclick="openPack()">Open Backpacks</button></div>`;
+      document.getElementById('nodeCoins').textContent=R.coins;
+      saveRun();
+    };
+    row.appendChild(d);
+  });
   body.appendChild(row);
 }
 const SHRINES={
@@ -6633,7 +6807,9 @@ function selInst(){return UI.sel?UI.sel.inst:null;}
    8. COMBAT
    =================================================================== */
 let B=null,timer=null,B_isExit=true;
-const ACTFEEL=[1.7,1.45,0.8,0.85,0.95], EASE0=0.3, EASEH=0.45;
+// Campaign pressure now rises more evenly across all five acts. Act I eases off slightly;
+// Acts III–V no longer collapse into a much softer stretch after the opening acts.
+const ACTFEEL=[1.25,1.18,1.12,1.18,1.25], EASE0=0.3, EASEH=0.45;
 const ARM_REBUILD_WAIT=2, ARM_REBUILD_TIME=7;   // a breath, then a slow refill
 const FIGHT_HP=2.2, FIGHT_HP_HERO=2.2, ARM_POOL=1, FOE_HIT=2.7, BOSS_HIT=0.65, BOSS_HP=0.75;
 function buildUnit(src,side){
