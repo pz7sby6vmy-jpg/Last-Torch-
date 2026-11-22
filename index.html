@@ -444,6 +444,9 @@ button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.14)}
 .unit .fig canvas,.rtile canvas,.item-art canvas{backface-visibility:hidden;transform:translateZ(0)}
 @media (prefers-reduced-motion:reduce){.unit .fig canvas,.rtile canvas,.item-art canvas{transform:none}}
 #lt-fps-meter{position:fixed;right:12px;bottom:10px;z-index:9998;font:11px monospace;color:#a9edcf;background:rgba(7,13,21,.82);border:1px solid #315b53;border-radius:5px;padding:5px 8px;pointer-events:none}
+/* Illustrated gothic-pixel presentation shared by roster, enemies and equipment. */
+canvas { image-rendering:pixelated; filter:drop-shadow(0 2px 2px rgba(3,0,10,.55)); }
+button:focus-visible {outline:2px solid #d8a6ff;outline-offset:3px}
 </style>
 <!-- Progression test: 240 simulated runs, 1261 battles, 2988 simulated purchases, 1105 modeled upgrades; 57 runs cleared floor 9. Test harness approximates route and merchant decisions. -->
 </head>
@@ -941,6 +944,33 @@ function polishSprite(canvas,key){
       for(let c=0;c<3;c++){const val=d[j+c];d[j+c]=Math.max(0,Math.min(255,(val-127)*1.065+127+shade));}
     }
   }
+  // Unified Nightveil pixel-paint finish: jewel-tone shadows, warm highlights,
+  // crisp ink contours and small deliberate specular pixels. This is applied to
+  // every cached hero, foe, weapon, item and room, not just the new character.
+  const portrait=key.startsWith('hero')||key.startsWith('seraphina');
+  const monster=key.startsWith('f4');
+  const weapon=key.startsWith('i7')||key.startsWith('p2');
+  const grade=room?0.15:(portrait?0.42:monster?0.36:weapon?0.30:0.18);
+  const old=new Uint8ClampedArray(d);
+  const stride=Math.max(1,Math.round(Math.min(w,h)/(room?220:160)));
+  for(let y=0;y<h;y+=stride)for(let x=0;x<w;x+=stride){
+    const i=(y*w+x)*4;if(old[i+3]<100)continue;
+    const lum=old[i]*.2126+old[i+1]*.7152+old[i+2]*.0722;
+    const dark=Math.max(0,(108-lum)/108),light=Math.max(0,(lum-128)/127);
+    const edge= x<stride||y<stride||x>=w-stride||y>=h-stride ||
+      old[(y*w+Math.max(0,x-stride))*4+3]<100 ||
+      old[(Math.max(0,y-stride)*w+x)*4+3]<100 ||
+      old[(y*w+Math.min(w-1,x+stride))*4+3]<100 ||
+      old[(Math.min(h-1,y+stride)*w+x)*4+3]<100;
+    const sparkle=(!room&&lum>100&&(hash(x,y)%173===0));
+    for(let yy=y;yy<Math.min(h,y+stride);yy++)for(let xx=x;xx<Math.min(w,x+stride);xx++){
+      const j=(yy*w+xx)*4;if(old[j+3]<100)continue;
+      if(edge&&!room){d[j]=Math.round(old[j]*.40+17);d[j+1]=Math.round(old[j+1]*.35+10);d[j+2]=Math.round(old[j+2]*.48+23);continue;}
+      d[j]=Math.min(255,Math.max(0,old[j]+grade*(-13*dark+18*light)+(sparkle?30:0)));
+      d[j+1]=Math.min(255,Math.max(0,old[j+1]+grade*(-8*dark+12*light)+(sparkle?22:0)));
+      d[j+2]=Math.min(255,Math.max(0,old[j+2]+grade*(16*dark+23*light)+(sparkle?39:0)));
+    }
+  }
   ctx.putImageData(im,0,0);
   // Additional high-frequency hand-etched pixel details on visible surfaces.
   // Deterministic per-sprite, so icons remain visually stable across redraws.
@@ -973,7 +1003,7 @@ function cached(key,build){
   return o;
 }
 /* LAST TORCH: HIGH DETAIL PIXEL REMASTER — source IDs remain stable for saves. */
-const LT_REMASTER_VERSION='2026.11-Pixel-Remaster';
+const LT_REMASTER_VERSION='2026.11-Nightveil-Illustrated';
 const LT_ITEM_FORGE_WORDS=['Ashveil','Dreadglass','Moonrend','Ironwake','Stargrave','Blackthorn','Embercrypt','Nightspire','Voidborne','Oathscar','Grimhalo','Bloodtide','Frostmourne','Duskwarden','Cinderveil','Thundershade','Wyrmfall','Soulforge','Hexbound','Dawnreaver'];
 function ltRemasterNames(){
   ITEMS.forEach((it,i)=>{
@@ -1593,8 +1623,8 @@ function seraphinaSprite(scale){
  out.dataset.cssw=64*(scale||3);out.dataset.cssh=64*(scale||3);return out;
 }
 function heroSprite(c,scale){
- if(c.id==='seraphina')return cached('seraphina_portrait_v4_'+(scale||3),()=>seraphinaSprite(scale));
- return cached('hero_remaster_v3_'+c.id+'_'+(scale||3),()=>{
+ if(c.id==='seraphina')return cached('seraphina_nightveil_v1_'+(scale||3),()=>seraphinaSprite(scale));
+ return cached('hero_nightveil_v1_'+c.id+'_'+(scale||3),()=>{
   const k=scale||3,original=renderChar(heroMask(c),HEROMAT3[c.id]||HEROMAT2[c.id]||HEROMAT[c.id]||HEROMAT.fighter,1,{seed:(c.seed||3)%97});
   const detailed=detailHeroArt(original,c),cvs=document.createElement('canvas');cvs.width=64*k*2;cvs.height=64*k*2;
   const ctx=cvs.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.drawImage(detailed,0,0,cvs.width,cvs.height);
@@ -2755,7 +2785,7 @@ function foeMask(f){
   return g;
 }
 function foeSprite(f,scale){
-  return cached('f4'+f.id+'_'+(scale||2),()=>{const k=scale||2,cvs=renderChar(foeMask(f),foeMats(f),k*2,
+  return cached('nightveil_foe_'+f.id+'_'+(scale||2),()=>{const k=scale||2,cvs=renderChar(foeMask(f),foeMats(f),k*2,
     {seed:(f.seed||7)%97,fur:FOEFUR[f.kind]||0,cls:Object.assign({},FOECLS[f.kind],ACTDRESSCLS[(f.act||1)-1])});cvs.dataset.cssw=64*k;cvs.dataset.cssh=64*k;return cvs;});}
 const FOEFUR={beast:1};
 const FOECLS={};
@@ -3469,11 +3499,11 @@ function itemIcon(shape,palette,scale,key,inst){
     const tA=inst.tags[0]?tagCol(inst.tags[0]):null, tB=inst.tags[1]?tagCol(inst.tags[1]):null;
     const r=ITEMS[inst.bid].r;
     const key4=key2+'|64'; m4=_mask32[key4]||(_mask32[key4]=scale2x(mT));
-    c=cached('i7'+inst.bid+'_'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
+    c=cached('nightveil_item_'+inst.bid+'_'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
       ()=>renderMat(m4,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13+inst.bid*37,ol:2,glowR:4,grain:.5,
         sparkle:r>=4?3:(r>=3?2:0), glow:r>=4?'rgba(255,133,107,.22)':null}));
   } else {
-    c=cached('p2'+shape+'_'+k+'_'+(key||''),()=>render(m2,palette,Math.max(1,Math.ceil(scale/2)),null));
+    c=cached('nightveil_gear_'+shape+'_'+k+'_'+(key||''),()=>render(m2,palette,Math.max(1,Math.ceil(scale/2)),null));
   }
   if(inst)finishUniqueItem(c,m4,inst,k);
   c.style.width=(16*scale)+'px';c.style.height=(16*scale)+'px';   // ...shown at the usual size
