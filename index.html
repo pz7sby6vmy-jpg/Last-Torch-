@@ -447,6 +447,21 @@ button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.14)}
 /* Illustrated gothic-pixel presentation shared by roster, enemies and equipment. */
 canvas { image-rendering:pixelated; filter:drop-shadow(0 2px 2px rgba(3,0,10,.55)); }
 button:focus-visible {outline:2px solid #d8a6ff;outline-offset:3px}
+
+/* Nightveil illustrated world overhaul: interactive rooms and inventory */
+#scr-shop .frame,#scr-node .frame,#packModal>.frame{background:radial-gradient(ellipse at 50% 0%,rgba(95,55,120,.25),transparent 55%),linear-gradient(145deg,#1c1425,#0d0c15 70%,#201625);border:1px solid #795c8f;box-shadow:inset 0 0 0 2px #261b32,0 15px 60px #0009}
+.lt-scene-art{position:relative;display:flex;align-items:center;justify-content:center;min-height:176px;max-height:230px;overflow:hidden;margin:12px auto 16px;border:2px solid #9a7baf;border-radius:12px;background:radial-gradient(ellipse at 50% 78%,#453059 0%,#21192e 48%,#0b0a15 100%);box-shadow:inset 0 0 32px #000,0 5px 30px #0008}
+.lt-scene-art:after{content:'';position:absolute;inset:5px;border:1px solid #bfa5c052;border-radius:8px;pointer-events:none}
+.lt-scene-art svg{width:100%;height:210px;max-width:620px;filter:drop-shadow(0 7px 13px #000b)}
+.lt-scene-caption{position:absolute;bottom:8px;left:0;right:0;text-align:center;color:#e9c6ff;font-size:11px;text-shadow:0 2px 5px #000;letter-spacing:2px;pointer-events:none}
+#packModal .lt-pack-banner{min-height:126px;max-height:145px;margin:0 0 14px}#packModal .lt-pack-banner svg{height:132px}
+#packBody>.frame,#packBody>.row>.frame{background:linear-gradient(145deg,#231b30,#12111c)!important;border:1px solid #82669a!important;border-radius:12px;box-shadow:inset 0 0 25px #0007}
+#packBody [class*=grid],#packBody canvas{image-rendering:auto}
+#scr-shop .card,#scr-node .card,#packModal .card{border-radius:8px;box-shadow:inset 0 0 14px #a76bd018,0 3px 10px #0006;transition:transform .15s ease,box-shadow .15s ease}
+#scr-shop .card:hover,#scr-node .card:hover,#packModal .card:hover{transform:translateY(-2px);box-shadow:0 0 18px #a66ad050}
+.lt-item-emblem{display:block;width:44px;height:44px;margin:3px auto 6px;filter:drop-shadow(0 2px 5px #000);pointer-events:none}
+@media(max-width:650px){.lt-scene-art{min-height:130px}.lt-scene-art svg{height:155px}.lt-scene-caption{font-size:9px}}
+@media(prefers-reduced-motion:reduce){#scr-shop .card,#scr-node .card,#packModal .card{transition:none}}
 </style>
 <!-- Progression test: 240 simulated runs, 1261 battles, 2988 simulated purchases, 1105 modeled upgrades; 57 runs cleared floor 9. Test harness approximates route and merchant decisions. -->
 </head>
@@ -3378,10 +3393,69 @@ function renderTorches(){
   for(let i=0;i<TORCH_MAX;i++)row.appendChild(torchCanvas(i<R.torches,2));
   document.getElementById('torchNum').textContent=R.torches+' / '+TORCH_MAX;
 }
+/* Nightveil environments: room-purpose compositions layered over the act's biome.
+   Rendered once and cached; no per-frame drawing or gameplay changes. */
+function sceneRoomCanvas(idx,kind,scale){
+  kind=kind||'fight';scale=scale||3;
+  const key='nightveil-scene-v2-'+idx+'-'+kind+'-'+scale;
+  return cached(key,()=>{
+    const base=roomCanvas(idx,scale),c=document.createElement('canvas');
+    c.width=base.width;c.height=base.height;
+    const x=c.getContext('2d'),w=c.width,h=c.height;
+    x.drawImage(base,0,0);
+    const a=ROOMART[idx%ROOMART.length].act||1;
+    const tones=['','#83d4a0','#b9a0ee','#ff9d5d','#8ccaf7','#efb9ef'];
+    const light=tones[a]||'#b9a0ee';
+    const glow=(cx,cy,r,col,alpha)=>{const g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,col);g.addColorStop(1,'transparent');x.globalAlpha=alpha;x.fillStyle=g;x.fillRect(cx-r,cy-r,2*r,2*r);x.globalAlpha=1;};
+    const line=(x1,y1,x2,y2,col,thick=2)=>{x.strokeStyle=col;x.lineWidth=thick;x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke();};
+    const poly=(pts,col)=>{x.fillStyle=col;x.beginPath();pts.forEach(([px,py],i)=>i?x.lineTo(px,py):x.moveTo(px,py));x.closePath();x.fill();};
+    const cx=w/2,fy=h*.79,unit=scale;
+    // Perspective floor, masonry and framing are shared across all room purposes.
+    const floor=x.createLinearGradient(0,h*.58,0,h);floor.addColorStop(0,'rgba(12,10,24,0)');floor.addColorStop(1,'rgba(3,3,10,.75)');x.fillStyle=floor;x.fillRect(0,h*.58,w,h*.42);
+    for(let k=-4;k<=4;k++)line(cx+k*w*.06,h*.60,cx+k*w*.22,h,'rgba(180,151,207,.12)',unit*.45);
+    for(let k=0;k<4;k++){let yy=h*(.67+k*k*.019);line(0,yy,w,yy,'rgba(210,173,223,.12)',unit*.5);}
+    // A different set piece for each kind of room, not a flat recolor.
+    if(kind==='shop'){
+      glow(cx,fy-h*.28,w*.35,'#ffb85c',.36);
+      poly([[cx-w*.30,fy-h*.16],[cx+w*.30,fy-h*.16],[cx+w*.37,fy-h*.34],[cx-w*.37,fy-h*.34]],'#25172c');
+      for(let i=0;i<8;i++)poly([[cx-w*.36+i*w*.09,fy-h*.34],[cx-w*.27+i*w*.09,fy-h*.34],[cx-w*.30+i*w*.09,fy-h*.25]],i%2?'#6b3657':'#a16b54');
+      x.fillStyle='#513526';x.fillRect(cx-w*.31,fy-h*.14,w*.62,h*.14);x.fillStyle='#b38b52';x.fillRect(cx-w*.31,fy-h*.14,w*.62,unit*2);
+      for(let i=0;i<7;i++){let px=cx+(i-3)*w*.074;glow(px,fy-h*.17,unit*10,i%2?'#b48cff':'#ffcf78',.6);x.fillStyle=i%2?'#a77bee':'#cfa55a';x.fillRect(px-unit*3,fy-h*.20,unit*6,unit*7);}
+    }else if(kind==='chest'){
+      glow(cx,fy-h*.17,w*.30,'#ffca64',.36);
+      poly([[cx-w*.17,fy-h*.18],[cx+w*.17,fy-h*.18],[cx+w*.20,fy+h*.04],[cx-w*.20,fy+h*.04]],'#573520');
+      poly([[cx-w*.18,fy-h*.19],[cx+w*.18,fy-h*.19],[cx+w*.14,fy-h*.32],[cx-w*.14,fy-h*.32]],'#795031');
+      x.strokeStyle='#dcb66d';x.lineWidth=unit*2;x.strokeRect(cx-w*.17,fy-h*.18,w*.34,h*.21);
+      x.fillStyle='#e7c678';x.fillRect(cx-unit*4,fy-h*.13,unit*8,unit*10);glow(cx,fy-h*.14,unit*14,'#fff1a0',.8);
+    }else if(kind==='shrine'){
+      glow(cx,fy-h*.32,w*.32,'#b06aff',.38);
+      poly([[cx-w*.17,fy],[cx+w*.17,fy],[cx+w*.12,fy-h*.20],[cx-w*.12,fy-h*.20]],'#37314c');
+      x.fillStyle='#8c759e';x.fillRect(cx-w*.16,fy-h*.21,w*.32,unit*3);
+      for(let i=0;i<9;i++){let ang=i*Math.PI*2/9;line(cx+Math.cos(ang)*w*.10,fy-h*.35+Math.sin(ang)*h*.18,cx+Math.cos(ang)*w*.13,fy-h*.35+Math.sin(ang)*h*.23,'#c69aff',unit*.8);}
+      glow(cx,fy-h*.35,unit*20,'#d6a2ff',.65);poly([[cx,fy-h*.49],[cx+unit*12,fy-h*.35],[cx,fy-h*.21],[cx-unit*12,fy-h*.35]],'#b995f6');
+    }else if(kind==='event'){
+      glow(cx,fy-h*.32,w*.25,light,.26);
+      poly([[cx-w*.18,fy],[cx+w*.18,fy],[cx+w*.11,fy-h*.48],[cx-w*.11,fy-h*.48]],'#161626');
+      x.strokeStyle='#9c7da9';x.lineWidth=unit*2;x.strokeRect(cx-w*.12,fy-h*.48,w*.24,h*.47);
+      for(let i=0;i<5;i++)line(cx-w*.12+i*w*.06,fy-h*.47,cx-w*.12+i*w*.06,fy,'#806789',unit*.65);
+      glow(cx,fy-h*.25,unit*17,light,.50);
+    }else if(kind==='boss'||kind==='exit'){
+      glow(cx,fy-h*.38,w*.45,'#dd4b9f',.32);
+      for(let i=0;i<7;i++){const px=cx+(i-3)*w*.11;poly([[px-unit*7,fy],[px+unit*7,fy],[px+unit*5,fy-h*(.44+(i%2)*.09)],[px-unit*5,fy-h*(.44+(i%2)*.09)]],'#191323');}
+      x.strokeStyle='#b15eaf';x.lineWidth=unit*2;x.beginPath();x.ellipse(cx,fy-h*.29,w*.17,h*.25,0,Math.PI,0);x.stroke();
+      glow(cx,fy-h*.28,unit*24,'#df68ff',.4);
+    }else{
+      // Skirmish room: shattered banners, distant braziers, and an open fighting arena.
+      for(let sign of [-1,1]){let px=cx+sign*w*.31;line(px,fy-h*.47,px,fy-h*.08,'#9c7b68',unit*2);poly([[px,fy-h*.44],[px+sign*w*.09,fy-h*.42],[px+sign*w*.07,fy-h*.19],[px,fy-h*.24]],'#51304d');glow(px,fy-h*.10,unit*12,'#ff9b4d',.55);}
+    }
+    const v=x.createRadialGradient(cx,h*.47,h*.08,cx,h*.47,w*.67);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.56)');x.fillStyle=v;x.fillRect(0,0,w,h);
+    return c;
+  });
+}
 function roomBanner(idx){
   const w=document.createElement('div');
   w.style.cssText='position:relative;border:2px solid #232a3c;border-radius:6px;overflow:hidden;margin-bottom:10px;line-height:0';
-  const c=roomCanvas(idx,3);c.style.cssText='width:100%;height:auto;display:block;image-rendering:pixelated';
+  const kind=(R&&R.curNode&&R.curNode.type)||'fight';const c=sceneRoomCanvas(idx,kind,3);c.style.cssText='width:100%;height:auto;display:block;image-rendering:pixelated';
   w.appendChild(c);
   w.insertAdjacentHTML('beforeend',
     `<div style="position:absolute;left:8px;bottom:6px;font-size:11px;letter-spacing:.14em;
@@ -6592,7 +6666,7 @@ function walkTo(node,then){
   if(!el){then();return;}
   const strip=document.getElementById('walkStrip');strip.innerHTML='';
   for(let i=0;i<2;i++){                                   // two copies scroll seamlessly
-    const c=roomCanvas(node.art,4);
+    const c=sceneRoomCanvas(node.art,node.type,4);
     c.style.cssText='height:100%;width:auto;display:block;image-rendering:pixelated;filter:brightness(.7)';
     strip.appendChild(c);
   }
@@ -7792,7 +7866,7 @@ function toBattle(node){
 }
 function setStageRoom(idx){
   const bn=document.getElementById('battleRoom'); if(!bn)return;
-  bn.innerHTML=''; const c=roomCanvas(idx,3); bn.appendChild(c);
+  bn.innerHTML=''; const kind=(R&&R.curNode&&R.curNode.boss)?'boss':((R&&R.curNode&&R.curNode.type)||'fight');const c=sceneRoomCanvas(idx,kind,3); bn.appendChild(c);
   const t=document.getElementById('roomTag'); if(t)t.textContent=ROOMART[idx%ROOMART.length].n;
   // Floor-based biome identity is cosmetic: no hidden combat modifiers.
   const stage=document.getElementById('arena');
@@ -8843,6 +8917,29 @@ ltRemasterNames();
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+})();
+
+/* NIGHTVEIL WORLD ART: illustrated room props and equipment emblems.
+   Uses scalable vector shapes instead of flat promotional pictures. */
+(function(){
+ const NS='http://www.w3.org/2000/svg';
+ const art={
+ merchant:`<defs><linearGradient id="coat" x2="1" y2="1"><stop stop-color="#8d5c9b"/><stop offset=".48" stop-color="#32203e"/><stop offset="1" stop-color="#110d20"/></linearGradient><radialGradient id="glow"><stop stop-color="#f3aaff"/><stop offset="1" stop-color="#8334b3" stop-opacity="0"/></radialGradient></defs><ellipse cx="310" cy="175" rx="210" ry="30" fill="#a46bd4" opacity=".15"/><path d="M80 160Q100 90 145 84L475 84Q522 95 540 160" fill="#24182f" stroke="#bb8cc9" stroke-width="4"/><path d="M115 90V43H505V90" fill="#31213c" stroke="#e5b97c" stroke-width="5"/><path d="M140 48L168 70L200 48L230 70L260 48L290 70L320 48L350 70L380 48L410 70L440 48L480 70" fill="none" stroke="#d4a35d" stroke-width="3"/><path d="M215 172Q220 116 275 108L345 108Q401 115 408 172" fill="url(#coat)" stroke="#ad84c6" stroke-width="4"/><path d="M270 110Q248 78 270 50Q300 22 344 55Q365 85 345 112" fill="#17131e" stroke="#ac79c4" stroke-width="3"/><ellipse cx="307" cy="79" rx="31" ry="37" fill="#d9a99e"/><path d="M275 74Q279 33 311 35Q345 36 344 75Q331 62 315 59Q291 78 275 74" fill="#211727"/><path d="M287 80h9m19 0h9" stroke="#302034" stroke-width="3"/><path d="M300 98q8 6 17 0" fill="none" stroke="#8e4c65" stroke-width="2"/><path d="M253 139L217 170M364 137L403 170" stroke="#d2a99d" stroke-width="15" stroke-linecap="round"/><path d="M278 122L309 148L340 122" fill="none" stroke="#edca86" stroke-width="4"/><path d="M305 145l7 12 7-12-7-10z" fill="#b95dff"/><path d="M100 171H520" stroke="#d5a96b" stroke-width="9"/><path d="M105 175h410v24H105z" fill="#38243b" stroke="#a87d4d" stroke-width="3"/><g fill="#d7a35d" stroke="#f8d995" stroke-width="2"><circle cx="157" cy="155" r="16"/><circle cx="183" cy="160" r="12"/><circle cx="441" cy="155" r="16"/></g><g fill="#c778ff" stroke="#e8c2ff" stroke-width="2"><path d="M465 136l15-27 15 27-15 26z"/><path d="M135 138l10-19 10 19-10 18z"/></g><circle cx="480" cy="118" r="45" fill="url(#glow)"/>`,
+ shrine:`<defs><radialGradient id="altar"><stop stop-color="#e7aaff"/><stop offset=".35" stop-color="#9b56e5"/><stop offset="1" stop-color="#25172e"/></radialGradient></defs><ellipse cx="310" cy="180" rx="190" ry="22" fill="#b575f2" opacity=".2"/><path d="M200 175l25-100 30-17 24 110M420 175L395 75l-30-17-24 110" fill="#4d3d60" stroke="#b9a2c9" stroke-width="5"/><path d="M220 85L310 28L400 85" fill="none" stroke="#e3c188" stroke-width="8"/><path d="M240 80v82m140-82v82" stroke="#81679c" stroke-width="16"/><path d="M270 164L280 119h60l10 45" fill="#554268" stroke="#d9b77e" stroke-width="4"/><path d="M220 174h180l20 20H200z" fill="#342b43" stroke="#b99ac7" stroke-width="5"/><circle cx="310" cy="96" r="43" fill="url(#altar)" stroke="#ebc3ff" stroke-width="4"/><path d="M310 48l13 30 32 4-25 22 7 33-27-17-27 17 7-33-25-22 32-4z" fill="#b866ff" stroke="#f2cfff" stroke-width="3"/><g stroke="#d9b2f9" stroke-width="3"><path d="M180 98l-25-15m25 15l-29 8M440 98l25-15m-25 15l29 8M310 22V5"/></g><g fill="#e4b7ff"><circle cx="170" cy="52" r="4"/><circle cx="448" cy="54" r="5"/><circle cx="380" cy="29" r="3"/></g>`,
+ chest:`<defs><linearGradient id="gold" x2="0" y2="1"><stop stop-color="#e8b76e"/><stop offset=".5" stop-color="#91603e"/><stop offset="1" stop-color="#352033"/></linearGradient></defs><ellipse cx="310" cy="185" rx="180" ry="20" fill="#ad68d5" opacity=".2"/><path d="M180 113Q185 50 310 50Q435 50 440 113L425 142H195z" fill="#38213f" stroke="#e6b778" stroke-width="8"/><path d="M196 112Q225 75 310 75Q395 75 424 112" fill="none" stroke="#a273c0" stroke-width="5"/><path d="M190 116h240v70H190z" fill="url(#gold)" stroke="#edc78b" stroke-width="7"/><path d="M204 130h212v42H204z" fill="#38223e" stroke="#b77b55" stroke-width="4"/><path d="M300 113h20v52h-20z" fill="#e6bc72"/><path d="M299 134l11-13 11 13-11 16z" fill="#a25bec" stroke="#f5d3ff" stroke-width="3"/><g stroke="#e6b778" stroke-width="7"><path d="M240 65v118M380 65v118"/></g><g fill="#d4a1ff"><path d="M150 65l8-15 8 15-8 15z"/><path d="M464 67l8-15 8 15-8 15z"/><circle cx="310" cy="29" r="5"/></g>`,
+ pack:`<defs><linearGradient id="leather" x2="1" y2="1"><stop stop-color="#795177"/><stop offset=".5" stop-color="#35253d"/><stop offset="1" stop-color="#17131e"/></linearGradient></defs><ellipse cx="310" cy="114" rx="155" ry="15" fill="#bb86ed" opacity=".15"/><path d="M220 99V30Q220 10 242 10H378Q400 10 400 30V99" fill="url(#leather)" stroke="#d7b681" stroke-width="6"/><path d="M240 24h140v70H240z" fill="#3d2d4d" stroke="#a68ac1" stroke-width="3"/><path d="M260 29v62m25-62v62m25-62v62m25-62v62m25-62v62" stroke="#a78ab6" opacity=".45"/><path d="M226 47h168v57H226z" fill="#33273d" stroke="#c5a375" stroke-width="5"/><path d="M245 50h130v44H245z" fill="url(#leather)" stroke="#a680aa" stroke-width="2"/><path d="M306 55l13 14-13 16-13-16z" fill="#bb6ef1" stroke="#e5c7ff" stroke-width="3"/><path d="M200 100h220" stroke="#d4aa75" stroke-width="7"/><g fill="#d3a46a"><circle cx="243" cy="106" r="5"/><circle cx="378" cy="106" r="5"/></g><path d="M175 75l12-30 12 30-12 25zM435 75l12-30 12 30-12 25z" fill="#7e5a9e" stroke="#dbb1ff" stroke-width="3"/>`
+ };
+ function svg(kind){const el=document.createElement('div');el.className='lt-scene-art'+(kind==='pack'?' lt-pack-banner':'');const titles={merchant:'THE NIGHT MARKET',shrine:'ANCIENT SANCTUARY',chest:'RELIC CACHE',pack:'THE ADVENTURER’S SATCHEL'};el.innerHTML=`<svg viewBox="0 0 620 210" xmlns="${NS}" aria-hidden="true">${art[kind]}</svg><div class="lt-scene-caption">${titles[kind]}</div>`;return el;}
+ function equipIcon(seed){let h=0;for(const c of seed)h=(h*31+c.charCodeAt(0))>>>0;const hue=[275,40,340,200,125][h%5];const paths=['M22 5L28 14 24 32 17 39 13 35 20 28 17 14z M11 36L33 36','M8 14Q22 2 36 14L30 40H14z M16 18h12','M22 5L29 15 22 37 15 15z M12 40h20','M12 9Q32 4 35 22Q29 40 12 35Q25 23 12 9z','M22 4L39 21 22 40 5 21z'][h%5];return `<svg class="lt-item-emblem" viewBox="0 0 44 44" aria-hidden="true"><defs><linearGradient id="gem${h}" x2="1" y2="1"><stop stop-color="hsl(${hue},85%,82%)"/><stop offset=".5" stop-color="hsl(${hue},72%,48%)"/><stop offset="1" stop-color="#30203c"/></linearGradient></defs><path d="${paths}" fill="url(#gem${h})" stroke="#f1d5b0" stroke-width="1.8" stroke-linejoin="round"/><circle cx="22" cy="22" r="3" fill="#f6d5ff"/></svg>`;}
+ let queued=false;
+ function enhance(){queued=false;try{
+  const shop=document.getElementById('shopBody');if(shop&&shop.children.length&&!document.querySelector('#scr-shop .lt-scene-art'))shop.before(svg('merchant'));
+  const node=document.getElementById('nodeBody');if(node&&node.children.length){const title=(document.getElementById('nodeTitle')?.textContent||'').toLowerCase();const kind=title.includes('shrine')||title.includes('altar')?'shrine':title.includes('chest')||title.includes('cache')?'chest':null;const prior=document.querySelector('#scr-node .lt-scene-art');if(prior&&prior.dataset.kind!==kind)prior.remove();if(kind&&!document.querySelector('#scr-node .lt-scene-art')){const el=svg(kind);el.dataset.kind=kind;node.before(el);}}
+  const pack=document.getElementById('packBody');if(pack&&pack.children.length&&!document.querySelector('#packModal .lt-scene-art'))pack.before(svg('pack'));
+  document.querySelectorAll('#shopBody .card,#nodeBody .card').forEach(c=>{if(c.querySelector('.lt-item-emblem')||c.dataset.ltNoIcon)return;const name=c.textContent.trim();if(!name||name.length>180)return;const tmp=document.createElement('span');tmp.innerHTML=equipIcon(name);c.prepend(tmp.firstElementChild);});
+ }catch(e){console.warn('Nightveil scene art:',e);}}
+ function queue(){if(!queued){queued=true;requestAnimationFrame(enhance);}}
+ const obs=new MutationObserver(muts=>{if(muts.some(m=>m.addedNodes.length||m.removedNodes.length))queue();});obs.observe(document.body,{childList:true,subtree:true});queue();
 })();
 </script>
 </body>
