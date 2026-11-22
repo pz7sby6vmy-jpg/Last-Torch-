@@ -1502,45 +1502,96 @@ function renderChar(mask0,M,scale,opt){
   x.imageSmoothingEnabled=false;x.drawImage(t,0,0,w*k,h*k);return c;
 }
 function heroMask(c){const g=G(64,64);(HEROART3[c.id]||HEROART2[c.id]||HEROART[c.id]||body64)(g,RNG(c.seed));return g;}
-// Portrait-inspired pixel sprite: shoulder-length dark hair, black lace gown, silver pendant.
+// Remastered playable-character art: individually accented 64px silhouettes,
+// hand-placed outfit trim, insignia, material highlights and class-specific gear.
+function detailHeroArt(base,c){
+ const id=c.id||'fighter', out=document.createElement('canvas');out.width=64;out.height=64;
+ const x=out.getContext('2d',{willReadFrequently:true});x.imageSmoothingEnabled=false;
+ x.drawImage(base,0,0,64,64);
+ const ink=(color,xx,yy,w=1,h=1)=>{x.fillStyle=color;x.fillRect(xx,yy,w,h)};
+ const line=(color,x1,y1,x2,y2)=>{x.strokeStyle=color;x.lineWidth=1;x.beginPath();x.moveTo(x1+.5,y1+.5);x.lineTo(x2+.5,y2+.5);x.stroke()};
+ const palettes={paladin:['#f9d98a','#9bd6ed'],fighter:['#db8e5a','#e1c2a3'],witchdoctor:['#a6ee85','#b58de3'],bloodelf:['#f16e8c','#e8b8a1'],druid:['#a9d77e','#d1b17a'],wizard:['#8bc9ff','#f2ad65'],ranger:['#95d1a0','#c7b17e'],berserker:['#f17b5f','#cbb4a5'],alchemist:['#e8e18d','#9ee2d0'],templar:['#f9e3a0','#d5b9ff'],stormcaller:['#7fdfff','#d1f4ff'],revenantc:['#b4a2df','#e4a5c0'],warden:['#c5d0ac','#b9a16d'],nightblade:['#bd9ce5','#ef789d'],thornwitch:['#bbd888','#c19de0'],seraphina:['#cba7ff','#c9c4d9']};
+ const [gold,gem]=palettes[id]||['#dfb879','#8fc9d6'];
+ // Tailored hem embroidery, central clasps, paired bracers and riveted seams.
+ for(let i=0;i<8;i++){let xx=12+i*5;ink(i%2?gem:gold,xx,57+(i%3),2,1)}
+ for(let yy=33;yy<52;yy+=4){ink(gold,30,yy,2,1);ink(gem,34,yy+1,1,1)}
+ for(let yy=35;yy<45;yy+=3){ink(gold,15,yy,2,1);ink(gold,47,yy,2,1)}
+ line(gold,23,31,28,35);line(gold,40,31,35,35);
+ // Class identity: distinct helmets, spell foci, weapon accents and sigils.
+ if(['paladin','templar','warden'].includes(id)){
+  ink(gold,24,8,16,2);ink(gem,31,5,2,7);ink(gold,20,23,5,3);ink(gold,40,23,5,3);
+  ink(gem,30,38,5,5);ink(gold,32,36,1,10);ink(gold,28,40,9,1);
+ }else if(['wizard','stormcaller','witchdoctor','thornwitch','alchemist'].includes(id)){
+  for(let i=0;i<7;i++){const xx=7+i*8,yy=8+(i*11)%20;ink(i%2?gold:gem,xx,yy,2,2)}
+  ink(gem,30,39,5,5);ink(gold,32,37,1,9);ink(gold,28,41,9,1);
+  line(gem,50,18,55,10);ink(gold,53,8,5,5);
+ }else if(['ranger','bloodelf','nightblade'].includes(id)){
+  line(gold,11,18,9,48);line(gem,11,18,18,34);line(gem,9,48,18,34);
+  ink(gold,25,28,3,2);ink(gold,38,28,3,2);ink(gem,31,40,3,3);
+ }else if(['fighter','berserker','revenantc'].includes(id)){
+  ink(gold,18,30,8,3);ink(gold,39,30,8,3);ink(gem,22,34,2,3);ink(gem,42,34,2,3);
+  line(gold,49,43,59,18);ink(gem,56,16,4,5);
+ }else if(id==='druid'){
+  line(gold,18,13,12,5);line(gold,46,13,52,5);ink(gem,13,5,3,3);ink(gem,49,5,3,3);
+  ink(gold,30,38,5,5);ink(gem,32,37,1,8);
+ }
+ return out;
+}
+// The Midnight Empress: portrait-based black lace, detailed gown, pendant,
+// flowing hair, ornate bodice and purple shadow-magic ornamentation.
 function seraphinaSprite(scale){
  const k=(scale||3)*2,base=document.createElement('canvas');base.width=64;base.height=64;
  const x=base.getContext('2d');x.imageSmoothingEnabled=false;
- const P=(color,rx,ry,rw,rh)=>{x.fillStyle=color;x.fillRect(rx,ry,rw,rh)};
- // Broad, layered black ball gown with sheer dark-grey folds.
- for(let y=31;y<62;y++){
-   const spread=Math.round((y-31)*.65),left=22-spread,right=42+spread;
-   P(y%5===0?'#25212a':'#14121a',Math.max(2,left),y,Math.min(60,right)-Math.max(2,left),1);
-   for(let i=0;i<5;i++){let px=24+i*4+Math.round((i-2)*spread/3);if(px>2&&px<62)P(i%2?'#39303b':'#24202b',px,y,1,1)}
+ const P=(color,rx,ry,rw=1,rh=1)=>{x.fillStyle=color;x.fillRect(rx,ry,rw,rh)};
+ const L=(color,a,b,c,d)=>{x.strokeStyle=color;x.lineWidth=1;x.beginPath();x.moveTo(a+.5,b+.5);x.lineTo(c+.5,d+.5);x.stroke()};
+ // Broad layered black ball gown with individual pleats, sheer outer skirt and embroidered hem.
+ for(let y=32;y<63;y++){
+   const spread=Math.round((y-32)*.72),left=Math.max(1,22-spread),right=Math.min(63,42+spread);
+   P(y%4===0?'#24212c':'#100f18',left,y,right-left,1);
+   for(let j=0;j<8;j++){let xx=Math.round(22+j*2.8+(j-3.5)*spread/5);if(xx>left&&xx<right)P(j%2?'#342a3b':'#211c29',xx,y,1,1)}
  }
- // Lace bodice, scalloped neckline and embroidered front panel.
- P('#18151e',20,29,24,18);P('#302631',23,32,18,2);P('#0a0910',26,34,12,12);
- for(let y=35;y<47;y+=3)for(let j=0;j<4;j++)P('#665461',27+j*3+(y%2),y,1,1);
- // Short black sleeves and exposed forearms; folded hands.
- P('#17151d',15,31,7,11);P('#17151d',42,31,7,11);
- P('#d4a38b',15,41,5,9);P('#d4a38b',44,41,5,9);
- P('#e3b39c',19,48,9,4);P('#e3b39c',35,48,9,4);P('#e8bca3',26,49,12,4);
- P('#9a776b',28,51,8,1);
+ for(let j=0;j<7;j++){let xx=8+j*8;L('#49364f',xx,53,xx+(j-3)*2,62)}
+ // Lace-edged corset, off-shoulder neckline, puff sleeves and fitted waist.
+ P('#18131d',20,29,24,19);P('#342736',22,31,20,3);P('#0b0910',26,34,12,13);
+ for(let y=34;y<46;y+=3)for(let j=0;j<5;j++)P((j+y)%2?'#745c72':'#433344',26+j*3,y,1,1);
+ for(let y=36;y<47;y+=4){L('#8b6c83',25,y,38,y+2);L('#6d506f',38,y,25,y+2)}
+ P('#1b1720',15,31,7,10);P('#1b1720',42,31,7,10);
+ P('#9d8195',17,33,3,2);P('#9d8195',45,33,3,2);
+ // Arms and folded hands.
+ P('#d6a58d',15,41,5,9);P('#d6a58d',44,41,5,9);
+ P('#e5b59e',19,48,9,4);P('#e5b59e',35,48,9,4);P('#efc0a7',26,49,12,4);
+ for(let j=0;j<4;j++)P('#ad7e79',26+j*3,51,1,1);
+ P('#c9b7c7',17,47,3,1);P('#c9b7c7',45,47,3,1);
  // Neck and shoulders.
- P('#dbac95',29,25,7,8);P('#e3b49d',22,28,8,4);P('#e3b49d',36,28,7,4);
- // Dark hair framing a softly lit face.
- P('#151219',23,9,19,22);P('#292029',21,13,5,21);P('#292029',40,13,5,21);
- P('#e5b59c',26,13,13,15);P('#f2c4a8',28,15,10,10);
- P('#21191c',26,12,14,4);P('#151219',24,10,9,6);P('#17131a',35,10,7,6);
- P('#21181e',29,19,2,1);P('#21181e',36,19,2,1);P('#a66c70',32,24,5,1);
- P('#a78978',32,21,2,1);
- // Necklace and small silver pendant.
- P('#b9a8a0',30,30,1,1);P('#b9a8a0',36,30,1,1);P('#d6d0d8',33,33,2,2);
- // Subtle purple magical embroidery along the hem.
- for(let i=0;i<9;i++){let xx=8+i*6;P('#6d506f',xx,57+(i%2),2,1);}
+ P('#dcaa94',29,25,7,8);P('#e5b59d',22,28,8,4);P('#e5b59d',36,28,7,4);
+ // Softly illuminated face and voluminous shoulder-length dark hair.
+ P('#100e14',23,9,19,24);P('#27202a',21,13,5,22);P('#29202b',40,13,5,22);
+ for(let y=16;y<35;y+=4){P('#44323d',21,y,2,3);P('#382934',43,y+1,2,3)}
+ P('#d9a48d',26,13,13,15);P('#f1c1a7',28,15,10,10);
+ P('#1c151b',26,12,14,4);P('#120f16',24,10,9,6);P('#1a141c',35,10,7,6);
+ P('#473039',29,13,7,1);P('#281c22',29,19,2,1);P('#281c22',36,19,2,1);
+ P('#f8d6c3',28,21,2,1);P('#f8d6c3',37,21,1,1);P('#a36c70',32,24,5,1);P('#b28a7a',32,21,2,1);
+ // Delicate necklace and violet-silver gemstone pendant.
+ L('#d0bdc9',29,29,33,33);L('#d0bdc9',38,29,34,33);
+ P('#f2e5f2',33,33,2,1);P('#ab83e6',33,34,2,2);P('#f3d7ff',33,34);
+ // Unique crescent crest and tiny magical motifs on gown.
+ P('#ab83e6',31,39,1,3);P('#ab83e6',35,39,1,3);P('#c3a4f5',32,42,3,1);
+ for(let j=0;j<9;j++){let xx=7+j*6;P(j%2?'#8e659b':'#c1a1dc',xx,58+(j%3),2,1)}
+ for(let j=0;j<5;j++){P('#bd96ed',5+j*12,24+(j%3)*7,1,1)}
  const out=document.createElement('canvas');out.width=64*k;out.height=64*k;
  const o=out.getContext('2d');o.imageSmoothingEnabled=false;o.drawImage(base,0,0,out.width,out.height);
  out.dataset.cssw=64*(scale||3);out.dataset.cssh=64*(scale||3);
  return out;
 }
 function heroSprite(c,scale){
- if(c.id==='seraphina')return cached('seraphina_portrait_v1_'+(scale||3),()=>seraphinaSprite(scale));
-  return cached('h12'+c.id+'_'+(scale||3),()=>{const k=scale||3,cvs=renderChar(heroMask(c),HEROMAT3[c.id]||HEROMAT2[c.id]||HEROMAT[c.id]||HEROMAT.fighter,k*2,{seed:(c.seed||3)%97});cvs.dataset.cssw=64*k;cvs.dataset.cssh=64*k;return cvs;});}
+ if(c.id==='seraphina')return cached('seraphina_portrait_v3_'+(scale||3),()=>seraphinaSprite(scale));
+ return cached('hero_remaster_v3_'+c.id+'_'+(scale||3),()=>{
+  const k=scale||3,original=renderChar(heroMask(c),HEROMAT3[c.id]||HEROMAT2[c.id]||HEROMAT[c.id]||HEROMAT.fighter,1,{seed:(c.seed||3)%97});
+  const detailed=detailHeroArt(original,c),cvs=document.createElement('canvas');cvs.width=64*k*2;cvs.height=64*k*2;
+  const ctx=cvs.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.drawImage(detailed,0,0,cvs.width,cvs.height);
+  cvs.dataset.cssw=64*k;cvs.dataset.cssh=64*k;return cvs;
+ });
+}
 /* ---------- FOE SPRITES (64x64, full colour) ---------- */
 function speck(g,r,x,y,w,h,mat,n){for(let i=0;i<n;i++){const px=x+((r()*w)|0),py=y+((r()*h)|0);if(g.g(px,py))g.s(px,py,mat);}}
 function legs(g,x,y,dx,dy,n,mat,spread){
@@ -3952,9 +4003,9 @@ function tagMag(tag,it,lvl){
 const STATUS_OF={burn:'burn',fire:'burn',poison:'poison',freeze:'freeze',ice:'freeze',stun:'stun',bleed:'bleed'};
 /* ---------- CHARACTERS ---------- */
 const CHARS=[
- {id:"seraphina",name:"Lady Seraphina Nightveil",tags:["shadow","arcane"],hp:470,dmg:18,armour:7,spd:11,dodge:.09,gold:110,
+ {id:"seraphina",name:"Lady Seraphina Nightveil",tags:["demon","arcane"],hp:470,dmg:18,armour:7,spd:11,dodge:.09,gold:110,
   seed:919,helm:"plain",weap:"orb",cape:1,pal:pal("black","blue"),startShape:"orb",startR:0,
-  relicTags:["shadow"],rdesc:"Eclipse of the Damned: shadow attacks siphon life from foes.",
+  relicTags:["demon"],rdesc:"Eclipse of the Damned: shadow attacks siphon life from foes.",
   flavor:"The Midnight Empress. Clad in black lace and silver, she walks willingly into the dark."},
  {id:"paladin",name:"The Paladin",tags:["holy","metal"],hp:560,dmg:15,armour:13,spd:7,dodge:.03,gold:95,
   seed:11,helm:"halo",weap:"sword",cape:1,pal:pal("blue","red"),startShape:"sword",startR:0,
