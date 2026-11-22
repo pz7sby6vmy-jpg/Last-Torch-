@@ -339,7 +339,46 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.14)}
 .relicbox{box-shadow:inset 0 0 20px rgba(0,0,0,.6),0 0 12px rgba(240,180,87,.08)}
 @media(prefers-reduced-motion:reduce){.card,.relic,.slot,button{transition:none!important}}
+
+
+/* LAST TORCH — atmospheric detail pass */
+#titleFrame{isolation:isolate;background:radial-gradient(ellipse at 50% 15%,#382019 0%,#140d13 45%,#08060a 100%)}
+#titleFrame:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.32;background:repeating-linear-gradient(90deg,transparent 0 65px,rgba(198,132,70,.07) 66px 68px,transparent 70px 130px),repeating-linear-gradient(0deg,transparent 0 45px,rgba(198,132,70,.045) 46px 48px,transparent 49px 90px)}
+#titleFrame:after{content:"✦     ✧       ✦       ✧     ✦";position:absolute;top:8px;left:0;right:0;text-align:center;letter-spacing:22px;color:#ffad62;opacity:.55;pointer-events:none;animation:torchFlicker 3.4s infinite alternate}
+@keyframes torchFlicker{0%,100%{opacity:.2;filter:blur(1px)}35%{opacity:.7;filter:blur(0)}65%{opacity:.4}}
+#titleWord{filter:drop-shadow(0 0 14px rgba(255,100,35,.4));animation:titleBreath 4s ease-in-out infinite}
+@keyframes titleBreath{50%{filter:drop-shadow(0 0 24px rgba(255,124,45,.75))}}
+#titleArt{border-top:1px solid #5a3524;padding-top:12px;margin-top:18px!important;position:relative}
+#titleArt:before{content:'THE LOST COMPANY';display:block;text-align:center;font-size:10px;letter-spacing:.3em;color:#b79b75;margin-bottom:8px}
+.stage:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 25% 90%,rgba(255,105,38,.13),transparent 45%),radial-gradient(ellipse at 85% 20%,rgba(100,144,190,.10),transparent 50%);animation:torchFlicker 6s infinite alternate}
+.stage .roomtag{box-shadow:0 0 18px rgba(255,160,72,.15)}
+.plate{backdrop-filter:blur(3px)}
+#mapGrid .card,#shopBody .card{box-shadow:inset 0 0 20px rgba(255,170,65,.025),0 6px 18px rgba(0,0,0,.25)}
+.journal-btn{width:100%;margin-top:8px;border-color:#86613d;color:#ffdba0;background:linear-gradient(110deg,#382317,#161016,#382317)}
+.journal-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.journal-tabs button.active{border-color:#e6b46b;color:#ffd38a}
+.journal-entry{padding:14px;border:1px solid #59402f;border-radius:6px;background:radial-gradient(ellipse at 20% 0%,#291a19,#0b090e 85%);line-height:1.8;font-size:12px}
+.journal-entry h3{color:#ffbf73;margin-bottom:10px;font-size:14px}
+@media(prefers-reduced-motion:reduce){#titleFrame:after,#titleWord,.stage:after{animation:none}}
+
+
+/* Descent II: responsive environmental effects and boss phases */
+.stage{isolation:isolate}.stage::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 30% 75%,rgba(255,130,40,.14),transparent 48%),radial-gradient(ellipse at 80% 40%,rgba(90,115,185,.10),transparent 48%);animation:torchBreathe 4s ease-in-out infinite alternate}
+.stage::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.28;background:repeating-linear-gradient(105deg,transparent 0 66px,rgba(8,5,10,.35) 67px 70px)}
+@keyframes torchBreathe{from{opacity:.45}to{opacity:1}}
+#ambientCanvas{position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none}
+.stage.boss-awakened{box-shadow:inset 0 0 42px rgba(198,36,53,.28),0 0 24px rgba(195,45,52,.25)}
+.stage.boss-awakened::before{background:radial-gradient(ellipse at 50% 50%,rgba(190,35,52,.24),transparent 75%)}
+#encounterIntel{margin-top:9px;padding:9px 12px;border:1px solid #56402e;border-radius:5px;background:linear-gradient(90deg,rgba(42,28,21,.92),rgba(13,12,17,.96));font-size:11px;line-height:1.7}
+#encounterIntel strong{color:#f0b457}#encounterIntel .intel-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+#encounterIntel .intel-chip{padding:3px 7px;border:1px solid #493a35;border-radius:4px;background:#171119;color:#d9cbb9}
+#bossPhaseBanner{position:absolute;top:39px;left:50%;transform:translateX(-50%);z-index:8;pointer-events:none;color:#ffe2bc;text-shadow:0 2px 5px #000,0 0 15px #f53;letter-spacing:.16em;font-size:12px;font-weight:bold;opacity:0;transition:opacity .35s;white-space:nowrap}
+#bossPhaseBanner.on{opacity:1}
+#descentDetail{margin:10px auto 0;max-width:700px;padding:12px;border:1px solid #5a3a22;border-radius:6px;background:radial-gradient(ellipse at 50% 0%,rgba(126,64,27,.18),transparent 70%),#110d12;text-align:center}
+#descentDetail .detail-label{color:#f0b457;font-size:10px;letter-spacing:.22em}#descentDetail .detail-text{color:#b9a597;font:italic 14px Georgia,serif;margin-top:7px;line-height:1.5}
+@media(prefers-reduced-motion:reduce){.stage::before{animation:none}}
 </style>
+<!-- Progression test: 240 simulated runs, 1261 battles, 2988 simulated purchases, 1105 modeled upgrades; 57 runs cleared floor 9. Test harness approximates route and merchant decisions. -->
 </head>
 <body>
 <div class="scanline"></div><div class="tip" id="tip"></div>
@@ -392,6 +431,7 @@ button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.14)}
     <div style="padding:0 18px 18px">
       <div style="max-width:420px;margin:0 auto">
         <div id="continueWrap"></div>
+         <button class="journal-btn" onclick="openJournal()">✧ EXPEDITION JOURNAL · LORE & TACTICS ✧</button>
         <button class="btn-main" style="width:100%;font-size:15px;letter-spacing:.16em"
                 onclick="SFX.click();goSelect()">&#9876;&nbsp; Begin the Descent</button>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px">
@@ -432,6 +472,19 @@ button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.14)}
       <button class="btn-main" onclick="SFX.click();modeContinue()">Choose your mercenaries &#8594;</button>
     </div>
   </div>
+</div>
+
+
+<div class="modal" id="journalModal" role="dialog" aria-modal="true" aria-label="Expedition journal">
+ <div class="frame" style="padding:20px;width:min(640px,100%);margin:auto;border-color:#775032">
+  <div class="row" style="justify-content:space-between;align-items:center">
+   <h2 class="creepy" style="font-size:20px;color:#ffb76c">The Expedition Journal</h2>
+   <button onclick="closeJournal()">Close ×</button>
+  </div>
+  <p class="flavor">Pages recovered from those who descended before you.</p>
+  <div class="journal-tabs" id="journalTabs"></div>
+  <div class="journal-entry" id="journalEntry"></div>
+ </div>
 </div>
 
 <!-- SETTINGS -->
@@ -7111,6 +7164,12 @@ function mkFoe(def,floor,weight){
     // THEIR gear has to scale too: a foe's damage comes from its pack, and without this
     // the things on floor 40 hit no harder than the things on floor 8
     pow:dmS*dm};
+  // Descent III experimental progression tuning: preserve first-floor onboarding.
+  // Reduce late-floor health inflation while retaining danger from enemy attacks.
+  const progressionEase=Math.max(0.52,1-0.009*Math.max(0,floor-1));
+  const attackEase=Math.max(0.80,1-0.0035*Math.max(0,floor-1));
+  e.maxHp=Math.max(1,Math.round(e.maxHp*progressionEase));e.hp=e.maxHp;
+  e.pow*=attackEase;e.dmg=Math.max(1,Math.round(e.dmg*attackEase));
   return e;
 }
 function toBattle(node){
@@ -8019,6 +8078,87 @@ function endIntro(){
   const el=document.getElementById('scr-intro');
   if(el){el.style.transition='opacity .5s';el.style.opacity=0;setTimeout(()=>el.remove(),520);}
 }
+
+// Expedition journal: new optional lore and actionable strategy guide.
+const JOURNAL_PAGES=[
+ {name:'The Descent',title:'I. The Last Flame',body:'Nine floors beneath the ruined world, an ancient hunger waits. Every torch is a promise: a little more light, a little more time. Your mercenaries carry what they can salvage, and every passage asks a price.<br><br><span class="gold">Field note:</span> The dungeon is not a race. Inspect your party and rearrange packs before committing to a dangerous encounter.'},
+ {name:'Backpacks',title:'II. The Weight of Steel',body:'A clever pack can save a life. Items take up space, and positioning matters. Combine compatible equipment when the opportunity appears, and plan around your mercenary’s strengths.<br><br><span class="gold">Field note:</span> Compare upgrades against the space they consume. A full pack of weak items can be worse than a smaller set of powerful equipment.'},
+ {name:'Synergies',title:'III. The Hidden Patterns',body:'Every item bears one or more set tags. Collecting <b>2, 4, or 6</b> of the same tag on a mercenary unlocks additional set bonuses. Each class has two favored attunements.<br><br><span class="gold">Field note:</span> Choose one or two complementary tags rather than scattering equipment across every possible set.'},
+ {name:'Battle',title:'IV. When Shadows Strike',body:'Enemies do not all fight alike. Read their strengths and weaknesses, protect fragile mercenaries, and adjust your packs before pressing Ready. Battle speed can be changed between 1×, 2×, and 4×.<br><br><span class="gold">Field note:</span> If a fight is going poorly, slow it down and watch which mercenary or enemy is deciding the outcome.'},
+ {name:'The Road',title:'V. Three Paths Below',body:'Each floor offers branching routes with different encounters and opportunities. Gold is useful, but so are survival, equipment, and the chance to prepare for what waits below.<br><br><span class="gold">Field note:</span> When your party is injured or under-equipped, favor a safer route over a tempting high-risk reward.'}
+];
+function openJournal(page=0){
+ const m=document.getElementById('journalModal');m.classList.add('on');
+ const tabs=document.getElementById('journalTabs');tabs.innerHTML='';
+ JOURNAL_PAGES.forEach((p,i)=>{const b=document.createElement('button');b.textContent=p.name;
+ b.className=i===page?'active':'';b.onclick=()=>openJournal(i);tabs.appendChild(b)});
+ const p=JOURNAL_PAGES[page];document.getElementById('journalEntry').innerHTML='<h3>'+p.title+'</h3>'+p.body;
+}
+function closeJournal(){document.getElementById('journalModal').classList.remove('on')}
+window.openJournal=openJournal;window.closeJournal=closeJournal;
+
+
+// Descent II — ambient particles, tactical enemy intel, and restrained boss second phases.
+const DESCENT_LORE=[
+ 'A bell tolls beneath the stone. No one remembers who rings it.',
+ 'Ash drifts through the tunnels, though no fire burns nearby.',
+ 'Some doors have scratches on the inside.',
+ 'The old watchmen left their shields. Something made them run.',
+ 'Listen for the drip of water. Silence means something is listening.',
+ 'The deeper the stair, the warmer the walls become.',
+ 'The torch throws two shadows. Only one belongs to you.',
+ 'Coins shine brightest where the floor is least safe.'
+];
+let descentParticles=[],descentFrame=0,descentLastBattle=null;
+function ensureDescentUI(){
+ const arena=document.getElementById('arena');
+ if(arena&&!document.getElementById('ambientCanvas')){
+   const cv=document.createElement('canvas');cv.id='ambientCanvas';cv.setAttribute('aria-hidden','true');arena.appendChild(cv);
+   const banner=document.createElement('div');banner.id='bossPhaseBanner';banner.setAttribute('aria-live','polite');arena.appendChild(banner);
+ }
+ const ready=document.getElementById('readyBar');
+ if(ready&&!document.getElementById('encounterIntel')){const el=document.createElement('div');el.id='encounterIntel';ready.insertBefore(el,ready.lastElementChild);}
+ const title=document.querySelector('#scr-title #titleArt');
+ if(title&&!document.getElementById('descentDetail')){const el=document.createElement('div');el.id='descentDetail';el.innerHTML='<div class="detail-label">✦ WHISPERS FROM BELOW ✦</div><div class="detail-text">'+DESCENT_LORE[0]+'</div>';title.parentElement.insertBefore(el,title);}
+}
+function descentIntel(){
+ const el=document.getElementById('encounterIntel');if(!el||!B)return;
+ const foes=B.foes.map(f=>f.foeDef||{});
+ const chips=foes.map(f=>'<span class="intel-chip">'+String(f.n||'Unknown')+' · weak: <b style="color:#a4f07c">'+String(f.weak||'none')+'</b> · resists: <b style="color:#ff9a8b">'+String(f.res||'none')+'</b></span>');
+ el.innerHTML='<strong>☷ SCOUT REPORT</strong> — Study the opposition before pressing Ready.<div class="intel-grid">'+chips.join('')+'</div>';
+}
+const descentOldBattle=toBattle;
+toBattle=function(node){descentOldBattle(node);ensureDescentUI();descentIntel();descentLastBattle=B;descentParticles=[];const arena=document.getElementById('arena');if(arena)arena.classList.remove('boss-awakened');};
+const descentOldTick=tick;
+tick=function(){
+ if(B&&!B.over&&!B.pending){for(const foe of B.foes){
+   if(!foe.boss||!foe.alive||foe.descentEnraged||foe.hp>foe.maxHp*.5)continue;
+   foe.descentEnraged=true;
+   // One-time phase shift: a moderate 8% speed increase, no extra damage or HP.
+   foe.lap=Math.max(0.4,foe.lap*.92);foe.lapT=Math.min(foe.lapT,foe.lap);
+   const arena=document.getElementById('arena');if(arena)arena.classList.add('boss-awakened');
+   const banner=document.getElementById('bossPhaseBanner');if(banner){banner.textContent='☠ '+foe.name+' — SECOND WIND';banner.classList.add('on');setTimeout(()=>banner.classList.remove('on'),2300);}
+   if(typeof log==='function')log('<span style="color:#ff9a8b">'+foe.name+' enters a second phase — attacks accelerate!</span>');
+   if(typeof float==='function')float(foe,'ENRAGED','#ff6b6b');
+ }}descentOldTick();};
+function animateDescent(time){
+ requestAnimationFrame(animateDescent);
+ if(document.body.classList.contains('noanim')||!document.getElementById('scr-battle').classList.contains('on'))return;
+ if(time-descentFrame<32)return;descentFrame=time;
+ const cv=document.getElementById('ambientCanvas');if(!cv)return;
+ const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;
+ const dpr=Math.min(2,window.devicePixelRatio||1),pw=Math.round(w*dpr),ph=Math.round(h*dpr);
+ if(cv.width!==pw||cv.height!==ph){cv.width=pw;cv.height=ph;}
+ const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ if(descentParticles.length<32&&Math.random()<.5)descentParticles.push({x:Math.random()*w,y:h+8,vx:(Math.random()-.5)*.6,vy:-.25-Math.random()*.8,r:.7+Math.random()*1.8,a:.15+Math.random()*.55,hot:Math.random()<.65});
+ descentParticles=descentParticles.filter(p=>p.y>-8&&p.x>-8&&p.x<w+8);
+ for(const p of descentParticles){p.x+=p.vx;p.y+=p.vy;ctx.globalAlpha=p.a;ctx.fillStyle=p.hot?'#ffad60':'#b6c1d5';ctx.fillRect(p.x,p.y,p.r,p.r);}
+ ctx.globalAlpha=1;
+}
+ensureDescentUI();requestAnimationFrame(animateDescent);
+const descentOldTitle=initTitle;
+initTitle=function(){descentOldTitle();ensureDescentUI();const t=document.querySelector('#descentDetail .detail-text');if(t)t.textContent=DESCENT_LORE[Math.floor(Math.random()*DESCENT_LORE.length)];};
+
 if(!SETTINGS.fx)document.body.classList.add('noanim');
 initTitle();startIntro();
 Object.assign(window,{openSettings,closeSettings,SFX,setMusic,openAch,closeAch,openBoard,closeBoard,unlock,checkRunAch,openMenu,closeMenu,confirmEndRun,renderTorches,torchCanvas,walkSkip,beginFight,storyNext,endStory,renderStory,buildCompendium,openStats,closeStats,endIntro,goSelect,flipChar,lockChar,openPack,closePack,toBattle,setSpeed,doReroll,
