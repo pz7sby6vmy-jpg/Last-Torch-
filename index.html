@@ -7209,9 +7209,27 @@ function itemTile(inst,cell,gap,onclick){
   d.style.cssText=`position:relative;display:flex;align-items:center;justify-content:center;
     width:${bw}px;height:${bh}px;border:2px solid ${RAR[it.r].col};border-radius:4px;
     background:linear-gradient(#141a28,#0a0d15);box-sizing:border-box;cursor:pointer`;
-  const sc=Math.max(2,Math.min(6,Math.floor((Math.min(bw,bh)-6)/16)));
-  const ic=itemIcon(it.shape,null,sc,null,inst);
-  if(inst.rot)ic.style.transform='rotate(90deg)';      // the picture turns with the footprint
+  // Render the WHOLE illustration into the item's complete grid footprint.
+  // Previous code sized artwork using the shortest side, leaving 1x3 and 3x1
+  // items as tiny squares in the middle of a large inventory slot.
+  const sc=Math.max(3,Math.min(8,Math.ceil(Math.max(bw,bh)/16)));
+  const source=itemIcon(it.shape,null,sc,null,inst);
+  const ic=document.createElement('canvas');
+  const ratio=Math.min(2,window.devicePixelRatio||1);
+  const iw=Math.max(8,bw-10),ih=Math.max(8,bh-10);
+  ic.width=Math.round(iw*ratio);ic.height=Math.round(ih*ratio);
+  ic.className='item-footprint-art';
+  ic.style.cssText='display:block;position:absolute;left:5px;top:5px;width:calc(100% - 10px);height:calc(100% - 10px);pointer-events:none;image-rendering:auto';
+  const cx=ic.getContext('2d');cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+  const sw=source.width,sh=source.height;
+  // All pixels of the original artwork remain visible, even when an item
+  // spans three rows or three columns. No cover/cropping is used.
+  cx.save();
+  if(inst.rot){
+    cx.translate(ic.width/2,ic.height/2);cx.rotate(Math.PI/2);
+    cx.drawImage(source,-ic.height/2,-ic.width/2,ic.height,ic.width);
+  }else cx.drawImage(source,0,0,sw,sh,0,0,ic.width,ic.height);
+  cx.restore();
   d.appendChild(ic);
   const dots=document.createElement('div');dots.className='tagdot';
   inst.tags.forEach(t=>{const i2=document.createElement('i');i2.style.background=tagCol(t);dots.appendChild(i2);});
