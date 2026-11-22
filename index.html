@@ -116,6 +116,28 @@ button.sel{border-color:var(--gold);color:var(--gold);background:linear-gradient
 #introCv{width:100%;max-width:1000px;image-rendering:pixelated}
 #skipHint{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:11px;color:#4a4238;letter-spacing:.3em}
 .statgrid{display:grid;gap:4px 14px;grid-template-columns:auto 1fr;font-size:11px}
+/* 1920 x 1080 desktop presentation; retains responsive layouts on smaller screens. */
+@media (min-width:1500px) and (min-height:850px){
+  body{padding:28px 24px 44px;font-size:16px}
+  .wrap{max-width:1880px;width:100%}
+  button{font-size:14px;padding:10px 18px}
+  .btn-main{font-size:17px;padding:14px 28px}
+  .topbar{gap:12px;margin-bottom:14px}
+  .tag{font-size:13px;padding:5px 10px}
+  .card{padding:14px}
+  .unit{width:164px;padding:7px}
+  .unit canvas{max-width:144px;height:auto}
+  .log{height:160px;font-size:13px}
+  .chip{font-size:12px}
+  .flavor{font-size:14px}
+  .gal{grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:12px}
+  .galcell{padding:10px}
+  #introCv{max-width:1600px;max-height:90vh;object-fit:contain}
+}
+@media (min-width:1500px) and (max-height:849px){
+  .wrap{max-width:1880px}
+  body{padding:18px 16px 24px}
+}
 /* ---------------- PHONES ---------------- */
 @media (hover:none){
   .card:hover,.relic:hover{transform:none}
@@ -377,6 +399,46 @@ button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.14)}
 #descentDetail{margin:10px auto 0;max-width:700px;padding:12px;border:1px solid #5a3a22;border-radius:6px;background:radial-gradient(ellipse at 50% 0%,rgba(126,64,27,.18),transparent 70%),#110d12;text-align:center}
 #descentDetail .detail-label{color:#f0b457;font-size:10px;letter-spacing:.22em}#descentDetail .detail-text{color:#b9a597;font:italic 14px Georgia,serif;margin-top:7px;line-height:1.5}
 @media(prefers-reduced-motion:reduce){.stage::before{animation:none}}
+
+
+/* Complete visual pass: room identities and readable combat motion */
+.stage[data-biome="crypt"]{border-color:#55424d}.stage[data-biome="crypt"] .shade{background:linear-gradient(180deg,rgba(90,80,110,.08),transparent 35%,rgba(8,5,14,.91))}
+.stage[data-biome="forge"]{border-color:#865039}.stage[data-biome="forge"] .shade{background:linear-gradient(180deg,rgba(255,93,25,.12),transparent 35%,rgba(21,6,4,.91))}
+.stage[data-biome="depths"]{border-color:#365967}.stage[data-biome="depths"] .shade{background:linear-gradient(180deg,rgba(30,150,180,.12),transparent 35%,rgba(3,14,22,.92))}
+.stage[data-biome="abyss"]{border-color:#67456f}.stage[data-biome="abyss"] .shade{background:linear-gradient(180deg,rgba(130,45,170,.13),transparent 35%,rgba(13,4,20,.94))}
+.unit.foe .fig{transform-origin:50% 95%;animation:foeBreath 2.8s ease-in-out infinite}
+.unit.foe:nth-child(even) .fig{animation-delay:-1.2s}
+.unit.boss .fig{filter:drop-shadow(0 0 10px rgba(230,63,69,.3));animation:bossBreath 2.1s ease-in-out infinite}
+.stage.boss-awakened .unit.boss .fig{animation-duration:1.15s;filter:drop-shadow(0 0 15px rgba(255,68,68,.7))}
+@keyframes foeBreath{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.025)}}
+@keyframes bossBreath{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.045)}}
+@media(prefers-reduced-motion:reduce){.unit.foe .fig,.unit.boss .fig{animation:none!important}}
+
+
+/* LAST TORCH: combat character animation and boss metamorphosis */
+@keyframes ltIdleHero{0%,100%{transform:translateY(0) rotate(-.5deg)}50%{transform:translateY(-4px) rotate(.7deg)}}
+@keyframes ltIdleFoe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.025)}}
+@keyframes ltBossAura{0%,100%{filter:drop-shadow(0 0 7px #d94b64)}50%{filter:drop-shadow(0 0 22px #ff7650) brightness(1.18)}}
+@keyframes ltStageMist{0%{background-position:0 0}100%{background-position:210px -70px}}
+#arena .unit .fig{transform-origin:50% 82%;will-change:transform,filter}
+#arena .unit.hero .fig{animation:ltIdleHero 2.7s ease-in-out infinite}
+#arena .unit.foe .fig{animation:ltIdleFoe 2.15s ease-in-out infinite}
+#arena .unit:nth-child(2n) .fig{animation-delay:-1.2s}
+#arena .unit:nth-child(3n) .fig{animation-delay:-.7s}
+#arena .unit.boss .fig{animation:ltIdleFoe 2.2s ease-in-out infinite,ltBossAura 3s ease-in-out infinite}
+#arena.boss-awakened .unit.boss .fig{animation:ltIdleFoe .95s ease-in-out infinite,ltBossAura .9s ease-in-out infinite;filter:drop-shadow(0 0 15px #f64)}
+#arena .unit.dead .fig{animation:none!important;filter:grayscale(.9) brightness(.55)}
+#battleRoom:after{content:'';pointer-events:none;position:absolute;inset:0;background:repeating-linear-gradient(100deg,transparent 0 35px,rgba(180,210,255,.016) 45px 75px,transparent 95px 160px);animation:ltStageMist 28s linear infinite}
+@media(prefers-reduced-motion:reduce){#arena .unit .fig,#battleRoom:after{animation:none!important}}
+
+/* LAST TORCH — individual class spell and monster death VFX */
+.lt-spell-sigil{position:absolute;pointer-events:none;z-index:90;width:92px;height:92px;border:3px solid var(--spell,#eacb83);border-radius:50%;box-shadow:0 0 20px var(--spell),inset 0 0 20px var(--spell);transform:translate(-50%,-50%)}
+.lt-spell-sigil::before,.lt-spell-sigil::after{content:"";position:absolute;inset:11px;border:2px dashed var(--spell);border-radius:50%;opacity:.9}
+.lt-spell-sigil::after{inset:26px;border-style:solid;transform:rotate(45deg);border-radius:4px}
+.lt-spell-glyph{position:absolute;pointer-events:none;z-index:91;font:900 26px Georgia,serif;color:var(--spell,#fff);text-shadow:0 0 15px var(--spell);transform:translate(-50%,-50%)}
+.lt-death-shard{position:absolute;pointer-events:none;z-index:91;width:9px;height:18px;background:var(--death,#f5caca);box-shadow:0 0 12px var(--death);clip-path:polygon(50% 0,100% 40%,65% 100%,0 75%)}
+@media(prefers-reduced-motion:reduce){.lt-spell-sigil,.lt-spell-glyph,.lt-death-shard{display:none!important}}
+
 </style>
 <!-- Progression test: 240 simulated runs, 1261 battles, 2988 simulated purchases, 1105 modeled upgrades; 57 runs cleared floor 9. Test harness approximates route and merchant decisions. -->
 </head>
@@ -850,9 +912,35 @@ function render(mask,palette,scale,eyes){
    Mask cells hold a MATERIAL id; each material carries [light, mid, dark]
    and is shaded automatically by where the pixel sits in the silhouette. */
 const _sprCache={};
+/* LAST TORCH art pass: deterministic material-grade lighting, texture and rim
+   highlights shared by heroes, monsters, equipment and environmental sprites. */
+function polishSprite(canvas,key){
+  const w=canvas.width,h=canvas.height;
+  if(w<12||h<12||w*h>1100000)return canvas;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  let im;try{im=ctx.getImageData(0,0,w,h);}catch(e){return canvas;}
+  const d=im.data, room=key[0]==='r', item=key[0]==='i'||key[0]==='p';
+  const step=room?3:Math.max(1,Math.round(w/(item?64:128)));
+  let seed=2166136261;for(let i=0;i<key.length;i++)seed=Math.imul(seed^key.charCodeAt(i),16777619)>>>0;
+  const hash=(x,y)=>{let v=(seed^Math.imul(x+1,374761393)^Math.imul(y+1,668265263))>>>0;v=Math.imul(v^(v>>>13),1274126177)>>>0;return (v^(v>>>16))>>>0;};
+  for(let y=step;y<h-step;y+=step)for(let x=step;x<w-step;x+=step){
+    const i=(y*w+x)*4;if(d[i+3]<200)continue;
+    const v=hash(x/step|0,y/step|0),grain=((v&255)/255-.5)*(room?12:16);
+    const lum=(d[i]*.2126+d[i+1]*.7152+d[i+2]*.0722);
+    const spec=lum>105&&((v>>>9)&31)===0?20:0;
+    const edge=(d[((y-1)*w+x)*4+3]<100||d[(y*w+x-1)*4+3]<100);
+    const rim=edge&&!room?16:0;
+    const shade=(grain+spec+rim);
+    for(let yy=y;yy<Math.min(h,y+step);yy++)for(let xx=x;xx<Math.min(w,x+step);xx++){
+      const j=(yy*w+xx)*4;if(d[j+3]<150)continue;
+      for(let c=0;c<3;c++){const val=d[j+c];d[j+c]=Math.max(0,Math.min(255,(val-127)*1.065+127+shade));}
+    }
+  }
+  ctx.putImageData(im,0,0);return canvas;
+}
 function cached(key,build){
   let c=_sprCache[key];
-  if(!c){c=build();_sprCache[key]=c;}
+  if(!c){c=polishSprite(build(),key);_sprCache[key]=c;}
   const o=document.createElement('canvas');o.width=c.width;o.height=c.height;
   o.getContext('2d').drawImage(c,0,0);
   if(c.dataset.cssw){o.style.width=c.dataset.cssw+'px';o.style.height=c.dataset.cssh+'px';}
@@ -2873,6 +2961,21 @@ function roomCanvasBuild(idx,scale){
   gr.addColorStop(0.55,'rgba(0,0,0,0)');
   gr.addColorStop(1,'rgba(0,0,0,0.72)');
   x.fillStyle=gr;x.fillRect(0,0,c.width,c.height);
+  // Room-specific layered depth: mist, tiny floating embers and reflected light.
+  const act=R2.act||1, accents=['','#83d4a0','#b5a0e4','#ff9d5d','#82bce9','#f4ce87'];
+  const rand=RNG(937+idx*137),W=c.width,H=c.height;
+  const haze=x.createLinearGradient(0,H*.35,0,H);
+  haze.addColorStop(0,'rgba(6,9,17,0)');
+  haze.addColorStop(.72,act===3?'rgba(96,38,20,.09)':'rgba(56,66,94,.10)');
+  haze.addColorStop(1,'rgba(7,10,19,.32)');
+  x.fillStyle=haze;x.fillRect(0,0,W,H);
+  x.save();x.globalCompositeOperation='screen';
+  for(let j=0;j<48;j++){
+    const px=rand()*W,py=rand()*H,rad=(.45+rand()*1.7)*(scale||3);
+    x.globalAlpha=.09+rand()*.26;x.fillStyle=accents[act]||'#d6c0a2';
+    x.fillRect(px,py,rad,rad*(rand()>.7?2:1));
+  }
+  x.restore();
   return c;
 }
 const TORCHMAT={1:["#a8824e","#6e5230","#3a2a18"],2:["#ffe9a3","#ffb13c","#c45a0c"],
@@ -3180,6 +3283,38 @@ function finishUniqueItem(canvas,mask,inst,scale){
     const pt=inside[(rand()*inside.length)|0];
     ctx.fillRect(pt[0]*unit,pt[1]*unit,unit,unit);
     ctx.fillStyle=i%2?'#fff4d2':accent;
+  }
+  // Armory art: each of the 500 variants receives a deterministic, individually
+  // recognizable engraved sigil and a palette specific to its unlocked act.
+  const item=ITEMS[inst.bid];
+  if(item.armory){
+    const act=item.unlockAct;
+    const colors=['','#81e8a3','#c7b4ff','#ffae68','#8dd8ff','#ffda8a'];
+    const secondary=['','#275c3c','#56408c','#9d4629','#2b6a9b','#a8792a'];
+    const cx=Math.round(mask.w/2),cy=Math.round(mask.h/2);
+    const line=item.armoryLine;
+    const code=(line*73+item.r*41+17)>>>0;
+    ctx.shadowColor=colors[act];ctx.shadowBlur=unit*(item.r>=3?4:2);
+    // Inlaid colored metal pins: patterns change with every armory line.
+    for(let i=0;i<12;i++){
+      const index=(code+i*37+i*i*13)%inside.length;
+      const [x,y]=inside[index];
+      ctx.fillStyle=i%3===0?colors[act]:secondary[act];
+      ctx.fillRect(x*unit,y*unit,unit*(i%4===0?2:1),unit);
+    }
+    ctx.shadowBlur=0;
+    // A unique central crest, with up to five bright marks for the act.
+    for(let i=0;i<act+2;i++){
+      const idx=(code*3+i*53)%inside.length;
+      const [x,y]=inside[idx];
+      ctx.fillStyle=i%2?'#fff7da':colors[act];
+      ctx.fillRect(x*unit,y*unit,unit,unit*(i%3===0?2:1));
+    }
+    // Forged identity: a compact glyph encoded from the exact item line.
+    for(let i=0;i<6;i++){
+      const [x,y]=inside[(line*29+i*19)%inside.length];
+      if((line>>i)&1){ctx.fillStyle=colors[act];ctx.fillRect(x*unit,y*unit,unit,unit);}
+    }
   }
   ctx.restore();
 }
@@ -3584,8 +3719,48 @@ const ITEMLOCK={};
 const RELICLOCK=5;
 function shapeOpen(sh){const a=ITEMLOCK[sh];return !a||hasAch('act'+a);}
 function itemOpen(bid){const it=ITEMS[bid];if(!it)return true;
+  if(it.unlockAct)return hasAch('act'+it.unlockAct);
   if(it.special)return hasAch('act'+RELICLOCK);return shapeOpen(it.shape);}
-function lockAct(bid){const it=ITEMS[bid];return it.special?RELICLOCK:(ITEMLOCK[it.shape]||0);}
+function lockAct(bid){const it=ITEMS[bid];return it.unlockAct||(it.special?RELICLOCK:(ITEMLOCK[it.shape]||0));}
+
+/* THE FORGOTTEN ARMORY — 500 additional collectible equipment definitions.
+   100 named item lines x five rarities, unlocked in 100-item waves
+   after defeating each campaign act. Saved achievements persist between runs. */
+const ARMORY_THEMES=[
+  {name:'Thornbound',act:1,atk:1.07,hp:1.04,arm:1.02,cost:1.10},
+  {name:'Gravesworn',act:2,atk:1.12,hp:1.07,arm:1.04,cost:1.17},
+  {name:'Emberforged',act:3,atk:1.17,hp:1.10,arm:1.07,cost:1.24},
+  {name:'Starveiled',act:4,atk:1.22,hp:1.13,arm:1.10,cost:1.31},
+  {name:'Ninefold',act:5,atk:1.27,hp:1.16,arm:1.13,cost:1.38}
+];
+const ARMORY_BASE_SHAPES=SHAPES.slice(0,50);
+const ARMORY_EPITHETS=['Warden','Reaver','Seer','Pilgrim','Harbinger','Sentinel','Outrider','Keeper','Vanguard','Oracle','Oathkeeper','Duskblade','Wayfinder','Stormcaller','Ashwalker','Runesmith','Nightguard','Dawnbringer','Soulbinder','Ironheart'];
+function armoryScale(base,theme){
+  const it={...base};
+  ['hp','armour','dmg','heal','hpPerBattle','goldOnHit'].forEach(k=>{if(typeof it[k]==='number')it[k]=Math.max(1,Math.round(it[k]*(k==='hp'?theme.hp:k==='armour'?theme.arm:theme.atk)));});
+  if(it.cast)it.cast=Object.fromEntries(Object.entries(it.cast).map(([k,v])=>[k,typeof v==='number'&&k!=='hits'?Math.max(1,Math.round(v*theme.atk)):v]));
+  if(it.every)it.every={...it.every,n:Math.max(1,Math.round(it.every.n*theme.atk))};
+  it.cost=Math.max(1,Math.round(base.cost*theme.cost));
+  return it;
+}
+ARMORY_THEMES.forEach((theme,ti)=>{
+  for(let j=0;j<20;j++){
+    const sh=ARMORY_BASE_SHAPES[(ti*20+j)%ARMORY_BASE_SHAPES.length];
+    const line=ti*20+j, epithet=ARMORY_EPITHETS[j];
+    for(let r=0;r<5;r++){
+      const base=ITEMS.find(x=>x.shape===sh&&x.r===r&&!x.armory);
+      if(!base)throw Error('Missing armory template '+sh);
+      const item=armoryScale(base,theme);
+      item.id=ITEMS.length;item.armory=true;item.unlockAct=theme.act;
+      item.armoryLine=line;
+      item.n=theme.name+' '+epithet+' '+sh.replace(/^./,c=>c.toUpperCase())+' · '+RAR[r].n;
+      item.tx=(base.tx||'')+' [Forgotten Armory: Act '+theme.act+']';
+      ITEMS.push(item);
+    }
+  }
+});
+if(ITEMS.filter(i=>i.armory).length!==500)throw Error('Armory item count mismatch');
+
 const openShapes=()=>SHAPES.filter(shapeOpen);
 
 /* A shape's two tags are what the thing is FOR. Rolling them together most of the time means
@@ -4424,7 +4599,13 @@ function rollItem(bias,favour){
     const pool=[];R.party.forEach(m=>m.tags.forEach(t=>{if(TAGS[t])pool.push(t);}));
     if(pool.length)forced=pool[(Math.random()*pool.length)|0];
   }
-  const bid=ITEMS.findIndex(i=>i.shape===sh&&i.r===r);
+  let bid=ITEMS.findIndex(i=>i.shape===sh&&i.r===r&&!i.armory);
+  // Unlocked armory items join normal loot and merchant pools.
+  // Keep baseline equipment common so matching pairs and merges remain attainable.
+  if(Math.random()<0.36){
+    const unlocked=ITEMS.filter(i=>i.armory&&i.shape===sh&&i.r===r&&itemOpen(i.id));
+    if(unlocked.length)bid=pick(unlocked).id;
+  }
   return mkItem(bid, rollTags(ITEMS[bid],favour,forced), 1);
 }
 
@@ -5576,7 +5757,9 @@ function stockFor(p){
     if(!it){
       it=rollItem();
       if(ITEMS[it.bid].r===4&&Math.random()<0.5){     // merchants rarely carry legendaries
-        const sh=ITEMS[it.bid].shape;it.bid=ITEMS.findIndex(x=>x.shape===sh&&x.r===3);}
+        const original=ITEMS[it.bid];
+        const downgrade=ITEMS.find(x=>x.shape===original.shape&&x.r===3&&x.armoryLine===original.armoryLine&&!!x.armory===!!original.armory);
+        if(downgrade)it.bid=downgrade.id;}
     }
     autoPlace(grid,it,rows);
   }
@@ -7170,6 +7353,23 @@ function mkFoe(def,floor,weight){
   const attackEase=Math.max(0.80,1-0.0035*Math.max(0,floor-1));
   e.maxHp=Math.max(1,Math.round(e.maxHp*progressionEase));e.hp=e.maxHp;
   e.pow*=attackEase;e.dmg=Math.max(1,Math.round(e.dmg*attackEase));
+  // Descent IV: smooth the early progression bottleneck identified in 240 run tests.
+  // Floor 4 was the sharpest drop (40.8% encounter win rate); floor 5 is a boss checkpoint.
+  // Keep other floors, including the opening fight, unchanged.
+  const earlyBridge = floor===4 ? 0.84 : floor===5 ? 0.94 : 1;
+  e.maxHp=Math.max(1,Math.round(e.maxHp*earlyBridge));e.hp=e.maxHp;
+  e.pow*=earlyBridge;e.dmg=Math.max(1,Math.round(e.dmg*earlyBridge));
+  // Descent V: targeted Floor 5 boss / Floor 6 recovery tuning from 72-run test.
+  // Boss-only adjustment avoids making ordinary Floor 5 rooms trivial.
+  if(floor===5 && def.boss){
+    e.maxHp=Math.max(1,Math.round(e.maxHp*0.88));e.hp=e.maxHp;
+    e.pow*=0.92;e.dmg=Math.max(1,Math.round(e.dmg*0.92));
+  }
+  // A smaller bridge on Floor 6 eases the post-boss difficulty jump.
+  if(floor===6){
+    e.maxHp=Math.max(1,Math.round(e.maxHp*0.94));e.hp=e.maxHp;
+    e.pow*=0.96;e.dmg=Math.max(1,Math.round(e.dmg*0.96));
+  }
   return e;
 }
 function toBattle(node){
@@ -7226,6 +7426,10 @@ function setStageRoom(idx){
   const bn=document.getElementById('battleRoom'); if(!bn)return;
   bn.innerHTML=''; const c=roomCanvas(idx,3); bn.appendChild(c);
   const t=document.getElementById('roomTag'); if(t)t.textContent=ROOMART[idx%ROOMART.length].n;
+  // Floor-based biome identity is cosmetic: no hidden combat modifiers.
+  const stage=document.getElementById('arena');
+  if(stage){const depth=R&&R.floor||1;stage.dataset.biome=depth<=2?'crypt':depth<=4?'forge':depth<=7?'depths':'abyss';stage.classList.remove('boss-awakened');}
+
 }
 function unitEl(u,idx){
   const d=document.createElement('div');
@@ -7486,11 +7690,76 @@ function fxImpact(t,res,col,kind,crit){
   if(t.side==='hero'&&sfxGate('hurt',140))CSFX.hurt();
 }
 /* the one call the fight makes for every blow that is thrown */
+
+/* LAST TORCH — bespoke spellcasting and death animation system */
+const LT_CLASS_SPELLS={
+ paladin:{color:'#ffe7a0',glyph:'✦',shape:'sun'},fighter:{color:'#ff8e67',glyph:'✹',shape:'burst'},
+ witchdoctor:{color:'#8de681',glyph:'☣',shape:'spiral'},bloodelf:{color:'#ff607e',glyph:'◆',shape:'slash'},
+ druid:{color:'#a4e6a1',glyph:'❧',shape:'roots'},wizard:{color:'#9cbaff',glyph:'✧',shape:'arcane'},
+ necromancer:{color:'#bf9aea',glyph:'☽',shape:'spiral'},ranger:{color:'#a6e8ac',glyph:'➶',shape:'roots'},
+ berserker:{color:'#ff9468',glyph:'✹',shape:'burst'},cleric:{color:'#fff2b1',glyph:'✦',shape:'sun'}
+};
+const LT_FOE_DEATHS={
+ skeleton:{color:'#e7dfc7',shape:'bone'},wraith:{color:'#a3b9ff',shape:'mist'},
+ giant:{color:'#d3b79a',shape:'stone'},blob:{color:'#8bdc7e',shape:'ooze'},
+ eye:{color:'#da92f8',shape:'void'},serpent:{color:'#87dbb6',shape:'scale'},
+ arachnid:{color:'#b5d1a4',shape:'web'},beast:{color:'#dbac83',shape:'claw'},
+ knight:{color:'#aab8d5',shape:'metal'},bat:{color:'#a3a1d5',shape:'mist'},
+ fly:{color:'#a8d67b',shape:'dust'},crab:{color:'#df927e',shape:'scale'}
+};
+function ltEffectsAllowed(){return fxOn()&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}
+function ltClassId(u){const d=u&&u.sprite||{};return String(d.id||'').toLowerCase();}
+function ltCastEffect(u,c){
+ if(!u||u.side!=='hero'||!ltEffectsAllowed())return;
+ const id=ltClassId(u), cfg=LT_CLASS_SPELLS[id]||{color:'#c4b6ff',glyph:'✧',shape:'arcane'};
+ const p=fxPos(u);if(!p)return;
+ const col=c&&c.mainTag?tagCol(c.mainTag):cfg.color;
+ const ms=fxDur(630),sig=fxEl('lt-spell-sigil',p.x,p.y,`--spell:${col}`);
+ if(sig){sig.animate([{transform:'translate(-50%,-50%) scale(.25) rotate(-60deg)',opacity:0},{transform:'translate(-50%,-50%) scale(1.1) rotate(90deg)',opacity:1,offset:.45},{transform:'translate(-50%,-50%) scale(1.5) rotate(220deg)',opacity:0}],{duration:ms,easing:'ease-out'});fxGone(sig,ms);}
+ const glyph=fxEl('lt-spell-glyph',p.x,p.y-16,`--spell:${col}`);
+ if(glyph){glyph.textContent=cfg.glyph;glyph.animate([{transform:'translate(-50%,-50%) scale(.4)',opacity:0},{transform:'translate(-50%,-85%) scale(1.5)',opacity:1,offset:.45},{transform:'translate(-50%,-155%) scale(.7)',opacity:0}],{duration:ms});fxGone(glyph,ms);}
+ const f=u.el&&u.el.querySelector('.fig');if(f&&f.animate){
+  const frames=cfg.shape==='roots'?[{transform:'translateY(0)'},{transform:'translateY(-9px) scale(1.06)',offset:.5},{transform:'translateY(0)'}]:
+    cfg.shape==='burst'?[{transform:'rotate(0deg)'},{transform:'rotate(-12deg) scale(1.08)',offset:.4},{transform:'rotate(5deg)',offset:.65},{transform:'rotate(0deg)'}]:
+    [{transform:'scale(1) rotate(0deg)'},{transform:'scale(1.1) rotate(-5deg)',offset:.5},{transform:'scale(1) rotate(0deg)'}];
+  f.animate(frames,{duration:fxDur(430),easing:'ease-out'});
+ }
+ fxBurst(p,col,cfg.shape==='burst'?9:5,false);
+}
+function ltDeathEffect(u){
+ if(!u||!ltEffectsAllowed())return;const p=fxPos(u);if(!p)return;
+ const cfg=LT_FOE_DEATHS[(u.sprite&&u.sprite.kind)||'']||{color:'#e0b4a6',shape:'dust'};
+ const color=u.side==='hero'?'#eac77d':cfg.color, n=u.boss?20:11;
+ fxRing(p,color,u.boss?150:85);
+ for(let i=0;i<n;i++){
+  const e=fxEl('lt-death-shard',p.x+(Math.random()-.5)*p.w*.5,p.y+(Math.random()-.5)*p.h*.4,`--death:${color}`);if(!e)break;
+  const a=Math.random()*Math.PI*2,d=(u.boss?80:45)*(0.4+Math.random()),ms=fxDur(u.boss?1000:650);
+  if(cfg.shape==='mist'||cfg.shape==='void')e.style.borderRadius='50%';
+  if(cfg.shape==='ooze')e.style.borderRadius='45%';
+  if(cfg.shape==='stone'||cfg.shape==='metal')e.style.width='14px';
+  e.animate([{transform:'translate(-50%,-50%) scale(1) rotate(0deg)',opacity:1},
+    {transform:`translate(calc(-50% + ${Math.cos(a)*d}px),calc(-50% + ${Math.sin(a)*d+(cfg.shape==='mist'?-35:20)}px)) scale(.1) rotate(${Math.round(Math.random()*480)}deg)`,opacity:0}],{duration:ms,easing:'ease-out'});
+  fxGone(e,ms);
+ }
+ if(u.boss)fxStageShake();
+}
+
 function fxStrike(u,t,c,crit,res,delayIdx){
   if(!u.el||!t||!t.el)return;
   const it=c&&c.it, kind=kindOf(it), col=c&&c.mainTag?tagCol(c.mainTag):'#fff1c8';
   if(!fxOn()){playKind(kind,c&&c.mainTag);if(crit&&sfxGate('crit',90))CSFX.crit();return;}
   const go=()=>{
+    // Distinct readable weapon animations on the actual unit art, not just particles.
+    const figure=u.el&&u.el.querySelector('.fig');
+    if(figure&&figure.animate&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
+      const dir=u.side==='hero'?1:-1;
+      const frames=kind==='slash'?[{transform:'translateX(0) rotate(0)'},{transform:`translateX(${dir*9}px) rotate(${dir*16}deg)`,offset:.42},{transform:'translateX(0) rotate(0)'}]:
+        kind==='blunt'?[{transform:'translateY(0) rotate(0)'},{transform:`translateY(-12px) rotate(${dir*-12}deg)`,offset:.45},{transform:'translateY(5px) rotate(0)',offset:.72},{transform:'translateY(0)'}]:
+        kind==='magic'?[{transform:'scale(1)',filter:'brightness(1)'},{transform:'scale(1.12)',filter:'brightness(1.9) drop-shadow(0 0 12px #bda1ff)',offset:.55},{transform:'scale(1)',filter:'brightness(1)'}]:
+        [{transform:'translateX(0)'},{transform:`translateX(${dir*7}px) scale(1.045)`,offset:.5},{transform:'translateX(0)'}];
+      figure.animate(frames,{duration:fxDur(kind==='blunt'?410:310),easing:'ease-out'});
+    }
+    if(kind==='magic')ltCastEffect(u,c);
     const a=fxPos(u),b=fxPos(t);if(!a||!b)return;
     playKind(kind,c&&c.mainTag);
     if(kind==='slash'||kind==='blunt'){fxImpact(t,res,kind==='blunt'?'#ffe9a3':col,kind,crit);return;}
@@ -7524,7 +7793,8 @@ function fxHeal(u){
   if(sfxGate('heal',200))CSFX.heal();
 }
 function fxDeath(u){
-  if(!u.el||!fxOn())return;const p=fxPos(u);if(!p)return;
+  if(!u.el||!fxOn())return;
+  ltDeathEffect(u);const p=fxPos(u);if(!p)return;
   fxBurst(p,u.side==='hero'?'#ffd166':'#ff8577',14,true);fxRing(p,'#ffffff',90);
   const f=u.el.querySelector('.fig');
   if(f)f.animate([{transform:'translateY(0) rotate(0)',filter:'brightness(3)'},{transform:`translateY(8px) rotate(${u.side==='hero'?-12:12}deg)`,filter:'brightness(.6)'}],
@@ -8137,6 +8407,11 @@ tick=function(){
    // One-time phase shift: a moderate 8% speed increase, no extra damage or HP.
    foe.lap=Math.max(0.4,foe.lap*.92);foe.lapT=Math.min(foe.lapT,foe.lap);
    const arena=document.getElementById('arena');if(arena)arena.classList.add('boss-awakened');
+   if(foe.el){const fig=foe.el.querySelector('.fig');if(fig&&fig.animate){fig.animate([
+     {transform:'scale(1) rotate(0deg)',filter:'brightness(1)'},
+     {transform:'scale(1.23) rotate(-6deg)',filter:'brightness(2.5) drop-shadow(0 0 28px #f33)',offset:.42},
+     {transform:'scale(1.13) rotate(5deg)',filter:'brightness(1.8) drop-shadow(0 0 24px #f65)',offset:.7},
+     {transform:'scale(1.08) rotate(0deg)',filter:'brightness(1.25)'}],{duration:950,easing:'ease-out'});}}
    const banner=document.getElementById('bossPhaseBanner');if(banner){banner.textContent='☠ '+foe.name+' — SECOND WIND';banner.classList.add('on');setTimeout(()=>banner.classList.remove('on'),2300);}
    if(typeof log==='function')log('<span style="color:#ff9a8b">'+foe.name+' enters a second phase — attacks accelerate!</span>');
    if(typeof float==='function')float(foe,'ENRAGED','#ff6b6b');
