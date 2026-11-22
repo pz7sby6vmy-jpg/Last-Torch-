@@ -7502,6 +7502,13 @@ function mkFoe(def,floor,weight){
     e.maxHp=Math.max(1,Math.round(e.maxHp*0.94));e.hp=e.maxHp;
     e.pow*=0.96;e.dmg=Math.max(1,Math.round(e.dmg*0.96));
   }
+  // Close-fight tuning: enemies survive an extra exchange and punish careless builds.
+  // Gentle opening, bounded escalation, and slightly tougher bosses; no hidden mid-fight rubber-banding.
+  const closeRamp=Math.min(1,Math.max(0,(floor-1)/4));
+  const closeHp=1.06+0.05*closeRamp+(big?0.05:0);
+  const closeAtk=1.03+0.035*closeRamp+(big?0.02:0);
+  e.maxHp=Math.max(1,Math.round(e.maxHp*closeHp));e.hp=e.maxHp;
+  e.pow*=closeAtk;e.dmg=Math.max(1,Math.round(e.dmg*closeAtk));
   return e;
 }
 function toBattle(node){
