@@ -1622,11 +1622,53 @@ function seraphinaSprite(scale){
  const o=out.getContext('2d');o.imageSmoothingEnabled=false;o.drawImage(base,0,0,out.width,out.height);
  out.dataset.cssw=64*(scale||3);out.dataset.cssh=64*(scale||3);return out;
 }
+// Individual illustrated sprite pass: a distinct costume, ornament and weapon aura
+// is composed for each playable character before the upscale. All artwork is
+// generated locally in pixel space so it stays sharp at 1080p and needs no CDN.
+function illustratedHero(original,c){
+ const cv=document.createElement('canvas');cv.width=64;cv.height=64;
+ const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(original,0,0,64,64);
+ const id=c.id,seed=c.seed||31;
+ const palettes=[['#e3b3ff','#7445a9','#f4dcff'],['#ffd38c','#9a5b31','#fff3c1'],['#83d8d0','#347b87','#c9fff0'],['#ef9da8','#a33e63','#ffe1e5'],['#a2b5ff','#4d58aa','#e1e7ff']];
+ const p=palettes[seed%palettes.length];
+ const dot=(x,y,w,h,color)=>{g.fillStyle=color;g.fillRect(x|0,y|0,w,h)};
+ const line=(x,y,xx,yy,color)=>{g.strokeStyle=color;g.lineWidth=1;g.beginPath();g.moveTo(x+.5,y+.5);g.lineTo(xx+.5,yy+.5);g.stroke()};
+ // Custom filigree embroidery, gemstone clasps and engraved shoulder plates.
+ for(let i=0;i<6;i++){
+  const y=35+i*3,x=26+(i%2)*2;
+  dot(x,y,2,1,p[1]);dot(36-(i%2)*2,y,2,1,p[0]);
+  if(i%2===0){dot(x+3,y+1,1,1,p[2]);dot(34-i%3,y+1,1,1,p[2]);}
+ }
+ dot(31,33,3,3,p[1]);dot(32,33,1,2,p[2]);
+ // Each class has its own silhouette accent rather than a universal filter.
+ if(['paladin','templar','warden','revenantc'].includes(id)){
+  for(let i=0;i<5;i++){dot(16+i,28-i,2,1,p[0]);dot(47-i,28-i,2,1,p[0]);}
+  line(23,35,27,43,p[2]);line(41,35,37,43,p[2]);dot(31,5,3,3,p[2]);
+ }else if(['wizard','stormcaller','witchdoctor','thornwitch','alchemist','seraphina'].includes(id)){
+  for(let i=0;i<8;i++){let a=i*Math.PI/4,x=52+Math.round(Math.cos(a)*6),y=21+Math.round(Math.sin(a)*6);dot(x,y,2,2,i%2?p[0]:p[2]);}
+  dot(52,20,3,3,p[1]);dot(53,21,1,1,'#ffffff');
+  for(let i=0;i<5;i++)dot(12+i*2,13+(i*7)%10,1,2,p[0]);
+ }else if(['ranger','bloodelf','nightblade','assassin'].includes(id)){
+  line(12,18,10,48,p[0]);line(10,48,20,31,p[2]);line(12,18,20,31,p[2]);
+  for(let i=0;i<4;i++)dot(22+i*6,13+(i%2)*2,2,1,p[0]);
+ }else if(['fighter','berserker','monk','brawler'].includes(id)){
+  dot(14,33,7,3,p[1]);dot(43,33,7,3,p[1]);
+  for(let i=0;i<4;i++){dot(15+i,34,1,1,p[2]);dot(44+i,34,1,1,p[2]);}
+ }else if(id==='druid'){
+  line(22,13,13,5,p[0]);line(42,13,51,5,p[0]);
+  dot(13,4,3,3,p[2]);dot(49,4,3,3,p[2]);
+ }else{
+  for(let i=0;i<6;i++){dot(17+i*5,29+(i%3),2,2,p[1]);dot(18+i*5,29+(i%3),1,1,p[2]);}
+ }
+ // Distinct identifying sigil above the left shoulder; deterministic per hero.
+ for(let y=0;y<5;y++)for(let x=0;x<5;x++)if(((seed*7+x*11+y*17)%(x+y+3))===0){dot(6+x,8+y,1,1,p[0]);}
+ return cv;
+}
 function heroSprite(c,scale){
  if(c.id==='seraphina')return cached('seraphina_nightveil_v1_'+(scale||3),()=>seraphinaSprite(scale));
- return cached('hero_nightveil_v1_'+c.id+'_'+(scale||3),()=>{
+ return cached('hero_illustrated_v2_'+c.id+'_'+(scale||3),()=>{
   const k=scale||3,original=renderChar(heroMask(c),HEROMAT3[c.id]||HEROMAT2[c.id]||HEROMAT[c.id]||HEROMAT.fighter,1,{seed:(c.seed||3)%97});
-  const detailed=detailHeroArt(original,c),cvs=document.createElement('canvas');cvs.width=64*k*2;cvs.height=64*k*2;
+  const detailed=illustratedHero(detailHeroArt(original,c),c),cvs=document.createElement('canvas');cvs.width=64*k*2;cvs.height=64*k*2;
   const ctx=cvs.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.drawImage(detailed,0,0,cvs.width,cvs.height);
   cvs.dataset.cssw=64*k;cvs.dataset.cssh=64*k;return cvs;
  });
