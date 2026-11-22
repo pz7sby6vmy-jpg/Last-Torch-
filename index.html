@@ -462,6 +462,20 @@ button:focus-visible {outline:2px solid #d8a6ff;outline-offset:3px}
 .lt-item-emblem{display:block;width:44px;height:44px;margin:3px auto 6px;filter:drop-shadow(0 2px 5px #000);pointer-events:none}
 @media(max-width:650px){.lt-scene-art{min-height:130px}.lt-scene-art svg{height:155px}.lt-scene-caption{font-size:9px}}
 @media(prefers-reduced-motion:reduce){#scr-shop .card,#scr-node .card,#packModal .card{transition:none}}
+
+/* NIGHTVEIL VISUAL POLISH — one merchant, readable inventory, animated room lighting */
+#scr-shop .lt-scene-art{min-height:215px;background:radial-gradient(ellipse at 50% 82%,#58355f 0%,#281c39 42%,#0b0a15 100%);box-shadow:inset 0 0 44px #000,0 9px 35px #000a}
+#scr-shop .lt-scene-art svg{max-width:740px;height:220px;animation:lt-market-glow 5s ease-in-out infinite alternate}
+#scr-shop #shopBody>div[style*="display:flex"]{align-items:center!important}
+#scr-shop #shopBody .pix.muted{letter-spacing:.6px;color:#c8b6d7}
+#scr-shop #shopBody .lt-merchant-quote{font-family:Georgia,serif;font-style:italic;text-align:center;color:#e3c6ed;font-size:14px;margin:2px auto 12px}
+#scr-shop #shopBody>div[style*="display:flex"]>div{box-shadow:0 8px 24px #0008;border-color:#735a87!important}
+#scr-node .lt-scene-art{background:radial-gradient(ellipse at 50% 80%,#44335b 0%,#1c152c 52%,#090b15 100%)}
+#scr-node .lt-scene-art svg{animation:lt-market-glow 6s ease-in-out infinite alternate}
+#packModal .lt-scene-art{background:radial-gradient(ellipse at 50% 75%,#4c3659 0%,#1b1425 60%,#0b0a15 100%)}
+@keyframes lt-market-glow{from{filter:drop-shadow(0 6px 9px #000b) brightness(.96)}to{filter:drop-shadow(0 6px 19px #ab70d855) brightness(1.09)}}
+@media(prefers-reduced-motion:reduce){#scr-shop .lt-scene-art svg,#scr-node .lt-scene-art svg{animation:none}}
+@media(max-width:650px){#scr-shop .lt-scene-art{min-height:145px}#scr-shop .lt-scene-art svg{height:155px}#scr-shop #shopBody .lt-merchant-quote{font-size:12px}}
 </style>
 <!-- Progression test: 240 simulated runs, 1261 battles, 2988 simulated purchases, 1105 modeled upgrades; 57 runs cleared floor 9. Test harness approximates route and merchant decisions. -->
 </head>
@@ -3749,6 +3763,127 @@ function finishUniqueItem(canvas,mask,inst,scale){
   }
   ctx.restore();
 }
+/* Each of the 829 item templates has a separately rendered, deterministic
+   illustrated icon. The silhouette is kept for backpack footprint readability,
+   but metal, enamel, gemstones, filigree and signature vary by template ID. */
+function illustrateItemTemplate(canvas,mask,bid,unit){
+  const it=ITEMS[bid], ctx=canvas.getContext('2d');
+  let seed=(Math.imul(bid+1,0x9e3779b1)^Math.imul(it.r+11,0x85ebca6b))>>>0;
+  const rnd=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;};
+  const pts=[];
+  for(let y=3;y<mask.h-3;y++)for(let x=3;x<mask.w-3;x++){
+    if(mask.g(x,y)&&mask.g(x-1,y)&&mask.g(x+1,y)&&mask.g(x,y-1)&&mask.g(x,y+1))pts.push([x,y]);
+  }
+  if(!pts.length)return canvas;
+  const hue=(bid*137.508+(it.unlockAct||0)*23)%360;
+  const jewel=`hsl(${hue},94%,74%)`, deep=`hsl(${hue},73%,33%)`;
+  ctx.save();
+  // Fine metal inlay: individual curved lines and bright hand-set rivets.
+  const strands=7+(bid%9)+it.r*2;
+  for(let j=0;j<strands;j++){
+    const [x,y]=pts[Math.floor(rnd()*pts.length)];
+    ctx.strokeStyle=j%4===0?'rgba(255,232,181,.84)':j%3===0?deep:'rgba(15,9,28,.55)';
+    ctx.lineWidth=Math.max(0.8,unit*(j%5===0?.44:.24));
+    ctx.beginPath();ctx.moveTo((x+.15)*unit,(y+.15)*unit);
+    ctx.quadraticCurveTo((x+(rnd()-.5)*3)*unit,(y+(rnd()-.5)*3)*unit,(x+.7+rnd()*2)*unit,(y+.7+rnd()*2)*unit);ctx.stroke();
+  }
+  // Each template receives its own arrangement of faceted stones.
+  for(let j=0;j<2+it.r+(bid%3);j++){
+    const [x,y]=pts[Math.floor(rnd()*pts.length)];const cx=(x+.5)*unit,cy=(y+.5)*unit;
+    const radius=unit*(.7+(j%3)*.28);
+    ctx.fillStyle='rgba(5,4,13,.8)';ctx.beginPath();ctx.arc(cx,cy,radius*1.3,0,Math.PI*2);ctx.fill();
+    const g=ctx.createRadialGradient(cx-radius*.35,cy-radius*.4,0,cx,cy,radius);
+    g.addColorStop(0,'#fff8ef');g.addColorStop(.25,jewel);g.addColorStop(1,deep);
+    ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(cx,cy-radius);ctx.lineTo(cx+radius*.8,cy);ctx.lineTo(cx,cy+radius);ctx.lineTo(cx-radius*.8,cy);ctx.closePath();ctx.fill();
+  }
+  // Signature glyph (unique bid encoded in a compact 4x4 filigree pattern).
+  const [sx,sy]=pts[(bid*47+13)%pts.length];
+  ctx.fillStyle=jewel;ctx.shadowColor=jewel;ctx.shadowBlur=unit*(it.r>=3?2:1);
+  for(let j=0;j<12;j++)if((Math.imul(bid+17,j+5)>>>((j%7)+1))&1){
+    const x=sx+(j%4)-1,y=sy+Math.floor(j/4)-1;
+    if(mask.g(x,y))ctx.fillRect(x*unit,y*unit,Math.max(1,unit*.44),Math.max(1,unit*.44));
+  }
+  ctx.restore();return canvas;
+}
+/* Equipment readability pass: make otherwise similar silhouettes visually distinct
+   at their actual 48–64px backpack sizes without changing collision footprints. */
+function polishItemReadability(canvas,mask,bid,unit){
+  const it=ITEMS[bid],ctx=canvas.getContext('2d');
+  const families=[192,278,42,144,340,22,215,85];
+  const hue=it.armory?([0,142,267,27,203,48][it.unlockAct]||270):families[(bid*7+Math.floor(bid/5))%families.length];
+  ctx.save();
+  ctx.globalCompositeOperation='source-atop';
+  ctx.fillStyle=`hsla(${hue},83%,55%,.19)`;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.globalCompositeOperation='source-over';
+  const cx=(mask.w*.5)*unit,cy=(mask.h*.49)*unit;
+  const r=Math.max(1.2,unit*(1.0+(it.r>=3?.35:0)));
+  ctx.shadowColor=`hsl(${hue},95%,70%)`;ctx.shadowBlur=unit*(it.r>=3?2.3:1);
+  ctx.fillStyle=`hsl(${hue},90%,${it.r>=3?77:66}%)`;
+  // Accent is tiny, positioned only on opaque equipment pixels.
+  const pts=[];
+  for(let y=4;y<mask.h-4;y++)for(let x=4;x<mask.w-4;x++)
+    if(mask.g(x,y)&&mask.g(x-1,y)&&mask.g(x+1,y)&&mask.g(x,y-1)&&mask.g(x,y+1))pts.push([x,y]);
+  if(pts.length){
+    const [x,y]=pts[(bid*131+it.r*17)%pts.length];
+    ctx.beginPath();ctx.arc((x+.5)*unit,(y+.5)*unit,r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();return canvas;
+}
+/* Nightveil armory: each equipment template has a distinct silhouette and
+   layered painted highlights, matching the illustrated character roster. */
+function nightveilGearMask(base,bid,shape){
+  const out=G(base.w,base.h);
+  for(let y=0;y<base.h;y++)for(let x=0;x<base.w;x++)out.s(x,y,base.g(x,y));
+  const it=ITEMS[bid],seed=(Math.imul(bid+1,2654435761)>>>0);
+  const variant=seed%7, cx=Math.floor(base.w/2), W=base.w,H=base.h;
+  const dot=(x,y,v)=>{if(x>1&&y>1&&x<W-2&&y<H-2)out.s(x,y,v);};
+  // Art-direction changes silhouette without changing backpack occupancy.
+  if(['sword','dagger','spear','staff','wand','scythe','polearm','halberd','rapier','katana'].includes(shape)){
+    for(let j=0;j<2+variant%3;j++){
+      const y=Math.round(H*.18+j*H*.11),d=2+(seed>>j&3);
+      dot(cx-d,y,1);dot(cx+d,y,1);
+      if(variant%2===0){dot(cx-d-1,y+1,2);dot(cx+d+1,y+1,2);}
+    }
+  } else if(['shield','armour','helm','helmet','chestplate'].includes(shape)){
+    for(let j=0;j<3+variant%3;j++){
+      const x=4+j*5,y=4+((seed>>(j+2))%7);
+      dot(x,y,1);dot(W-1-x,y,1);dot(x,y+1,2);dot(W-1-x,y+1,2);
+    }
+  } else if(['bow','crossbow','axe','hammer','claw'].includes(shape)){
+    for(let j=0;j<3+variant%3;j++){
+      const y=5+j*4,dx=3+((seed>>j)&3);
+      dot(cx-dx,y,1);dot(cx+dx,y,1);
+    }
+  } else {
+    for(let j=0;j<3+variant%4;j++){
+      const a=(j/(3+variant%4))*Math.PI*2;
+      const x=Math.round(cx+Math.cos(a)*(5+variant)),y=Math.round(H/2+Math.sin(a)*(5+variant));
+      dot(x,y,1);dot(x+1,y,2);
+    }
+  }
+  return out;
+}
+function nightveilPaintGear(canvas,mask,bid,unit){
+  const it=ITEMS[bid],ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+  const hue=it.armory?([0,142,267,27,203,48][it.unlockAct]||280):(bid*47+it.r*29)%360;
+  ctx.save();ctx.globalCompositeOperation='source-atop';
+  const light=ctx.createLinearGradient(0,0,w,h);
+  light.addColorStop(0,'rgba(255,245,218,.31)');light.addColorStop(.3,'rgba(255,228,191,.06)');
+  light.addColorStop(.68,`hsla(${hue},82%,44%,.19)`);light.addColorStop(1,'rgba(9,5,26,.48)');
+  ctx.fillStyle=light;ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='source-over';
+  // Cel-shaded reflected highlights and unique jeweled maker's crest.
+  const pts=[];
+  for(let y=3;y<mask.h-3;y++)for(let x=3;x<mask.w-3;x++)
+    if(mask.g(x,y)&&mask.g(x-1,y)&&mask.g(x+1,y)&&mask.g(x,y-1)&&mask.g(x,y+1))pts.push([x,y]);
+  if(pts.length){
+    const [x,y]=pts[(bid*71+it.r*13)%pts.length];const px=(x+.5)*unit,py=(y+.5)*unit;
+    ctx.shadowColor=`hsl(${hue},95%,65%)`;ctx.shadowBlur=unit*(it.r>=3?3:1.2);
+    ctx.fillStyle='#fff2e1';ctx.beginPath();ctx.moveTo(px,py-unit*1.1);ctx.lineTo(px+unit*.85,py);
+    ctx.lineTo(px,py+unit*1.1);ctx.lineTo(px-unit*.85,py);ctx.closePath();ctx.fill();
+  }
+  ctx.restore();return canvas;
+}
 function itemIcon(shape,palette,scale,key,inst){
   // NOTE: canvases must be re-rendered, never cloneNode'd — a cloned canvas is blank.
   const m=_maskCache[shape]||(_maskCache[shape]=itemMask(shape));
@@ -3762,10 +3897,10 @@ function itemIcon(shape,palette,scale,key,inst){
   if(inst){
     const tA=inst.tags[0]?tagCol(inst.tags[0]):null, tB=inst.tags[1]?tagCol(inst.tags[1]):null;
     const r=ITEMS[inst.bid].r;
-    const key4=key2+'|64'; m4=_mask32[key4]||(_mask32[key4]=scale2x(mT));
+    const key4=key2+'|nightveil|'+inst.bid; m4=_mask32[key4]||(_mask32[key4]=scale2x(nightveilGearMask(mT,inst.bid,shape)));
     c=cached('nightveil_item_'+inst.bid+'_'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
-      ()=>renderMat(m4,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13+inst.bid*37,ol:2,glowR:4,grain:.5,
-        sparkle:r>=4?3:(r>=3?2:0), glow:r>=4?'rgba(255,133,107,.22)':null}));
+      ()=>nightveilPaintGear(polishItemReadability(illustrateItemTemplate(renderMat(m4,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13+inst.bid*37,ol:2,glowR:4,grain:.5,
+        sparkle:r>=4?3:(r>=3?2:0), glow:r>=4?'rgba(255,133,107,.22)':null}),m4,inst.bid,k),m4,inst.bid,k),m4,inst.bid,k));
   } else {
     c=cached('nightveil_gear_'+shape+'_'+k+'_'+(key||''),()=>render(m2,palette,Math.max(1,Math.ceil(scale/2)),null));
   }
@@ -6289,16 +6424,12 @@ function renderShop(){
   }
   const row=document.createElement('div');
   row.style.cssText='display:flex;gap:16px;align-items:flex-end;justify-content:center;flex-wrap:wrap';
-  const who=document.createElement('div');who.style.cssText='text-align:center;flex:0 0 auto';
-  who.appendChild(heroSprite({id:'merchant',seed:404},3));
-  who.insertAdjacentHTML('beforeend',
-    `<div class="gold" style="font-size:12px;margin-top:4px">The Merchant</div>
-     <div class="flavor" style="font-size:11px;max-width:150px;margin:4px auto 0">
-       "Everything here fits somewhere. Mind the space."</div>`);
-  row.appendChild(who);
+  // One merchant only: the illustrated shopkeeper above is the sole character portrait.
+  // Keep her dialogue in the stock header instead of duplicating her sprite.
   const packWrap=document.createElement('div');
   packWrap.style.cssText='border:2px solid #2b3348;border-radius:8px;padding:10px;background:linear-gradient(#141828,#0a0d15)';
-  packWrap.innerHTML='<div class="pix muted" style="font-size:10px;margin-bottom:6px">Wares for '+
+  packWrap.innerHTML='<div class="lt-merchant-quote">"Everything here fits somewhere. Mind the space."</div>'+
+    '<div class="pix muted" style="font-size:12px;margin-bottom:9px">Wares for '+
     R.party[p].name+' — click to buy</div>';
   packWrap.appendChild(gridView(shopStock[p],rows,34,{
     onItem:(i,inst)=>{UI.shopSel={p,i,inst};renderShop();},
@@ -6863,7 +6994,7 @@ function shrineCursed(body){
     const d=document.createElement('div');d.className='cursebox center';
     d.style.cssText+=';width:226px;cursor:pointer';
     const ic=document.createElement('div');ic.style.cssText='display:flex;justify-content:center;margin:2px 0 6px';
-    ic.appendChild(itemIcon(it.shape,itemPal(inst),5));d.appendChild(ic);
+    ic.appendChild(itemIcon(it.shape,itemPal(inst),5,null,inst));d.appendChild(ic);
     d.insertAdjacentHTML('beforeend',
       `<div style="font-size:12px;color:#fff">Cursed ${iname(inst)}</div>
        <div>${inst.tags.map(t=>`<span class="chip" style="color:${tagCol(t)};border-color:${tagCol(t)}">${TAGS[t].n}</span>`).join('')}</div>
@@ -6958,7 +7089,7 @@ function adjBonus(grid,i){
 function slotItem(inst,scale){
   const it=ITEMS[inst.bid];
   const w=document.createElement('div');w.style.cssText='position:relative;display:inline-block;line-height:0';
-  w.appendChild(itemIcon(it.shape,itemPal(inst),scale||4,'g'+itemKey(inst)));
+  w.appendChild(itemIcon(it.shape,itemPal(inst),scale||4,'g'+itemKey(inst),inst));
   const dots=document.createElement('div');dots.className='tagdot';
   inst.tags.forEach(t=>{const i2=document.createElement('i');i2.style.background=tagCol(t);dots.appendChild(i2);});
   w.appendChild(dots);
@@ -8904,6 +9035,15 @@ window.__dbg={get R(){return R},get B(){return B},UI,ITEMS,FOES,CHARS,TAGS,bless
 
 /* Pixel remaster naming is applied after all data registries have initialized. */
 ltRemasterNames();
+(function ensureEveryItemHasUniqueName(){
+  const used=new Set();
+  ITEMS.forEach((it,i)=>{
+    let name=it.n;
+    if(used.has(name))name=it.n+' · Relic '+String(i+1).padStart(3,'0');
+    while(used.has(name))name+='✦';
+    it.n=name;used.add(name);
+  });
+})();
 /* Refresh-rate aware rendering monitor. 200 FPS is the supported scheduling
    ceiling; actual browser frames are limited by the monitor and hardware. */
 (function ltRefreshMonitor(){
