@@ -1542,49 +1542,58 @@ function detailHeroArt(base,c){
 function seraphinaSprite(scale){
  const k=(scale||3)*2,base=document.createElement('canvas');base.width=64;base.height=64;
  const x=base.getContext('2d');x.imageSmoothingEnabled=false;
- const P=(color,rx,ry,rw=1,rh=1)=>{x.fillStyle=color;x.fillRect(rx,ry,rw,rh)};
- const L=(color,a,b,c,d)=>{x.strokeStyle=color;x.lineWidth=1;x.beginPath();x.moveTo(a+.5,b+.5);x.lineTo(c+.5,d+.5);x.stroke()};
- // Broad layered black ball gown with individual pleats, sheer outer skirt and embroidered hem.
- for(let y=32;y<63;y++){
-   const spread=Math.round((y-32)*.72),left=Math.max(1,22-spread),right=Math.min(63,42+spread);
-   P(y%4===0?'#24212c':'#100f18',left,y,right-left,1);
-   for(let j=0;j<8;j++){let xx=Math.round(22+j*2.8+(j-3.5)*spread/5);if(xx>left&&xx<right)P(j%2?'#342a3b':'#211c29',xx,y,1,1)}
+ const P=(c,a,b,w=1,h=1)=>{x.fillStyle=c;x.fillRect(a,b,w,h)};
+ const L=(c,a,b,d,e)=>{x.strokeStyle=c;x.lineWidth=1;x.beginPath();x.moveTo(a+.5,b+.5);x.lineTo(d+.5,e+.5);x.stroke()};
+ // Layered midnight-violet ballgown with scalloped hem and silver floral embroidery.
+ for(let y=34;y<63;y++){
+  let spread=Math.round((y-34)*.77),left=Math.max(1,23-spread),right=Math.min(63,41+spread);
+  P(y%3===0?'#282035':'#17121f',left,y,right-left,1);
+  for(let j=0;j<7;j++){let xx=Math.round(23+j*3+(j-3)*spread/5);if(xx>left&&xx<right)P(j%2?'#4c2b62':'#33203f',xx,y,1,1)}
  }
- for(let j=0;j<7;j++){let xx=8+j*8;L('#49364f',xx,53,xx+(j-3)*2,62)}
- // Lace-edged corset, off-shoulder neckline, puff sleeves and fitted waist.
- P('#18131d',20,29,24,19);P('#342736',22,31,20,3);P('#0b0910',26,34,12,13);
- for(let y=34;y<46;y+=3)for(let j=0;j<5;j++)P((j+y)%2?'#745c72':'#433344',26+j*3,y,1,1);
- for(let y=36;y<47;y+=4){L('#8b6c83',25,y,38,y+2);L('#6d506f',38,y,25,y+2)}
- P('#1b1720',15,31,7,10);P('#1b1720',42,31,7,10);
- P('#9d8195',17,33,3,2);P('#9d8195',45,33,3,2);
- // Arms and folded hands.
- P('#d6a58d',15,41,5,9);P('#d6a58d',44,41,5,9);
- P('#e5b59e',19,48,9,4);P('#e5b59e',35,48,9,4);P('#efc0a7',26,49,12,4);
- for(let j=0;j<4;j++)P('#ad7e79',26+j*3,51,1,1);
- P('#c9b7c7',17,47,3,1);P('#c9b7c7',45,47,3,1);
- // Neck and shoulders.
- P('#dcaa94',29,25,7,8);P('#e5b59d',22,28,8,4);P('#e5b59d',36,28,7,4);
- // Softly illuminated face and voluminous shoulder-length dark hair.
- P('#100e14',23,9,19,24);P('#27202a',21,13,5,22);P('#29202b',40,13,5,22);
- for(let y=16;y<35;y+=4){P('#44323d',21,y,2,3);P('#382934',43,y+1,2,3)}
- P('#d9a48d',26,13,13,15);P('#f1c1a7',28,15,10,10);
- P('#1c151b',26,12,14,4);P('#120f16',24,10,9,6);P('#1a141c',35,10,7,6);
- P('#473039',29,13,7,1);P('#281c22',29,19,2,1);P('#281c22',36,19,2,1);
- P('#f8d6c3',28,21,2,1);P('#f8d6c3',37,21,1,1);P('#a36c70',32,24,5,1);P('#b28a7a',32,21,2,1);
- // Delicate necklace and violet-silver gemstone pendant.
- L('#d0bdc9',29,29,33,33);L('#d0bdc9',38,29,34,33);
- P('#f2e5f2',33,33,2,1);P('#ab83e6',33,34,2,2);P('#f3d7ff',33,34);
- // Unique crescent crest and tiny magical motifs on gown.
- P('#ab83e6',31,39,1,3);P('#ab83e6',35,39,1,3);P('#c3a4f5',32,42,3,1);
- for(let j=0;j<9;j++){let xx=7+j*6;P(j%2?'#8e659b':'#c1a1dc',xx,58+(j%3),2,1)}
- for(let j=0;j<5;j++){P('#bd96ed',5+j*12,24+(j%3)*7,1,1)}
+ for(let j=0;j<8;j++){let xx=5+j*7;L('#9875b5',xx,59,xx+2,62);P('#c1a0d6',xx,61,2,1)}
+ // Lace sleeves, shaped corset, bright amethyst clasps.
+ P('#1b1324',21,30,22,18);P('#3c234c',24,33,16,13);P('#100d17',27,35,10,11);
+ P('#23192e',16,31,7,11);P('#23192e',41,31,7,11);
+ for(let y=34;y<46;y+=3){L('#ae83c5',25,y,38,y+2);L('#7c548f',38,y,25,y+2)}
+ for(let j=0;j<5;j++){P('#a785b9',20+j*6,33+(j%2),2,1);P('#6b457e',23+j*5,43,1,2)}
+ // Hands clasped at waist, pale pink highlights.
+ P('#dca992',17,40,5,10);P('#dca992',42,40,5,10);
+ P('#f1c0ab',20,48,11,4);P('#f1c0ab',33,48,11,4);P('#ffcfb8',27,49,10,3);
+ P('#f1d6e7',17,47,3,1);P('#f1d6e7',44,47,3,1);
+ // Soft rounded face, wavy shoulder-length hair and friendly expression.
+ P('#d7a18f',29,26,6,6);P('#efbca5',23,28,8,4);P('#efbca5',35,28,7,4);
+ P('#130f1a',22,10,21,25);P('#302135',20,15,5,21);P('#33213a',41,15,5,21);
+ for(let y=17;y<35;y+=4){P('#5d3b58',20,y,2,3);P('#6a415d',43,y+1,2,3)}
+ P('#dc9f8d',25,13,15,15);P('#f6c6b0',27,15,12,11);P('#ffd5c1',28,16,10,6);
+ // Long eyelashes, bright violet eyes, rosy cheeks, tiny smile.
+ P('#2d1b2b',27,19,5,1);P('#2d1b2b',35,19,5,1);
+ P('#f7f0f9',28,20,3,2);P('#f7f0f9',36,20,3,2);
+ P('#8b57bc',29,20,2,2);P('#8b57bc',37,20,2,2);
+ P('#171020',29,20);P('#171020',37,20);
+ P('#f8e9ff',30,20);P('#f8e9ff',38,20);
+ P('#b86d7c',26,23,3,2);P('#b86d7c',38,23,2,2);
+ P('#b66a79',32,25,4,1);P('#f8c1b8',33,26,2,1);P('#c58e82',33,22,1,1);
+ // Swept bangs, violet ribbon, moon-and-star hairpin.
+ P('#1c1422',24,10,18,5);P('#2e1c30',23,12,9,4);P('#3e2742',36,11,6,4);
+ P('#8f5ac3',41,12,5,3);P('#b884e5',43,11,3,3);P('#6e409a',44,14,3,3);
+ P('#e8d7f1',41,10,2,1);P('#d2b5e5',40,11,1,2);
+ // Silver necklace and purple gemstone.
+ L('#e3cce6',29,29,33,32);L('#e3cce6',38,29,34,32);
+ P('#c9a4f5',32,33,3,3);P('#f6d8ff',33,33,1,2);
+ // Cute floating spell butterflies and twinkling stars.
+ for(const [bx,by] of [[9,22],[51,25]]){
+  P('#a668f5',bx,by,2,2);P('#dfb5ff',bx+2,by+1,2,2);
+  P('#a668f5',bx+1,by+2,2,2);P('#f7d6ff',bx+2,by+1);
+ }
+ for(const [sx,sy] of [[8,15],[54,17],[12,36],[52,38],[31,6]]){
+  P('#c9a3ff',sx,sy-1,1,3);P('#e6cfff',sx-1,sy,3,1);
+ }
  const out=document.createElement('canvas');out.width=64*k;out.height=64*k;
  const o=out.getContext('2d');o.imageSmoothingEnabled=false;o.drawImage(base,0,0,out.width,out.height);
- out.dataset.cssw=64*(scale||3);out.dataset.cssh=64*(scale||3);
- return out;
+ out.dataset.cssw=64*(scale||3);out.dataset.cssh=64*(scale||3);return out;
 }
 function heroSprite(c,scale){
- if(c.id==='seraphina')return cached('seraphina_portrait_v3_'+(scale||3),()=>seraphinaSprite(scale));
+ if(c.id==='seraphina')return cached('seraphina_portrait_v4_'+(scale||3),()=>seraphinaSprite(scale));
  return cached('hero_remaster_v3_'+c.id+'_'+(scale||3),()=>{
   const k=scale||3,original=renderChar(heroMask(c),HEROMAT3[c.id]||HEROMAT2[c.id]||HEROMAT[c.id]||HEROMAT.fighter,1,{seed:(c.seed||3)%97});
   const detailed=detailHeroArt(original,c),cvs=document.createElement('canvas');cvs.width=64*k*2;cvs.height=64*k*2;
