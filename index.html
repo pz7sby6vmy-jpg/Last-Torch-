@@ -3975,7 +3975,9 @@ function nightveilIllustratedIcon(original,inst,shape){
 function itemIcon(shape,palette,scale,key,inst){
  if(inst&&typeof paintFootprintGear==='function'){
   const c=document.createElement('canvas');const sz=Math.max(32,Math.round(16*(scale||4)));
-  c.width=sz;c.height=sz;c.style.width=sz+'px';c.style.height=sz+'px';
+  const [fw,fh]=sizeOf(inst);const long=Math.max(fw,fh);
+  c.width=Math.max(24,Math.round(sz*fw/long));c.height=Math.max(24,Math.round(sz*fh/long));
+  c.style.width=c.width+'px';c.style.height=c.height+'px';c.style.maxWidth='100%';c.style.maxHeight='100%';c.style.objectFit='contain';
   paintFootprintGear(c,inst);return c;
  }
 
@@ -4221,8 +4223,8 @@ function cellsFor(inst,anchor,rows){
   const [w,h]=sizeOf(inst), c0=anchor%PACKW, r0=(anchor/PACKW)|0, out=[];
   if(c0+w>PACKW||r0+h>rows)return null;
   for(let r=0;r<h;r++)for(let c=0;c<w;c++){
-    // A halberd is a true 4×3 T: four cells across the head, one-cell shaft below.
-    if(ITEMS[inst.bid].shape==='halberd' && !(r===0||c===1))continue;
+    // Halberd: 3 columns by 4 rows, center spike on row 1, crossbar on row 2, center shaft below.
+    if(ITEMS[inst.bid].shape==='halberd' && !(r===1||c===1))continue;
     out.push((r0+r)*PACKW+c0+c);
   }
   return out;
@@ -4322,7 +4324,7 @@ Object.assign(NAMES,{
  anvil:["Scrap Anvil","Smith's Anvil","Dwarf-Anvil","Anvil of the Deep","The Unbreakable"],
  darts:["Tacks","Throwing Darts","Barbed Darts","Viper Darts","The Nine Needles"],
 });
-Object.assign(SIZES,{rapier:[1,3],greatsword:[1,4],sickle:[1,2],mace:[1,3],halberd:[4,3],sling:[1,2],
+Object.assign(SIZES,{rapier:[1,3],greatsword:[1,4],sickle:[1,2],mace:[1,3],halberd:[3,4],sling:[1,2],
   javelin:[1,4],tome:[2,2],scepter:[1,3],gauntlet:[2,2],pauldron:[2,2],greaves:[2,3],towershield:[3,4],
   talisman:[1,1],charm:[1,1],skull:[2,2],bell:[2,2],hourglass:[1,2],lute:[2,3],flask:[1,2],net:[3,2],
   key:[1,2],heart:[2,2],anvil:[3,2],darts:[1,2]});
@@ -7294,7 +7296,10 @@ function paintIllustratedItem(canvas,inst){
  const angle=horizontal&&[0,1,2,3,4,8,9,10,11,14,15].includes(cell)?-Math.PI/2:0;
  const usableW=W-2*inset,usableH=H-2*inset;
  const aW=angle?usableH:usableW,aH=angle?usableW:usableH;
- const aspect=([0,1,2,3,4,5,6].includes(cell)?1.9:1.15);
+ // Preserve the whole original illustration and adapt it to the occupied footprint.
+ // The source atlas has square cells; weapon silhouettes receive the long axis.
+ const longItem=/dagger|sword|rapier|spear|staff|wand|scythe|halberd|javelin|bow|scepter|blade|pike|lance|greatsword|whip/i.test(it.shape);
+ const aspect=longItem?Math.max(1.4,Math.min(3.65,aH/Math.max(1,aW))):1;
  const dw=Math.min(aW,aH/aspect),dh=Math.min(aH,aW*aspect);
  const bg=ctx.createRadialGradient(W*.5,H*.46,1,W*.5,H*.5,Math.max(W,H)*.8);
  bg.addColorStop(0,'#2d1642');bg.addColorStop(.65,'#140a24');bg.addColorStop(1,'#090612');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
@@ -7312,6 +7317,21 @@ function paintIllustratedItem(canvas,inst){
   const x=W*(.16+rand()*.68),y=H*(.16+rand()*.68),r=Math.min(W,H)*(.012+rand()*.024);
   ctx.beginPath();ctx.moveTo(x,y-r);ctx.lineTo(x+r,y);ctx.lineTo(x,y+r);ctx.lineTo(x-r,y);ctx.closePath();ctx.stroke();
  }
+ // Unique blade/armor identity: deterministic inlaid filigree and gemstone constellation.
+ // It depends only on the item definition, so shop, backpack and clicked details match.
+ ctx.save();
+ const pattern=inst.bid%9, count=3+(inst.bid%6);
+ ctx.lineWidth=Math.max(1,Math.min(W,H)*.014);
+ ctx.strokeStyle=accent;ctx.globalAlpha=.58;
+ for(let j=0;j<count;j++){
+  const t=(j+1)/(count+1),x=W*(.24+.52*t),y=H*(.18+.64*((j*7+pattern)%count)/count);
+  ctx.beginPath();
+  if(pattern%3===0){ctx.moveTo(x-5,y);ctx.lineTo(x,y-5);ctx.lineTo(x+5,y);ctx.lineTo(x,y+5);ctx.closePath();}
+  else if(pattern%3===1){ctx.arc(x,y,Math.max(2,Math.min(W,H)*.028),0,Math.PI*2);}
+  else {ctx.moveTo(x-4,y-4);ctx.lineTo(x+4,y+4);ctx.moveTo(x+4,y-4);ctx.lineTo(x-4,y+4);}
+  ctx.stroke();
+ }
+ ctx.restore();
  // Each template receives its own persistent crest, rune arrangement and jewel cuts.
  const emblem=(inst.bid*17+it.r*11)%13;
  const cx=W*.50,cy=H*.49,sz=Math.max(3,Math.min(W,H)*.065);
@@ -7404,7 +7424,7 @@ function itemTile(inst,cell,gap,onclick){
   d.style.cssText=`position:relative;display:flex;align-items:center;justify-content:center;
     width:${bw}px;height:${bh}px;border:2px solid ${RAR[it.r].col};border-radius:4px;
     background:linear-gradient(#141a28,#0a0d15);box-sizing:border-box;cursor:pointer`;
-  if(it.shape==='halberd')d.style.clipPath='polygon(0 0,100% 0,100% 33.333%,50% 33.333%,50% 100%,25% 100%,25% 33.333%,0 33.333%)';
+  if(it.shape==='halberd')d.style.clipPath='polygon(33.333% 0,66.667% 0,66.667% 25%,100% 25%,100% 50%,66.667% 50%,66.667% 100%,33.333% 100%,33.333% 50%,0 50%,0 25%,33.333% 25%)';
   // Render the WHOLE illustration into the item's complete grid footprint.
   // Previous code sized artwork using the shortest side, leaving 1x3 and 3x1
   // items as tiny squares in the middle of a large inventory slot.
