@@ -439,6 +439,11 @@ button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.14)}
 .lt-death-shard{position:absolute;pointer-events:none;z-index:91;width:9px;height:18px;background:var(--death,#f5caca);box-shadow:0 0 12px var(--death);clip-path:polygon(50% 0,100% 40%,65% 100%,0 75%)}
 @media(prefers-reduced-motion:reduce){.lt-spell-sigil,.lt-spell-glyph,.lt-death-shard{display:none!important}}
 
+/* High-refresh presentation: browser paints up to display refresh (including 200 Hz).
+   Keep pixel art crisp; animate transforms on the compositor where supported. */
+.unit .fig canvas,.rtile canvas,.item-art canvas{backface-visibility:hidden;transform:translateZ(0)}
+@media (prefers-reduced-motion:reduce){.unit .fig canvas,.rtile canvas,.item-art canvas{transform:none}}
+#lt-fps-meter{position:fixed;right:12px;bottom:10px;z-index:9998;font:11px monospace;color:#a9edcf;background:rgba(7,13,21,.82);border:1px solid #315b53;border-radius:5px;padding:5px 8px;pointer-events:none}
 </style>
 <!-- Progression test: 240 simulated runs, 1261 battles, 2988 simulated purchases, 1105 modeled upgrades; 57 runs cleared floor 9. Test harness approximates route and merchant decisions. -->
 </head>
@@ -936,7 +941,25 @@ function polishSprite(canvas,key){
       for(let c=0;c<3;c++){const val=d[j+c];d[j+c]=Math.max(0,Math.min(255,(val-127)*1.065+127+shade));}
     }
   }
-  ctx.putImageData(im,0,0);return canvas;
+  ctx.putImageData(im,0,0);
+  // Additional high-frequency hand-etched pixel details on visible surfaces.
+  // Deterministic per-sprite, so icons remain visually stable across redraws.
+  if(!room){
+    ctx.save();ctx.imageSmoothingEnabled=false;
+    const pitch=Math.max(2,Math.round(Math.min(w,h)/54));
+    for(let y=pitch*2;y<h-pitch*2;y+=pitch*2)for(let x=pitch*2;x<w-pitch*2;x+=pitch*2){
+      const idx=(y*w+x)*4;if(d[idx+3]<220)continue;
+      const hsh=hash(x,y);if((hsh&31)>3)continue;
+      const l=(d[idx]+d[idx+1]+d[idx+2])/3;
+      ctx.fillStyle=(hsh&64)?'rgba(255,239,184,.28)':'rgba(4,9,21,.25)';
+      ctx.fillRect(x,y,Math.max(1,pitch>>1),Math.max(1,pitch>>1));
+      if(l>105&&(hsh&128)){
+        ctx.fillStyle='rgba(255,255,232,.35)';ctx.fillRect(x+pitch,y,Math.max(1,pitch>>1),1);
+      }
+    }
+    ctx.restore();
+  }
+  return canvas;
 }
 function cached(key,build){
   let c=_sprCache[key];
@@ -948,6 +971,23 @@ function cached(key,build){
   const dpr=(typeof window!=='undefined'&&window.devicePixelRatio)||1;
   o.style.imageRendering=(c.dataset.smooth||(c.dataset.cssw&&c.width>=c.dataset.cssw*dpr))?'auto':'pixelated';
   return o;
+}
+/* LAST TORCH: HIGH DETAIL PIXEL REMASTER — source IDs remain stable for saves. */
+const LT_REMASTER_VERSION='2026.11-Pixel-Remaster';
+const LT_ITEM_FORGE_WORDS=['Ashveil','Dreadglass','Moonrend','Ironwake','Stargrave','Blackthorn','Embercrypt','Nightspire','Voidborne','Oathscar','Grimhalo','Bloodtide','Frostmourne','Duskwarden','Cinderveil','Thundershade','Wyrmfall','Soulforge','Hexbound','Dawnreaver'];
+function ltRemasterNames(){
+  ITEMS.forEach((it,i)=>{
+    const old=it.n;
+    if(!it.originalName)it.originalName=old;
+    const name=LT_ITEM_FORGE_WORDS[(i*7+Math.floor(i/5))%LT_ITEM_FORGE_WORDS.length];
+    // Preserve rarity suffixes and armory family, while giving each entry a new title.
+    if(it.armory){const family=ARMORY_THEMES[it.unlockAct-1].name;
+      it.n=family+' '+name+' '+it.shape.replace(/^(.)/,c=>c.toUpperCase())+' · '+RAR[it.r].n+' #'+(it.armoryLine+1);
+    }else{it.n=name+' '+old;}
+  });
+  const heroTitles=['The Dawnscar Oath','The Iron Revenant','The Mirebound Oracle','The Crimson Veil','The Thornheart Ancient','The Astral Exile','The Stormpath Hunter','The Umbral Sentinel','The Cinder Warden','The Hollow Sovereign','The Gravebound Saint','The Riftborn Blade','The Ashen Alchemist','The Runebreaker','The Nightglass Seer','The Voidbound Herald','The Bloodmoon Knight','The Starless Templar','The Emberwrought'];
+  [...CHARS,...LOCKED].forEach((c,i)=>{c.originalName=c.originalName||c.name;c.name=heroTitles[i]||('The '+LT_ITEM_FORGE_WORDS[i%20]+' Champion');});
+  [...FOES,...MOREFOES.map(x=>null).filter(Boolean)].forEach((f,i)=>{if(f&&f.n){f.originalName=f.originalName||f.n;f.n=(f.boss?'ARCHFIEND ':'')+LT_ITEM_FORGE_WORDS[(i*3+4)%20]+' '+f.originalName.replace(/^THE /,'');}});
 }
 /* ---- colour helpers ---- */
 const _rgbC={};
@@ -1462,8 +1502,45 @@ function renderChar(mask0,M,scale,opt){
   x.imageSmoothingEnabled=false;x.drawImage(t,0,0,w*k,h*k);return c;
 }
 function heroMask(c){const g=G(64,64);(HEROART3[c.id]||HEROART2[c.id]||HEROART[c.id]||body64)(g,RNG(c.seed));return g;}
+// Portrait-inspired pixel sprite: shoulder-length dark hair, black lace gown, silver pendant.
+function seraphinaSprite(scale){
+ const k=(scale||3)*2,base=document.createElement('canvas');base.width=64;base.height=64;
+ const x=base.getContext('2d');x.imageSmoothingEnabled=false;
+ const P=(color,rx,ry,rw,rh)=>{x.fillStyle=color;x.fillRect(rx,ry,rw,rh)};
+ // Broad, layered black ball gown with sheer dark-grey folds.
+ for(let y=31;y<62;y++){
+   const spread=Math.round((y-31)*.65),left=22-spread,right=42+spread;
+   P(y%5===0?'#25212a':'#14121a',Math.max(2,left),y,Math.min(60,right)-Math.max(2,left),1);
+   for(let i=0;i<5;i++){let px=24+i*4+Math.round((i-2)*spread/3);if(px>2&&px<62)P(i%2?'#39303b':'#24202b',px,y,1,1)}
+ }
+ // Lace bodice, scalloped neckline and embroidered front panel.
+ P('#18151e',20,29,24,18);P('#302631',23,32,18,2);P('#0a0910',26,34,12,12);
+ for(let y=35;y<47;y+=3)for(let j=0;j<4;j++)P('#665461',27+j*3+(y%2),y,1,1);
+ // Short black sleeves and exposed forearms; folded hands.
+ P('#17151d',15,31,7,11);P('#17151d',42,31,7,11);
+ P('#d4a38b',15,41,5,9);P('#d4a38b',44,41,5,9);
+ P('#e3b39c',19,48,9,4);P('#e3b39c',35,48,9,4);P('#e8bca3',26,49,12,4);
+ P('#9a776b',28,51,8,1);
+ // Neck and shoulders.
+ P('#dbac95',29,25,7,8);P('#e3b49d',22,28,8,4);P('#e3b49d',36,28,7,4);
+ // Dark hair framing a softly lit face.
+ P('#151219',23,9,19,22);P('#292029',21,13,5,21);P('#292029',40,13,5,21);
+ P('#e5b59c',26,13,13,15);P('#f2c4a8',28,15,10,10);
+ P('#21191c',26,12,14,4);P('#151219',24,10,9,6);P('#17131a',35,10,7,6);
+ P('#21181e',29,19,2,1);P('#21181e',36,19,2,1);P('#a66c70',32,24,5,1);
+ P('#a78978',32,21,2,1);
+ // Necklace and small silver pendant.
+ P('#b9a8a0',30,30,1,1);P('#b9a8a0',36,30,1,1);P('#d6d0d8',33,33,2,2);
+ // Subtle purple magical embroidery along the hem.
+ for(let i=0;i<9;i++){let xx=8+i*6;P('#6d506f',xx,57+(i%2),2,1);}
+ const out=document.createElement('canvas');out.width=64*k;out.height=64*k;
+ const o=out.getContext('2d');o.imageSmoothingEnabled=false;o.drawImage(base,0,0,out.width,out.height);
+ out.dataset.cssw=64*(scale||3);out.dataset.cssh=64*(scale||3);
+ return out;
+}
 function heroSprite(c,scale){
-  return cached('h11'+c.id+'_'+(scale||3),()=>renderChar(heroMask(c),HEROMAT3[c.id]||HEROMAT2[c.id]||HEROMAT[c.id]||HEROMAT.fighter,scale||3,{seed:(c.seed||3)%97}));}
+ if(c.id==='seraphina')return cached('seraphina_portrait_v1_'+(scale||3),()=>seraphinaSprite(scale));
+  return cached('h12'+c.id+'_'+(scale||3),()=>{const k=scale||3,cvs=renderChar(heroMask(c),HEROMAT3[c.id]||HEROMAT2[c.id]||HEROMAT[c.id]||HEROMAT.fighter,k*2,{seed:(c.seed||3)%97});cvs.dataset.cssw=64*k;cvs.dataset.cssh=64*k;return cvs;});}
 /* ---------- FOE SPRITES (64x64, full colour) ---------- */
 function speck(g,r,x,y,w,h,mat,n){for(let i=0;i<n;i++){const px=x+((r()*w)|0),py=y+((r()*h)|0);if(g.g(px,py))g.s(px,py,mat);}}
 function legs(g,x,y,dx,dy,n,mat,spread){
@@ -2618,8 +2695,8 @@ function foeMask(f){
   return g;
 }
 function foeSprite(f,scale){
-  return cached('f3'+f.id+'_'+(scale||2),()=>renderChar(foeMask(f),foeMats(f),scale||2,
-    {seed:(f.seed||7)%97,fur:FOEFUR[f.kind]||0,cls:Object.assign({},FOECLS[f.kind],ACTDRESSCLS[(f.act||1)-1])}));}
+  return cached('f4'+f.id+'_'+(scale||2),()=>{const k=scale||2,cvs=renderChar(foeMask(f),foeMats(f),k*2,
+    {seed:(f.seed||7)%97,fur:FOEFUR[f.kind]||0,cls:Object.assign({},FOECLS[f.kind],ACTDRESSCLS[(f.act||1)-1])});cvs.dataset.cssw=64*k;cvs.dataset.cssh=64*k;return cvs;});}
 const FOEFUR={beast:1};
 const FOECLS={};
 /* ---------- ROOM BACKDROPS (240x84, ten of them) ---------- */
@@ -3332,8 +3409,8 @@ function itemIcon(shape,palette,scale,key,inst){
     const tA=inst.tags[0]?tagCol(inst.tags[0]):null, tB=inst.tags[1]?tagCol(inst.tags[1]):null;
     const r=ITEMS[inst.bid].r;
     const key4=key2+'|64'; m4=_mask32[key4]||(_mask32[key4]=scale2x(mT));
-    c=cached('i6'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
-      ()=>renderMat(m4,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13,ol:2,glowR:4,grain:.5,
+    c=cached('i7'+inst.bid+'_'+shape+'_'+k+'_'+(tA||'')+(tB||'')+r,
+      ()=>renderMat(m4,itemMats(shape,tA,tB,r),k,{seed:shape.length*97+r*13+inst.bid*37,ol:2,glowR:4,grain:.5,
         sparkle:r>=4?3:(r>=3?2:0), glow:r>=4?'rgba(255,133,107,.22)':null}));
   } else {
     c=cached('p2'+shape+'_'+k+'_'+(key||''),()=>render(m2,palette,Math.max(1,Math.ceil(scale/2)),null));
@@ -3875,6 +3952,10 @@ function tagMag(tag,it,lvl){
 const STATUS_OF={burn:'burn',fire:'burn',poison:'poison',freeze:'freeze',ice:'freeze',stun:'stun',bleed:'bleed'};
 /* ---------- CHARACTERS ---------- */
 const CHARS=[
+ {id:"seraphina",name:"Lady Seraphina Nightveil",tags:["shadow","arcane"],hp:470,dmg:18,armour:7,spd:11,dodge:.09,gold:110,
+  seed:919,helm:"plain",weap:"orb",cape:1,pal:pal("black","blue"),startShape:"orb",startR:0,
+  relicTags:["shadow"],rdesc:"Eclipse of the Damned: shadow attacks siphon life from foes.",
+  flavor:"The Midnight Empress. Clad in black lace and silver, she walks willingly into the dark."},
  {id:"paladin",name:"The Paladin",tags:["holy","metal"],hp:560,dmg:15,armour:13,spd:7,dodge:.03,gold:95,
   seed:11,helm:"halo",weap:"sword",cape:1,pal:pal("blue","red"),startShape:"sword",startR:0,
   relicTags:["holy"],rdesc:"Every Holy trigger also mends your weakest ally.",
@@ -7877,7 +7958,7 @@ function applyStack(target,tag,n,src){
 }
 const alive=a=>a.filter(u=>u.alive);
 function tick(){
-  if(B.over)return;
+  if(B.over||B.finishing)return;
   const dt=0.1;B.t+=dt;B.n++;const sec=B.n%10===0;
   [...B.heroes,...B.foes].forEach(u=>{
     if(!u.alive)return;
@@ -7967,8 +8048,24 @@ function beginFight(){
 function startTicks(){clearInterval(timer);timer=setInterval(tick,100/UI.speed);}
 function setSpeed(s){UI.speed=s;['sp1','sp2','sp4'].forEach(i=>document.getElementById(i).classList.remove('sel'));
   document.getElementById('sp'+s).classList.add('sel');if(timer)startTicks();}
+// Allow the last foe's death particles and boss collapse to finish before results.
+// Freeze attacks immediately; keep the battle scene visible during the outro.
+const LT_BATTLE_OUTRO_MS=1350;
 function endBattle(win){
-  B.over=true;clearInterval(timer);
+  if(!B||B.over||B.finishing)return;
+  B.finishing=true;
+  clearInterval(timer);
+  if(typeof updateArena==='function')updateArena();
+  if(typeof log==='function')log(win?'<span class="gold">The last enemy falls...</span>':'<span style="color:#ff8577">The torch flickers...</span>');
+  const battle=B;
+  setTimeout(()=>{
+    if(B!==battle||battle.over)return;
+    finishBattle(win);
+  },LT_BATTLE_OUTRO_MS);
+}
+function finishBattle(win){
+  if(!B||B.over)return;
+  B.over=true;B.finishing=false;clearInterval(timer);
   setTimeout(()=>{if(sfxGate(win?'win':'lose',800))(win?CSFX.win:CSFX.lose)();},250);
   setTimeout(()=>netPush(true),30);
   // wounds carry over as a FRACTION — item health is a layer on top, it must not bank real HP
@@ -8440,6 +8537,23 @@ Object.assign(window,{openSettings,closeSettings,SFX,setMusic,openAch,closeAch,o
   showHelp,hideHelp,backToTitle,openNode,toRoute,toShop,openCompendium,closeCompendium,startRun,startFloor,renderShop});
 window.__dbg={get R(){return R},get B(){return B},UI,ITEMS,FOES,CHARS,TAGS,blessPool,rollItem,tick,
   get timer(){return timer}};
+
+/* Pixel remaster naming is applied after all data registries have initialized. */
+ltRemasterNames();
+/* Refresh-rate aware rendering monitor. 200 FPS is the supported scheduling
+   ceiling; actual browser frames are limited by the monitor and hardware. */
+(function ltRefreshMonitor(){
+  const meter=document.createElement('div');meter.id='lt-fps-meter';meter.textContent='FPS — / 200 MAX';
+  document.body.appendChild(meter);
+  let frames=0,last=performance.now(),prev=last;
+  function frame(now){
+    // Never create an unbounded 200 Hz timer; rAF synchronizes with the display.
+    if(now-prev>=4.9){frames++;prev=now;}
+    if(now-last>=1000){meter.textContent='FPS '+Math.round(frames*1000/(now-last))+' / 200 MAX';frames=0;last=now;}
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>
