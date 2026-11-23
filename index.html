@@ -617,6 +617,7 @@ body{background-color:#080510;background-image:radial-gradient(ellipse at 50% 0%
           <button onclick="SFX.click();openBoard()">&#9636; Leaderboard</button>
           <button onclick="SFX.click();UI.statTab=R?UI.statTab:'all';openStats()">&#128202; Stats</button>
           <button onclick="SFX.click();openSettings()">&#9881; Settings</button>
+          <button id="mainDonateBtn" style="border-color:#b58b55;color:#ffe0a6" onclick="SFX.click();openDonation()" aria-haspopup="dialog" aria-controls="donationModal">&#9829; Donate</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
           <button style="border-color:#7fc9d9;color:#bfe6ef"
@@ -665,6 +666,28 @@ body{background-color:#080510;background-image:radial-gradient(ellipse at 50% 0%
   <div class="journal-entry" id="journalEntry"></div>
  </div>
 </div>
+
+
+<!-- LAST_TORCH_DONATIONS_V1: optional Interac e-Transfer information; no payment processing -->
+<div class="modal" id="donationModal" role="dialog" aria-modal="true" aria-labelledby="donationTitle">
+  <div class="frame" style="padding:20px;max-width:460px;width:100%;margin:auto;border-color:#9d784c;box-shadow:0 0 28px rgba(199,133,58,.16)">
+    <div class="row" style="justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">
+      <h2 id="donationTitle" class="creepy" style="font-size:22px;color:#ffd494;margin:0">&#9829; Support Last Torch</h2>
+      <button type="button" onclick="closeDonation()" aria-label="Close donations">Close &#215;</button>
+    </div>
+    <p class="flavor" style="line-height:1.65;margin:8px 0 16px">Enjoying the descent? Donations help support continued development, new content, and game improvements.</p>
+    <div style="padding:14px;border:1px solid #675035;border-radius:5px;background:rgba(30,20,15,.72)">
+      <div class="pix" style="font-size:11px;color:#e6bb7b;margin-bottom:9px;letter-spacing:.06em">DONATE BY INTERAC E-TRANSFER</div>
+      <label for="donationEmail" style="display:block;color:#c5c8d2;font-size:11px;margin-bottom:6px">Recipient email</label>
+      <input id="donationEmail" type="text" readonly value="ryan1carroll1972@gmail.com" spellcheck="false" autocomplete="off" aria-label="Interac e-Transfer recipient email" onclick="this.select()" style="display:block;box-sizing:border-box;width:100%;min-width:0;padding:10px 8px;background:#0c0c12;border:1px solid #776247;border-radius:4px;color:#fff0cc;font-size:clamp(11px,3.3vw,15px);font-family:inherit;text-align:center"/>
+      <button type="button" id="donationCopyBtn" class="btn-main" onclick="copyDonationEmail()" style="width:100%;margin-top:10px;font-size:13px">&#128203; Copy Email Address</button>
+      <div id="donationCopyStatus" role="status" aria-live="polite" style="min-height:17px;margin-top:7px;font-size:11px;color:#a9dca0;text-align:center"></div>
+    </div>
+    <p style="font-size:12px;line-height:1.7;color:#d4c6b5;margin:14px 0 9px">Open your banking app, choose <strong>Interac e-Transfer</strong>, add the recipient email above, enter any amount you wish, and review the details before sending.</p>
+    <p class="muted" style="font-size:11px;line-height:1.6;margin:0">Donations are entirely optional and do not affect gameplay or unlocks. Transfers happen through your bank; Last Torch does not collect banking or payment details.</p>
+  </div>
+</div>
+<!-- LAST_TORCH_DONATIONS_V1_END -->
 
 <!-- SETTINGS -->
 <div class="modal" id="setModal">
@@ -10910,6 +10933,52 @@ window.LT_AUDIO_TEST={heroCount:Object.keys(HERO_DIALOGUE).length,foeCount:Objec
 })();
 </script>
 <!-- LAST_TORCH_MUSIC_VOICES_V1_END -->
+
+
+<!-- LAST_TORCH_DONATIONS_V1_SCRIPT -->
+<script>
+(function(){
+  'use strict';
+  var donationEmail='ryan1carroll1972@gmail.com';
+  var donationPreviousFocus=null;
+  window.openDonation=function(){
+    var modal=document.getElementById('donationModal');
+    if(!modal)return;
+    donationPreviousFocus=document.activeElement;
+    document.getElementById('donationCopyStatus').textContent='';
+    modal.classList.add('on');
+    var closeButton=modal.querySelector('button[aria-label="Close donations"]');
+    if(closeButton)closeButton.focus();
+  };
+  window.closeDonation=function(){
+    var modal=document.getElementById('donationModal');
+    if(modal)modal.classList.remove('on');
+    if(donationPreviousFocus&&donationPreviousFocus.focus)donationPreviousFocus.focus();
+  };
+  window.copyDonationEmail=async function(){
+    var input=document.getElementById('donationEmail');
+    var status=document.getElementById('donationCopyStatus');
+    if(!input||!status)return;
+    var copied=false;
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(donationEmail);
+        copied=true;
+      }
+    }catch(err){}
+    if(!copied){
+      try{input.focus();input.select();input.setSelectionRange(0,input.value.length);copied=document.execCommand('copy');}catch(err){}
+    }
+    status.textContent=copied?'Email copied! Paste it into your banking app.':'Select and copy the email above, then paste it into your banking app.';
+  };
+  var modal=document.getElementById('donationModal');
+  if(modal){
+    modal.addEventListener('click',function(e){if(e.target===modal)window.closeDonation();});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.classList.contains('on'))window.closeDonation();});
+  }
+})();
+</script>
+<!-- LAST_TORCH_DONATIONS_V1_SCRIPT_END -->
 
 </body>
 </html>
