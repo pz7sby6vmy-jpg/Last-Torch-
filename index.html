@@ -4435,13 +4435,20 @@ ARMORY_THEMES.forEach((theme,ti)=>{
 if(ITEMS.filter(i=>i.armory).length!==500)throw Error('Armory item count mismatch');
 
 /* One distinct, single-word artifact name for every template: no reused words. */
-const NIGHTVEIL_START=['Vael','Nyx','Astra','Mor','Ely','Zyr','Thal','Kael','Vor','Lun','Drae','Syl','Rav','Eir','Oph','Xan','Cyr','Bel','Vey','Isk','Ael','Ner','Umb','Ser','Kyr','Zeph','Orn','Fae','Vyr','Ith','Myr','Quen'];
-const NIGHTVEIL_END=['driel','vayne','thorin','sareth','lyss','quorin','zareth','myrr','dessa','vorn','rith','neth','garde','mora','xiel','daryn','velis','thiel','zara','quess','rune','vessa','kareth','nyra','loria','drith','theon','zyra'];
+/* Individually coined artifact titles. A definition always has one stable name,
+   including in shop, backpack, forge and inspection popups. */
+const LT_NAME_ONSETS=['Ael','Bran','Caer','Dusk','Eir','Fyn','Ghal','Hyr','Ith','Jor','Kael','Lys','Morn','Nyth','Oryn','Phae','Quil','Rhun','Sery','Thyr','Ul','Vael','Wyr','Xel','Ysol','Zhar','Cind','Drae','Fell','Grim','Lun','Myrr','Nyx','Oss','Pyre','Rav','Sol','Tarn','Umb','Vey','Zeph'];
+const LT_NAME_CORES=['a','ae','ei','io','ora','yra','eth','uv','an','iel','orn','ysa','ul','eve','ar','oth','uin','ir','ael','yr','un','eon','is','ath','os','en','ori','el','ith','yss','aur'];
+const LT_NAME_ENDS=['vane','quill','dris','mora','zeth','riel','garde','thys','dawn','nox','wyn','kyr','thorn','vale','mere','scar','voss','rune','shade','vyr','drel','lune','wyrd','syl','dusk','veil','aris','cor','lith','dra','zen','myr','quess','thor','ria','ven','zara','fen','tiel','mour'];
 const NIGHTVEIL_NAMES=new Set();
 ITEMS.forEach((it,i)=>{
- let name=NIGHTVEIL_START[i%NIGHTVEIL_START.length]+NIGHTVEIL_END[Math.floor(i/NIGHTVEIL_START.length)%NIGHTVEIL_END.length];
- if(NIGHTVEIL_NAMES.has(name))throw Error('Duplicate artifact name '+name);
- NIGHTVEIL_NAMES.add(name);it.n=name;
+  // The three components have independent prime-step permutations, avoiding
+  // a run of items with nearly identical leading syllables.
+  const name=LT_NAME_ONSETS[(i*17+Math.floor(i/41))%LT_NAME_ONSETS.length]
+    +LT_NAME_CORES[(i*13+Math.floor(i/31))%LT_NAME_CORES.length]
+    +LT_NAME_ENDS[(i*19+Math.floor(i/37))%LT_NAME_ENDS.length];
+  if(NIGHTVEIL_NAMES.has(name))throw Error('Duplicate artifact name '+name);
+  NIGHTVEIL_NAMES.add(name);it.n=name;
 });
 if(NIGHTVEIL_NAMES.size!==ITEMS.length)throw Error('Item name uniqueness failed');
 const openShapes=()=>SHAPES.filter(shapeOpen);
@@ -7324,7 +7331,16 @@ function paintNightveilHalberd(canvas,inst){
  line([[.95,.38],[.87,.3],[.83,.37],[.89,.455]],violet);
  line([[.5,.275],[.56,.37],[.5,.44],[.44,.37]],violet);
  for(let i=0;i<5;i++){let y=.49+i*.095;line([[.5,y-.018],[.515,y],[.5,y+.018],[.485,y]],i%2?violet:gold,gold,1);}
- c.shadowBlur=0;return true;
+ // Individually cut runes and central jewel: even halberds with the same
+ // silhouette get distinct permanent illustrations for their definition ID.
+ const bid=inst.bid, seed=(Math.imul(bid+1,2654435761)>>>0);
+ const gemHue=(seed%330)+15;
+ c.save();c.shadowBlur=0;c.fillStyle=`hsl(${gemHue},95%,68%)`;
+ const gx=W*.5,gy=H*(.305+(seed%7)*.008),gr=Math.max(2,W*(.025+(seed%5)*.007));
+ c.beginPath();c.moveTo(gx,gy-gr);c.lineTo(gx+gr,gy);c.lineTo(gx,gy+gr);c.lineTo(gx-gr,gy);c.closePath();c.fill();
+ c.strokeStyle=`hsl(${gemHue},85%,78%)`;c.lineWidth=Math.max(1,W*.007);
+ for(let j=0;j<4;j++){const y=H*(.53+j*.105),dx=W*(.015+((seed>>j)&7)*.005);c.beginPath();c.moveTo(gx-dx,y);c.lineTo(gx+dx,y+H*.012);c.stroke();}
+ c.restore();c.shadowBlur=0;return true;
 }
 function paintIllustratedItem(canvas,inst){
  if(!NIGHTVEIL_ATLAS.complete||!NIGHTVEIL_ATLAS.naturalWidth)return false;
@@ -7398,7 +7414,7 @@ function paintIllustratedItem(canvas,inst){
  return true;
 }
 function paintFootprintGear(canvas,inst){
- if(paintIllustratedItem(canvas,inst))return;
+ // Draw each item from its own geometry, never from the shared 16-image atlas.
  const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height,it=ITEMS[inst.bid];
  const bid=inst.bid,rar=it.r,shape=it.shape,vertical=H>W*1.24,horizontal=W>H*1.24;
  const hue=it.armory?([270,135,270,24,208,295][it.unlockAct]||278):(bid*37+rar*31)%360;
@@ -7414,16 +7430,24 @@ function paintFootprintGear(canvas,inst){
  const width=short*.68,height=long*.82;
  const fill=(path,a,b)=>{const gr=ctx.createLinearGradient(-width/2,-height/2,width/2,height/2);gr.addColorStop(0,a);gr.addColorStop(.38,'#f4d6ad');gr.addColorStop(.53,b);gr.addColorStop(1,'#211225');ctx.fillStyle=gr;ctx.fill(path);ctx.strokeStyle='#f4cb8c';ctx.lineWidth=Math.max(1,short*.014);ctx.stroke(path)};
  const P=()=>new Path2D();let path=P();
- const swordlike=/sword|dagger|blade|rapier|katana|spear|halberd|polearm|scythe|staff|wand/i.test(shape);
+ if(shape==='halberd'){
+  // Six occupied cells in a 3×4 T: center top, full second row, center bottom two.
+  paintNightveilHalberd(canvas,inst);return;
+ }
+ const swordlike=/sword|dagger|blade|rapier|katana|spear|halberd|polearm|scythe|staff|wand|greatsword|trident|javelin|whip/i.test(shape);
+ const variant=(Math.imul(bid+1,1103515245)>>>0)%17;
+ const bladeWidth=.12+(variant%6)*.028;
+ const bladeCurve=((variant%5)-2)*.025;
  const bowlike=/bow|crossbow/i.test(shape);
  const shieldlike=/shield|armor|armour|plate|helm|helmet|mask|cloak|robe/i.test(shape);
  const roundlike=/ring|amulet|orb|charm|relic|gem|pendant/i.test(shape);
  if(swordlike){
   // Blade, crossguard, grip and pommel each retain detail at narrow widths.
-  path.moveTo(0,-height*.49);path.bezierCurveTo(width*.28,-height*.29,width*.16,-height*.05,width*.11,height*.19);
-  path.lineTo(-width*.11,height*.19);path.bezierCurveTo(-width*.16,-height*.05,-width*.28,-height*.29,0,-height*.49);path.closePath();fill(path,'#eef2ff',dark);
+  path.moveTo(0,-height*.49);path.bezierCurveTo(width*(bladeWidth*2+bladeCurve),-height*(.29+(variant%4)*.025),width*(bladeWidth+bladeCurve),-height*.05,width*bladeWidth,height*.19);
+  path.lineTo(-width*bladeWidth,height*.19);path.bezierCurveTo(-width*(bladeWidth-bladeCurve),-height*.05,-width*(bladeWidth*2-bladeCurve),-height*(.29+(variant%4)*.025),0,-height*.49);path.closePath();fill(path,'#eef2ff',dark);
   ctx.strokeStyle=bright;ctx.lineWidth=Math.max(1,short*.024);ctx.beginPath();ctx.moveTo(0,-height*.41);ctx.lineTo(0,height*.14);ctx.stroke();
-  path=P();path.moveTo(-width*.43,height*.17);path.lineTo(-width*.12,height*.12);path.lineTo(0,height*.21);path.lineTo(width*.12,height*.12);path.lineTo(width*.43,height*.17);path.lineTo(width*.29,height*.26);path.lineTo(0,height*.24);path.lineTo(-width*.29,height*.26);path.closePath();fill(path,gold,dark);
+  path=P();const guard=.27+(variant%7)*.038;
+  path.moveTo(-width*guard,height*.17);path.lineTo(-width*.12,height*.12);path.lineTo(0,height*.21);path.lineTo(width*.12,height*.12);path.lineTo(width*guard,height*.17);path.lineTo(width*(guard-.12),height*.26);path.lineTo(0,height*.24);path.lineTo(-width*(guard-.12),height*.26);path.closePath();fill(path,gold,dark);
   ctx.strokeStyle='#a98a60';ctx.lineWidth=Math.max(2,short*.09);ctx.beginPath();ctx.moveTo(0,height*.25);ctx.lineTo(0,height*.43);ctx.stroke();
   ctx.fillStyle=gold;ctx.beginPath();ctx.arc(0,height*.44,short*.09,0,7);ctx.fill();
  }else if(bowlike){
