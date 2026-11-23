@@ -5140,13 +5140,15 @@ const ACH=[
  {id:"trader",n:"Hard Bargain",d:"Sell 12 relics back to the merchant in one run."},
 ];
 const ACHBY=Object.fromEntries(ACH.map(a=>[a.id,a]));
-function hasAch(id){return !!(META.ach&&META.ach[id]);}
+/* The Settings unlock code is a reversible overlay: genuine achievements are not replaced. */
+function hasAch(id){return !!(META.codeUnlockAll||(META.ach&&META.ach[id]));}
 function classLocked(c){
   if(!c.ach)return false;
   return !hasAch(c.ach);
 }
 function unlock(id){
-  if(!id||hasAch(id))return;
+  // Actual achievements still accrue naturally while the temporary unlock code is on.
+  if(!id||(META.ach&&META.ach[id]))return;
   META.ach=META.ach||{};META.ach[id]=1;saveMeta();
   const a=ACHBY[id];if(!a)return;
   const cls=a.unlocks?CHARS.find(c=>c.id===a.unlocks):null;
@@ -5243,7 +5245,7 @@ function recordRun(reason){
   saveMeta();
 }
 try{const s=localStorage.getItem("ninefold2");if(s)Object.assign(META,JSON.parse(s));}catch(e){}
-META.ach=META.ach||{};META.board=META.board||[];
+META.ach=META.ach||{};META.board=META.board||[];META.codeUnlockAll=(META.codeUnlockAll===true);
 function saveMeta(){try{localStorage.setItem("ninefold2",JSON.stringify(META));}catch(e){}}
 const pick=a=>a[(Math.random()*a.length)|0];
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -5425,11 +5427,54 @@ function openSettings(){
   b.appendChild(rowOf("Animations","Turn these off if the game feels heavy on your machine.",
     toggle(SETTINGS.fx,v=>{SETTINGS.fx=v;saveSettings();
       document.body.classList.toggle('noanim',!v);})));
+  // Reversible secret code: entering the same code again restores the normal unlock rules.
+  const codeWrap=document.createElement('div');
+  codeWrap.style.cssText='display:flex;flex-direction:column;gap:7px';
+  const codeRow=document.createElement('div');
+  codeRow.style.cssText='display:flex;gap:8px;align-items:stretch;flex-wrap:wrap';
+  const codeInput=document.createElement('input');
+  codeInput.type='text';codeInput.placeholder='Enter unlock code';
+  codeInput.setAttribute('aria-label','Unlock code');
+  codeInput.autocomplete='off';codeInput.autocapitalize='off';codeInput.spellcheck=false;
+  codeInput.style.cssText='flex:1 1 160px;min-width:0;min-height:42px;padding:9px 11px;border:1px solid #9f85c0;border-radius:5px;background:#101122;color:#fff;font:inherit;font-size:13px';
+  const applyCode=document.createElement('button');
+  applyCode.type='button';applyCode.textContent='Apply Code';
+  applyCode.style.cssText='min-height:42px;border-color:#bca2e6';
+  const codeStatus=document.createElement('div');
+  codeStatus.setAttribute('role','status');codeStatus.setAttribute('aria-live','polite');
+  codeStatus.style.cssText='font-size:11px;color:#d6c2f7';
+  codeStatus.textContent=META.codeUnlockAll?'Unlock All: ON — re-enter the code to turn it off.':'Unlock All: OFF';
+  const tryCode=()=>{
+    if(codeInput.value.trim().toLowerCase()!=='ryanthesniper14'){
+      codeStatus.textContent='Invalid code. No progress was changed.';
+      codeStatus.style.color='#ff9b99';return;
+    }
+    META.codeUnlockAll=!META.codeUnlockAll;
+    saveMeta();
+    if(!META.codeUnlockAll){
+      // Do not leave locked characters or an inaccessible starting floor selected.
+      UI.start=Math.min(UI.start||0,Math.max(0,(META.starts||1)-1));
+      UI.picked=(UI.picked||[]).filter(i=>CHARS[i]&&!classLocked(CHARS[i]));
+      if(CHARS[UI.ci]&&classLocked(CHARS[UI.ci]))UI.ci=Math.max(0,CHARS.findIndex(c=>!classLocked(c)));
+    }
+    initTitle();
+    if(document.getElementById('scr-select').classList.contains('on'))renderSelect();
+    if(document.getElementById('achModal').classList.contains('on'))openAch();
+    const nowOn=META.codeUnlockAll;
+    codeInput.value='';
+    codeStatus.style.color=nowOn?'#aef07c':'#d6c2f7';
+    codeStatus.textContent=nowOn?'Unlock All: ON — all mercenaries, items, achievements and Endless starts are available.':'Unlock All: OFF — your normal earned progress is restored.';
+    toast(nowOn?'Everything unlocked':'Normal progression restored',nowOn?'Enter the same code again in Settings to switch it off.':'Earned unlocks remain; temporary code unlocks are disabled.');
+  };
+  applyCode.onclick=tryCode;
+  codeInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();tryCode();}};
+  codeRow.append(codeInput,applyCode);codeWrap.append(codeRow,codeStatus);
+  b.appendChild(rowOf('Unlock code','Enter a code and press Apply or Enter. Re-enter it to reverse Unlock All without erasing earned progress.',codeWrap));
   const wipe=document.createElement('button');
   wipe.textContent="Erase all progress";wipe.style.cssText='border-color:#d3303a;color:#ff8577';
   wipe.dataset.armed="";
   wipe.onclick=()=>{ if(wipe.dataset.armed!=="1"){wipe.dataset.armed="1";wipe.textContent="Erase everything — sure?";return;}
-    META={wins:{},best:0,starts:1,ach:{},board:[]};saveMeta();initTitle();openSettings();};
+    META={wins:{},best:0,starts:1,ach:{},board:[],codeUnlockAll:false};saveMeta();initTitle();openSettings();};
   b.appendChild(rowOf("Progress","Achievements, unlocked mercenaries and the leaderboard.",wipe));
   document.getElementById('setModal').classList.add('on');
 }
@@ -5943,6 +5988,10 @@ function netHostAct(m){
     const a=anchors(shopStock[seat]).find(x=>x.inst.uid===m.uid||x.i===m.i);
     if(a)buyFromPack(seat,a.i,a.inst);
     netPush(true);
+  } else if(m.k==='sellStorage'){
+    // Authoritative sale of only the shared inactive storage, independent of merchant caps.
+    executeStorageSale();
+    netPush(true);
   } else if(m.k==='sell'){
     const all=allCarried().concat(R.stash.map(inst=>({inst})));
     const hit=all.find(c=>c.inst.uid===m.uid);
@@ -6323,7 +6372,7 @@ function renderTopBar(){
   const ab=document.getElementById('actBtns');ab.innerHTML='';
   if(UI.endless){
     [1,6,11,16,21].forEach((f,i)=>{const b=document.createElement('button');
-      const lock=i>=(META.starts||1);b.textContent=lock?"⚿":("F"+f);b.disabled=lock;
+      const lock=i>=(META.codeUnlockAll?5:(META.starts||1));b.textContent=lock?"⚿":("F"+f);b.disabled=lock;
       if(UI.start===i)b.classList.add('sel');b.onclick=()=>{UI.start=i;renderSelect()};ab.appendChild(b);});
     document.getElementById('actName').textContent=REGION([1,6,11,16,21][UI.start]);
   } else {
@@ -8087,6 +8136,64 @@ function sellAnywhere(inst){
   SFX.coin();toast("Sold "+iname(inst),"+"+pr+" coins");
   if(typeof renderTopBar==='function')try{renderTopBar();}catch(e){}
 }
+
+/* ---- SELL ALL NON-ACTIVE STORAGE ----
+   Storage + its overflow are inactive; never include any mercenary's equipped grid.
+   Cursed gear obeys the same restriction as dropping items into the sell bin. */
+function storageSaleItems(){
+  if(!R||!R.store||!R.stash)return [];
+  const seen=new Set();
+  return anchors(R.store).map(({inst})=>inst).concat(R.stash).filter(inst=>{
+    if(!inst||inst.curse||seen.has(inst))return false;
+    seen.add(inst);return true;
+  });
+}
+function storageSaleQuote(){
+  const items=storageSaleItems();
+  return {count:items.length,total:items.reduce((n,inst)=>n+sellPrice(inst),0)};
+}
+function executeStorageSale(){
+  const items=storageSaleItems();
+  if(!items.length)return {count:0,total:0};
+  let total=0;
+  for(const inst of items){
+    total+=sellPrice(inst);
+    // Remove only from inactive storage. Active/equipped backpacks are not touched.
+    liftItem(R.store,inst);
+    const i=R.stash.indexOf(inst);
+    if(i>=0)R.stash.splice(i,1);
+  }
+  R.coins+=total;
+  R.sold=(R.sold||0)+items.length;
+  if(R.sold>=12)unlock('trader');
+  SFX.coin();
+  toast('Sold '+items.length+' stored item'+(items.length===1?'':'s'),'+'+total+' coins');
+  if(typeof renderTopBar==='function')try{renderTopBar();}catch(e){}
+  if(document.getElementById('packModal')?.classList.contains('on'))renderPack();
+  if(document.getElementById('scr-shop')?.classList.contains('on'))renderShop();
+  if(typeof saveRun==='function')saveRun();
+  return {count:items.length,total};
+}
+function confirmSellAllStorage(){
+  if(!R||DRAG)return;
+  const quote=storageSaleQuote();
+  if(!quote.count){toast('Nothing to sell','Storage is empty or contains only cursed items.');return;}
+  const cursed=anchors(R.store).filter(({inst})=>inst.curse).length+R.stash.filter(inst=>inst.curse).length;
+  const message='Sell ALL '+quote.count+' items in your NON-ACTIVE storage backpack'+
+    ' (including overflow) for '+quote.total+' coins?\n\n'+
+    'Active/equipped backpacks will not be touched.'+
+    (cursed?'\n'+cursed+' cursed item'+(cursed===1?' will':'s will')+' remain in storage.':'')+
+    '\n\nThis cannot be undone.';
+  if(!window.confirm(message))return;
+  // Guests request a single authoritative transaction so the host credits gold once.
+  if(NET.on&&!NET.host){
+    if(netSend({k:'sellStorage'}))toast('Sale requested','Waiting for the party host to update storage.');
+    return;
+  }
+  const result=executeStorageSale();
+  if(result.count&&NET.on&&NET.host)netPush(true);
+}
+
 function moveGhost(ev){
   const g=document.getElementById('dragGhost');if(!g)return;
   g.style.left=(ev.clientX-18)+'px';g.style.top=(ev.clientY-18)+'px';
@@ -8190,6 +8297,23 @@ function renderPack(){
   const st=document.createElement('div');st.className='frame';st.style.cssText='padding:9px;margin-bottom:10px';
   st.innerHTML=`<div class="pix muted" style="font-size:11px;margin-bottom:6px">
     Storage pack — ${anchors(R.store).length} stored · nothing here is active</div>`;
+  // One-click clearance for the inactive backpack; confirmation shows the exact payout.
+  const sale=storageSaleQuote();
+  const sellBar=document.createElement('div');sellBar.className='row';
+  sellBar.style.cssText='align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 10px';
+  const saleNote=document.createElement('span');saleNote.className='muted';
+  saleNote.style.cssText='font-size:10px';
+  saleNote.textContent='Inactive storage + overflow · active equipment stays safe';
+  sellBar.appendChild(saleNote);
+  const sellAllBtn=document.createElement('button');
+  sellAllBtn.id='sellAllStorageBtn';sellAllBtn.type='button';
+  sellAllBtn.style.cssText='border:1px solid #9c6345;color:#ffd2ad;background:linear-gradient(#38231d,#241612);font-size:11px;font-weight:700;padding:8px 12px';
+  sellAllBtn.textContent='Sell All Storage ('+sale.count+' items · +'+sale.total+'c)';
+  sellAllBtn.title='Sell all non-cursed items in storage and overflow (not equipped backpacks)';
+  sellAllBtn.disabled=!sale.count;
+  sellAllBtn.onclick=confirmSellAllStorage;
+  sellBar.appendChild(sellAllBtn);
+  st.appendChild(sellBar);
   st.appendChild(gridView(R.store,STORER,34,{gid:'store',drag:true,
     badge:inst=>(R.party.length>1&&inst.owner!=null&&R.party[inst.owner])
       ?{text:R.party[inst.owner].name.replace('The ','').slice(0,6),col:'#c9b28a'}:null}));
