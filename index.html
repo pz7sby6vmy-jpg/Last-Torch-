@@ -514,6 +514,25 @@ button.sel,.btn-main{background:linear-gradient(180deg,#7038a6,#34124f);border-c
 #scr-bless .relicbox{width:116px;height:116px;padding:3px;border:2px solid #a64dce;border-radius:10px;background:#12091c;box-shadow:0 0 18px #a342ba55;margin:10px auto}
 #scr-bless .relic:hover{border-color:#e7a8ff!important;box-shadow:0 0 24px #8b36d777}
 @media(max-width:600px){#scr-bless .relicbox{width:92px;height:92px}#scr-bless .relic{min-height:0}}
+
+/* Last Torch — always-visible item affixes. The tags are drawn inside the tile,
+   with compact labels for narrow 1-column inventories and combat grids. */
+.lt-visible-item-tags{position:absolute;left:2px;right:2px;bottom:2px;z-index:3;
+  display:flex;justify-content:center;align-items:flex-end;flex-wrap:wrap;gap:2px;
+  pointer-events:none;line-height:1;max-height:80%;overflow:hidden}
+.lt-visible-item-tag{display:inline-block;max-width:100%;padding:2px 3px 1px;
+  background:rgba(9,7,16,.92);border:1px solid var(--lt-tag-color);border-radius:3px;
+  color:var(--lt-tag-color);font:800 9px/11px system-ui,Arial,sans-serif;
+  text-shadow:0 1px 2px #050208;white-space:nowrap;overflow:hidden;text-overflow:clip;
+  box-shadow:0 1px 3px rgba(0,0,0,.55)}
+.lt-visible-item-tags.lt-tags-narrow{flex-direction:column;align-items:center;gap:1px}
+.lt-visible-item-tags.lt-tags-narrow .lt-visible-item-tag{
+  padding:1px 2px;font-size:8px;line-height:10px;letter-spacing:-.2px}
+.lt-visible-item-tags.lt-tags-micro{gap:0}
+.lt-visible-item-tags.lt-tags-micro .lt-visible-item-tag{
+  padding:0 1px;font-size:7px;line-height:8px;min-width:13px;
+  text-align:center;border-radius:2px}
+.lt-t-footprint .lt-visible-item-tags{left:33%;right:33%}
 </style>
 <!-- Progression test: 240 simulated runs, 1261 battles, 2988 simulated purchases, 1105 modeled upgrades; 57 runs cleared floor 9. Test harness approximates route and merchant decisions. -->
 <style>
@@ -586,7 +605,7 @@ body{background-color:#080510;background-image:radial-gradient(ellipse at 50% 0%
       <div class="pix" style="font-size:10px;color:#6f6258;letter-spacing:.3em;margin-bottom:16px">
         Backpack-merge descent &nbsp;·&nbsp; 1&ndash;4 mercenaries</div>
     </div>
-    <div style="padding:0 18px 18px">
+    <div style="padding:0 18px 30px">
       <div style="max-width:420px;margin:0 auto">
         <div id="continueWrap"></div>
          <button class="journal-btn" onclick="openJournal()">✧ EXPEDITION JOURNAL · LORE & TACTICS ✧</button>
@@ -608,6 +627,8 @@ body{background-color:#080510;background-image:radial-gradient(ellipse at 50% 0%
       <div class="muted center" style="margin-top:14px;font-size:11px" id="metaLine"></div>
       <div id="titleArt" style="margin-top:10px;overflow:hidden"></div>
     </div>
+    <!-- Version is visible on the main menu only, at bottom-left. -->
+    <div id="gameVersionLabel" aria-label="Game version 0.082" style="position:absolute;left:12px;bottom:9px;z-index:2;font-family:'Courier New',monospace;font-size:11px;line-height:1.2;letter-spacing:.08em;color:#b5a08b;text-shadow:0 1px 4px #000,0 0 5px #000;pointer-events:none;user-select:none">Version 0.082</div>
   </div>
 </div>
 
@@ -5646,6 +5667,7 @@ function buildCompendium(only){
     d.appendChild(itemIcon(it.shape,null,4,null,inst));
     d.insertAdjacentHTML('beforeend',`<div style="font-size:10px;color:${RAR[it.r].col}">${RAR[it.r].n}</div>
       <div style="font-size:11px;color:#fff">${iname(inst)}</div>
+      <div class="lt-compendium-item-tags" style="display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin:3px 0">${inst.tags.map(t=>TAGS[t]?`<span class="chip" style="color:${tagCol(t)};border-color:${tagCol(t)};background:#140c20">${TAGS[t].n}</span>`:'').join('')}</div>
       <div class="muted" style="font-size:10px;line-height:1.4">${it.tx}</div>
       <div class="muted" style="font-size:9px">${itemCadence(it)} · ${it.cost}c</div>`);
     g.appendChild(d);});
@@ -7878,6 +7900,33 @@ function itemTile(inst,cell,gap,onclick){
   const dots=document.createElement('div');dots.className='tagdot';
   inst.tags.forEach(t=>{const i2=document.createElement('i');i2.style.background=tagCol(t);dots.appendChild(i2);});
   d.appendChild(dots);
+  // Tags are shown directly on each item, without selecting or opening a tooltip.
+  // The smallest combat tiles use compact readable labels instead of clipping
+  // long names across neighbouring items in the backpack grid.
+  const ltTagNames=(inst.tags||[]).filter(t=>TAGS[t]);
+  if(ltTagNames.length){
+    const ltLabelWidth=it.shape==='halberd'?bw/3:bw;
+    const strip=document.createElement('div');
+    strip.className='lt-visible-item-tags'+(ltLabelWidth<67?' lt-tags-narrow':'')+(ltLabelWidth<32?' lt-tags-micro':'');
+    const ltShort={neutral:'Neut',fire:'Fire',frost:'Frost',lightning:'Bolt',poison:'Pois',
+      holy:'Holy',vampiric:'Vamp',arcane:'Arc',earth:'Earth',wind:'Wind',dragon:'Drgn',
+      demon:'Dmon',undead:'Dead',beast:'Beast',metal:'Metal',haunted:'Haunt'};
+    const ltMicro={neutral:'Nu',fire:'Fi',frost:'Fr',lightning:'Lt',poison:'Po',holy:'Ho',
+      vampiric:'Va',arcane:'Ar',earth:'Ea',wind:'Wi',dragon:'Dr',demon:'De',
+      undead:'Un',beast:'Be',metal:'Me',haunted:'Ha'};
+    strip.setAttribute('aria-label','Item tags: '+ltTagNames.map(t=>TAGS[t].n).join(', '));
+    ltTagNames.forEach(t=>{
+      const pill=document.createElement('span');
+      pill.className='lt-visible-item-tag';
+      pill.textContent=ltLabelWidth<32?(ltMicro[t]||TAGS[t].n.slice(0,2)):
+        ltLabelWidth<67?(ltShort[t]||TAGS[t].n):TAGS[t].n;
+      pill.title=TAGS[t].n;
+      pill.style.setProperty('--lt-tag-color',tagCol(t));
+      strip.appendChild(pill);
+    });
+    d.appendChild(strip);
+    d.title=iname(inst)+' · '+ltTagNames.map(t=>TAGS[t].n).join(' / ');
+  }
   if(inst.lvl>1){const l=document.createElement('span');l.className='lvl';l.textContent='L'+inst.lvl;d.appendChild(l);}
   d.onmouseenter=e=>hoverTip(e,inst);d.onmouseleave=hideTip;
   if(COARSE&&!onclick)d.onpointerup=ev=>{if(!document.getElementById('dragGhost'))showTipAt(d,inst);};
@@ -10702,6 +10751,165 @@ ltRemasterNames();
 })();
 </script>
 <!-- LAST_TORCH_DISTINCT_BATCH13_END -->
+
+<!-- LAST_TORCH_MUSIC_VOICES_V1 -->
+<script>
+(function(){
+'use strict';
+// Original procedural fantasy score + device-generated spoken dialogue, all kept offline in one HTML.
+const HERO_DIALOGUE={"seraphina":["The night has been expecting me.","Kneel before the eclipse.","Another soul belongs to the dark.","Even empresses must sleep."],"paladin":["My oath burns brighter below.","Stand firm. The light holds.","The dawn is earned, not given.","The flame passes to you."],"fighter":["I came down here looking for trouble.","Come on. Hit harder.","That is how you settle a score.","Guess the bell finally rang."],"witchdoctor":["The bones warned me you would come.","Breathe deep. It helps the poison.","The spirits collected their due.","Keep the ledger closed."],"bloodelf":["I can hear your heartbeat from here.","A single cut is enough.","Your blood remembers my name.","Let the crimson river run."],"druid":["The roots remember this place.","The earth will have its answer.","Something green will grow here.","Return me to the soil."],"wizard":["At last, a worthy experiment.","The elements obey a patient hand.","Another theorem proven.","My last spell is silence."],"ranger":["The trail ends somewhere ahead.","I never miss twice.","Tracks tell the whole story.","The woods will guide me home."],"berserker":["Smells like a proper fight.","Break their shields!","Still standing. Anyone else?","I go down swinging!"],"alchemist":["A new specimen. How fortunate.","Let us see what this mixture does.","The reaction is complete.","I should have checked the label."],"templar":["These halls will hear my oath.","The shield does not yield.","The sacred line remains unbroken.","Guard the others in my stead."],"stormcaller":["Thunder walks beside me.","Hear the sky split open!","The storm has passed.","Even lightning fades."],"revenantc":["I remember dying here.","Death is not finished with you.","The grave has room for one more.","Again, the dark calls me."],"warden":["No one passes my watch.","Hold the line!","The stair is safe another night.","My watch is ended."],"nightblade":["You will not see the second strike.","Shadows. Hide my blade.","Silence is the sweetest victory.","So this is what silence means."],"thornwitch":["Mind where you step, darling.","Every thorn is hungry.","The garden grows again.","Flowers bloom from my bones."],"gravekeeper":["I have a plot prepared.","Back to the earth with you.","One more name for the book.","Who will bury the keeper?"],"forgewright":["The old forge still burns.","Heat the metal. Strike!","Another blade tempered by battle.","My hammer falls silent."],"oracle":["I have seen this fight before.","The future bends at my word.","That was always the ending.","There are no more visions."],"voidborn":["Something followed me out of the core.","Hear the empty spaces sing.","The void has taken its offering.","At last, I return to nothing."]};
+const FOE_DIALOGUE={"rat":["Mine. This whole tunnel is mine.","No more crumbs for me."],"bat":["The dark has wings tonight.","The cave grows quiet."],"weaver":["Step into my pale little web.","The silk unwinds."],"pud":["Everything melts eventually.","Just another puddle."],"skel":["The watch never truly ends.","My bones may finally rest."],"wraith":["You are standing where I died.","The chains are lifting."],"scorp":["One sting. One shallow grave.","The venom dries."],"fly":["Rot feeds the swarm.","The buzzing fades."],"golem":["Stone does not forgive.","The mountain breaks."],"ghoul":["Fresh meat for old teeth.","The hunger fades."],"serp":["The mire has sharp fangs.","The marsh swallows me."],"eye":["I have already seen your end.","The last vision shatters."],"revn":["I rose for vengeance.","Again I fall into dust."],"brute":["Little bones. Big crunch.","The pit takes its champion."],"ice":["The cold remembers your name.","My winter melts away."],"ember":["The kennel burns forever.","Only ashes now."],"plague":["Come closer. Share the gift.","The sickness leaves me."],"war":["I AM THE WARDEN. YOU WILL NOT PASS.","The gate is yours, for now."],"green":["GREENMAW DEVOURS ALL WHO DESCEND.","The poison tide recedes."],"nine":["NINE VOICES. ONE LAST WARNING.","Our final eye closes."],"mite":["Even the smallest teeth draw blood.","The stone is silent."],"hound":["I smell fear on the stairs.","My hunt is over."],"slugger":["The bog will keep your boots.","Back into the mud."],"shrieker":["Listen to my lovely scream.","The echo is gone."],"husk":["The dust still wears my face.","The wind carries me away."],"gravewarden":["This tomb is under my protection.","The dead may rest."],"tunneler":["I hear your footsteps underground.","The tunnels collapse."],"drone":["The rot has many wings.","The hive grows still."],"basilisk":["Look at me. Just once.","Stone becomes flesh again."],"ogre":["Two steps. Then I smash.","I can feel the floor."],"cinder":["Catch me if you can, ash walker.","A spark in the wind."],"frostmoth":["Cold wings cover the moon.","The frost begins to thaw."],"lurker":["The bog has been waiting.","I sink without a sound."],"marrow":["My blade is older than your blood.","The marrow turns to dust."],"veil":["You cannot cut a shadow.","The veil is torn."],"beetle":["My shell is stronger than your steel.","The iron carapace cracks."],"sporewasp":["The spores will find your lungs.","The swarm scatters."],"adder":["My coils are your last embrace.","The coil loosens."],"stonewarden":["I am the wall beneath the world.","The foundation crumbles."],"palewatcher":["Every secret has an eye.","No eyes remain."],"ashhound":["Run. It makes the hunt sweeter.","The embers cool."],"tombspider":["You came to the right tomb.","The last thread snaps."],"gravemoth":["I flutter between graves.","My wings turn to soot."],"rotogre":["The rot makes me strong.","The rot takes me too."],"shard":["A thousand edges. One purpose.","The crystal heart breaks."],"blight":["The forest learned to hate.","The blight withdraws."],"choir":["WE ARE THE CHOIR OF THE FORGOTTEN.","At last, the song has ended."],"mother":["COME CLOSER, MY LITTLE HATCHLINGS.","My children. Scatter."],"furnace":["THE FURNACE BURNS WITHOUT MERCY.","The last coal goes black."],"hollowcrown":["BOW BEFORE THE HOLLOW CROWN.","The crown returns to silence."]};
+const VSET={enabled:true,volume:0.76,captions:true};
+try{Object.assign(VSET,JSON.parse(localStorage.getItem('lt_voice_settings')||'{}'));}catch(e){}
+const saveV=()=>{try{localStorage.setItem('lt_voice_settings',JSON.stringify(VSET));}catch(e){}};
+const speech=window.speechSynthesis||null;
+let knownVoices=[];
+function loadVoices(){if(!speech)return;try{knownVoices=speech.getVoices().filter(v=>/^en\b/i.test(v.lang));}catch(e){}}
+loadVoices(); if(speech&&typeof speech.addEventListener==='function')speech.addEventListener('voiceschanged',loadVoices);
+let voicedAt=0, lastSpoken='',captionTimer=null,spokenCount=0,voiceUnlocked=false;
+const overlay=document.createElement('div');overlay.id='lt-dialogue-caption';overlay.setAttribute('role','status');overlay.setAttribute('aria-live','polite');
+overlay.style.cssText='position:fixed;z-index:9998;left:50%;transform:translateX(-50%);top:72px;width:max-content;max-width:min(92vw,620px);padding:8px 14px;text-align:center;border:1px solid #ae8d60;border-radius:7px;background:linear-gradient(120deg,rgba(13,13,25,.94),rgba(35,23,44,.93));box-shadow:0 4px 24px #000b;color:#f2e7d2;font-size:13px;line-height:1.45;pointer-events:none;opacity:0;transition:opacity .3s';
+function caption(name,line){if(!VSET.captions)return;overlay.textContent='';const n=document.createElement('strong');n.style.color='#f0cc89';n.textContent=name+'  ';overlay.append(n,document.createTextNode('“'+line+'”'));overlay.style.opacity='1';clearTimeout(captionTimer);captionTimer=setTimeout(()=>{overlay.style.opacity='0';},4800);}
+function voiceEntry(id,side,kind){const arr=(side==='hero'?HERO_DIALOGUE:FOE_DIALOGUE)[id];if(!arr)return null;const i=side==='hero'?({intro:0,attack:1,win:2,death:3}[kind]??0):kind==='death'?1:0;return arr[i];}
+function speak(id,side,kind,name,force){
+  const line=voiceEntry(id,side,kind);if(!line||!VSET.enabled)return false;
+  const now=Date.now();if(!force&&now-voicedAt<2300)return false;
+  const key=side+':'+id+':'+kind;if(key===lastSpoken&&now-voicedAt<14000)return false;
+  lastSpoken=key;voicedAt=now;spokenCount++;caption(name||id,line);
+  // Speech Synthesis is a system service: no downloads, voice assets, or network permissions.
+  if(speech&&typeof window.SpeechSynthesisUtterance!=='undefined'){
+    try{
+      // Clear queued lines when a boss interrupts, but do not pile up dozens of lines in large fights.
+      if(force||speech.pending)speech.cancel();
+      const u=new SpeechSynthesisUtterance(line);
+      const hash=[...id].reduce((a,c)=>a*31+c.charCodeAt(0),0)>>>0;
+      if(knownVoices.length)u.voice=knownVoices[hash%knownVoices.length];
+      u.lang=u.voice?.lang||'en-US';
+      u.rate=(side==='foe'?0.77:0.90)+(hash%5)*0.045;
+      u.pitch=Math.max(0.45,Math.min(1.65,(side==='foe'?0.65:0.90)+(hash%9)*0.10));
+      u.volume=VSET.volume;
+      speech.speak(u);
+    }catch(e){/* Captions remain available when speech output is blocked. */}
+  }
+  return true;
+}
+// Original generative score: distinct modes for exploration, shopping, combat and bosses.
+const SONGS={
+ menu:{root:110,pace:460,mel:[0,null,3,7,10,null,7,3,0,2,null,5,7,null,3,null],bass:[0,-2,-5,-7],pad:[0,3,7],wave:'sine'},
+ journey:{root:98,pace:400,mel:[0,2,3,null,7,5,3,null,10,7,null,5,3,2,null,0],bass:[0,-5,-3,-7],pad:[0,3,7],wave:'triangle'},
+ shop:{root:130.81,pace:475,mel:[0,4,7,null,11,7,4,null,2,4,9,null,7,4,2,null],bass:[0,-5,-2,-7],pad:[0,4,7],wave:'sine'},
+ fight:{root:82.41,pace:220,mel:[0,null,1,7,6,null,1,0,10,null,7,6,1,3,0,null],bass:[0,-5,-2,-7],pad:[0,1,7],wave:'triangle'},
+ boss:{root:65.41,pace:255,mel:[0,1,6,5,0,1,8,7,0,3,6,10,8,6,1,0],bass:[0,-6,-5,-1],pad:[0,1,6],wave:'sawtooth'},
+};
+const score={active:false,scene:'menu',timer:null,step:0,out:null,ctx:null};
+function scoreNote(hz,dur,when,volume,wave){
+  const ctx=score.ctx;if(!ctx||!score.out||!hz)return;
+  try{
+    const osc=ctx.createOscillator(),g=ctx.createGain();osc.type=wave||'triangle';osc.frequency.setValueAtTime(Math.max(25,hz),when);
+    g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),when+.025);
+    g.gain.exponentialRampToValueAtTime(.0001,when+dur);
+    osc.connect(g).connect(score.out);osc.start(when);osc.stop(when+dur+.03);
+  }catch(e){}
+}
+function scoreBeat(){
+  if(!AUDIO.music||!score.active)return;
+  if(!score.ctx||score.ctx.state==='closed')return;
+  const song=SONGS[score.scene]||SONGS.menu,step=score.step++%16,t=score.ctx.currentTime+.045;
+  score.out.gain.setTargetAtTime(Math.max(0,AUDIO.mvol)*.34,t,.08);
+  const n=song.mel[step];
+  if(n!==null)scoreNote(song.root*Math.pow(2,(n+12)/12),song.pace/1000*.85,t,.095,song.wave);
+  if(step%4===0){const b=song.bass[(step/4)%4];scoreNote(song.root/2*Math.pow(2,b/12),song.pace/1000*3.4,t,.22,'sine');}
+  if(step===0){for(const p of song.pad)scoreNote(song.root*Math.pow(2,(p-12)/12),song.pace/1000*12,t,.035,'sine');}
+  if(score.scene==='fight'||score.scene==='boss'){
+    if(step%4===0)scoreNote(48,.17,t,.10,'sine');
+    if(step%4===2)scoreNote(105,.065,t,.045,'triangle');
+  }
+}
+function stopScore(){if(score.timer!==null){clearInterval(score.timer);score.timer=null;}score.active=false;try{score.out?.disconnect();}catch(e){}score.out=null;score.ctx=null;}
+function startScore(){
+  if(!AUDIO.music||score.timer!==null)return;
+  const ctx=actx();if(!ctx)return;
+  score.ctx=ctx;score.out=ctx.createGain();score.out.gain.value=AUDIO.mvol*.34;score.out.connect(ctx.destination);
+  score.active=true;score.step=0;
+  let interval=SONGS[score.scene]?.pace||460;
+  scoreBeat();score.timer=setInterval(()=>{
+    const next=SONGS[score.scene]?.pace||460;
+    if(interval!==next){clearInterval(score.timer);score.timer=null;startScoreFromScene();return;}
+    scoreBeat();
+  },interval);
+}
+function startScoreFromScene(){if(!AUDIO.music)return;stopScore();startScore();}
+function setScene(id){
+  const next=id==='scr-battle'?(typeof B!=='undefined'&&B&&B.foes&&B.foes.some(f=>f.boss)?'boss':'fight'):
+    id==='scr-shop'?'shop':id==='scr-title'||id==='scr-select'?'menu':'journey';
+  if(next!==score.scene){score.scene=next;score.step=0; if(score.active)startScoreFromScene();}
+  if(id==='scr-title'&&speech)try{speech.cancel();}catch(e){}
+}
+const oldStartMusic=startMusic,oldStopMusic=stopMusic,oldSetMusic=setMusic;
+startMusic=function(){oldStartMusic();startScore();};
+stopMusic=function(){stopScore();oldStopMusic();};
+setMusic=function(on){oldSetMusic(on);if(on)startScore();else stopScore();};
+const oldShow=show;
+show=function(id){oldShow(id);setScene(id);};
+const oldFoeVoice=foeVoice;
+foeVoice=function(f){oldFoeVoice(f);const d=f&&(f.foeDef||f.sprite||(f.ref&&f.ref.foeDef));if(d)speak(d.id,'foe','intro',d.n,!!d.boss);};
+const oldBeginFight=beginFight;
+beginFight=function(){oldBeginFight();if(B&&B.heroes&&B.heroes.length){const h=B.heroes[Math.floor(Math.random()*B.heroes.length)];if(h&&h.ref)setTimeout(()=>speak(h.ref.cid,'hero','attack',h.name,false),2900);}};
+const oldFxDeath=fxDeath;
+fxDeath=function(u){oldFxDeath(u);if(!u)return;
+  if(u.side==='foe'&&(u.sprite||u.foeDef))speak((u.sprite||u.foeDef).id,'foe','death',u.name,!!u.boss);
+  if(u.side==='hero'&&u.ref)speak(u.ref.cid,'hero','death',u.name,true);
+};
+const oldTick=tick;
+tick=function(){
+  oldTick();
+  // In longer fights, give the other combatants a chance to speak as well.
+  if(!B||B.pending||B.over||B.finishing||B.n%90!==0)return;
+  const candidates=B.foes.filter(f=>f.alive&&(f.sprite||f.foeDef));
+  if(candidates.length){const f=candidates[(Math.floor(B.n/90)-1)%candidates.length];
+    const d=f.sprite||f.foeDef;speak(d.id,'foe','intro',f.name,false);}
+};
+const oldStartRun=startRun;
+startRun=function(){oldStartRun();if(R&&R.party&&R.party.length){const p=R.party[0];setTimeout(()=>speak(p.cid,'hero','intro',p.name,true),200);}};
+const oldFinishBattle=finishBattle;
+finishBattle=function(win){
+  if(B&&win&&B.heroes){const h=B.heroes.find(x=>x.alive&&x.ref);if(h)setTimeout(()=>speak(h.ref.cid,'hero','win',h.name,false),800);}
+  oldFinishBattle(win);
+};
+const oldOpenSettings=openSettings;
+openSettings=function(){
+  oldOpenSettings();const b=document.getElementById('setBody');if(!b)return;
+  const row=(heading,description,control)=>{const d=document.createElement('div');d.className='lt-voice-setting';d.style.cssText='margin:12px 0';
+    const name=document.createElement('div');name.style.cssText='font-size:12px;color:#fff';name.textContent=heading;
+    const small=document.createElement('div');small.style.cssText='font-size:10px;color:#aea6b5;margin:3px 0 6px';small.textContent=description;
+    d.append(name,small,control);return d;};
+  const toggle=(value,onChange)=>{const btn=document.createElement('button');btn.textContent=value?'ON':'OFF';if(value)btn.classList.add('sel');
+    btn.onclick=()=>{onChange(!value);openSettings();};return btn;};
+  const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.value=String(Math.round(VSET.volume*100));
+  range.setAttribute('aria-label','Voice volume');range.style.cssText='width:100%;accent-color:#e8c27a';
+  range.oninput=()=>{VSET.volume=Number(range.value)/100;saveV();};
+  const button=document.createElement('button');button.textContent='Test Character Voice';
+  button.onclick=()=>speak('seraphina','hero','intro','Lady Seraphina',true);
+  const group=document.createElement('div');group.id='lt-voice-controls';group.style.cssText='border-top:1px solid #655674;padding-top:10px;margin-top:12px';
+  const head=document.createElement('div');head.style.cssText='font-weight:700;color:#eac987;margin-bottom:6px';head.textContent='Music & Spoken Dialogue';group.append(head);
+  group.append(row('Voice lines','Unique spoken lines for all 20 characters and 50 enemy types; uses your device’s speech voices.',toggle(VSET.enabled,v=>{VSET.enabled=v;saveV();if(!v&&speech)try{speech.cancel();}catch(e){}})));
+  group.append(row('Voice volume','Volume of spoken dialogue.',range));
+  group.append(row('Dialogue subtitles','Displays each character’s words during speech.',toggle(VSET.captions,v=>{VSET.captions=v;saveV();if(!v)overlay.style.opacity='0';})));
+  group.append(row('Voice preview','Hear a sample character line, if your browser supports speech.',button));
+  const wipe=b.querySelector('button[style*="d3303a"]');if(wipe&&wipe.parentElement)b.insertBefore(group,wipe.parentElement);else b.appendChild(group);
+  const desc=[...b.querySelectorAll('div')].find(x=>x.childNodes.length&&x.textContent?.trim()==='A low drone, water somewhere, and whatever else is down there.');
+  if(desc)desc.textContent='Original adaptive music: eerie exploration, merchant melody, combat rhythm and boss theme.';
+};
+// Allow audio to unlock only following player gestures, respecting mobile browser autoplay policy.
+document.addEventListener('pointerdown',()=>{voiceUnlocked=true;if(AUDIO.music)startScore();},{once:true});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(overlay));
+else document.body.appendChild(overlay);
+window.LT_AUDIO_TEST={heroCount:Object.keys(HERO_DIALOGUE).length,foeCount:Object.keys(FOE_DIALOGUE).length,
+  get scene(){return score.scene;},get running(){return score.active;},get voicesEnabled(){return VSET.enabled;},
+  get count(){return spokenCount;},speak,scoreBeat,setScene};
+})();
+</script>
+<!-- LAST_TORCH_MUSIC_VOICES_V1_END -->
 
 </body>
 </html>
